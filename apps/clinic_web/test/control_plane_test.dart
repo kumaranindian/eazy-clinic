@@ -144,7 +144,9 @@ void main() {
     });
 
     testWidgets('a clinic owner lands on the clinic page', (t) async {
-      final repo = FakeRepo()..on('entitlements', (a, n) => entitlementsJson());
+      final repo = FakeRepo()
+        ..on('entitlements', (a, n) => entitlementsJson())
+        ..on('getMap', (a, n) => ownerAccess(a[0]! as String));
       await open(
         t,
         buildApp(
@@ -159,9 +161,8 @@ void main() {
           ),
         ),
       );
-      expect(find.text('Your clinic'), findsOneWidget);
-      expect(find.text('Included features'), findsOneWidget);
-      expect(find.text('Unlimited'), findsOneWidget);
+      expect(find.text('Test Clinic'), findsWidgets);
+      expect(find.text('Your plan'), findsOneWidget);
       expect(find.text('/platform'), findsNothing);
     });
 
@@ -741,7 +742,17 @@ void main() {
     Future<void> clinic(WidgetTester t, Map<String, Object?> ent) => open(
       t,
       buildApp(
-        repo: FakeRepo()..on('entitlements', (a, n) => ent),
+        repo: FakeRepo()
+          ..on('entitlements', (a, n) => ent)
+          ..on('getMap', (a, n) {
+            if (ent['accessLevel'] == 'blocked') {
+              throw const ApiFailure(
+                code: ApiErrorCode.forbidden,
+                message: 'blocked',
+              );
+            }
+            return ownerAccess(a[0]! as String, writes: false);
+          }),
         session: sessionWith(
           memberships: [
             const MembershipSummaryDto(tenantId: 'ten_1', role: 'clinic_owner'),

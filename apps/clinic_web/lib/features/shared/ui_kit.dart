@@ -162,6 +162,8 @@ class ListScreen extends ConsumerStatefulWidget {
     this.statusOptions,
     this.searchHint,
     this.searchParam = 'q',
+    this.extraDropdown,
+    this.extraText,
     this.extraParams = const {},
     this.actions = const [],
     super.key,
@@ -179,6 +181,12 @@ class ListScreen extends ConsumerStatefulWidget {
 
   /// Query parameter that carries the search text.
   final String searchParam;
+
+  /// Optional second dropdown filter: (label, query param, values).
+  final (String, String, List<String>)? extraDropdown;
+
+  /// Optional free-text filter: (label, query param).
+  final (String, String)? extraText;
   final Map<String, String> extraParams;
   final List<Widget> actions;
 
@@ -191,6 +199,8 @@ class _ListScreenState extends ConsumerState<ListScreen> {
   Timer? _debounce;
   String _q = '';
   String? _status;
+  String? _extraChoice;
+  String _extraValue = '';
 
   @override
   void dispose() {
@@ -205,6 +215,9 @@ class _ListScreenState extends ConsumerState<ListScreen> {
       ...widget.extraParams,
       'status': _status ?? '',
       widget.searchParam: _q,
+      if (widget.extraDropdown != null)
+        widget.extraDropdown!.$2: _extraChoice ?? '',
+      if (widget.extraText != null) widget.extraText!.$2: _extraValue,
     });
     final state = ref.watch(pagedListProvider(query));
     final notifier = ref.read(pagedListProvider(query).notifier);
@@ -244,6 +257,30 @@ class _ListScreenState extends ConsumerState<ListScreen> {
                   itemLabel: (s) =>
                       s == null ? 'All statuses' : Fmt.humanize(s),
                   onChanged: (v) => setState(() => _status = v),
+                ),
+              ),
+            if (widget.extraDropdown != null)
+              SizedBox(
+                width: 240,
+                child: EcDropdown<String?>(
+                  label: widget.extraDropdown!.$1,
+                  items: [null, ...widget.extraDropdown!.$3],
+                  value: _extraChoice,
+                  itemLabel: (s) => s == null ? 'All' : Fmt.humanize(s),
+                  onChanged: (v) => setState(() => _extraChoice = v),
+                ),
+              ),
+            if (widget.extraText != null)
+              SizedBox(
+                width: 240,
+                child: EcTextField(
+                  label: widget.extraText!.$1,
+                  onChanged: (v) {
+                    _debounce?.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 400), () {
+                      if (mounted) setState(() => _extraValue = v.trim());
+                    });
+                  },
                 ),
               ),
           ],

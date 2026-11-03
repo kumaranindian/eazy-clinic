@@ -36,6 +36,7 @@ dependencies:
     path: ../../packages/common_models
   design_system:
     path: ../../packages/design_system
+  file_selector: ^1.0.3
   flutter:
     sdk: flutter
   flutter_riverpod: ^3.3.2

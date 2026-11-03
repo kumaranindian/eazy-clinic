@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:api_contracts/api_contracts.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -82,6 +85,48 @@ class ApiClient {
 
   Future<ApiResult> patch(String path, {Object? body}) =>
       _send('PATCH', path, body: body);
+
+  Future<ApiResult> put(String path, {Object? body}) =>
+      _send('PUT', path, body: body);
+
+  Future<ApiResult> delete(String path) => _send('DELETE', path);
+
+  /// Binary download (e.g. the clinic logo). Errors use the normal envelope.
+  Future<Uint8List> getBytes(String path) async {
+    final token = await _auth.idToken();
+    if (token == null) {
+      throw const ApiFailure(
+        code: ApiErrorCode.unauthenticated,
+        message: 'Please sign in again.',
+      );
+    }
+    final Response<List<int>> r;
+    try {
+      r = await _dio.get<List<int>>(
+        path,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'authorization': 'Bearer $token'},
+        ),
+      );
+    } on DioException {
+      throw const ApiFailure(isNetwork: true);
+    }
+    final status = r.statusCode ?? 0;
+    if (status >= 200 && status < 300) {
+      return Uint8List.fromList(r.data ?? const []);
+    }
+    Map<String, Object?>? json;
+    try {
+      json = (jsonDecode(utf8.decode(r.data ?? const [])) as Map)
+          .cast<String, Object?>();
+    } on Object {
+      json = null;
+    }
+    final failure = _failure(json);
+    if (failure.isSessionInvalid) onSessionInvalid?.call();
+    throw failure;
+  }
 
   Future<ApiResult> _send(
     String method,

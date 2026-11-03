@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:api_contracts/api_contracts.dart';
 import 'package:app_core/app_core.dart';
 import 'package:clinic_web/features/control_plane/data/control_plane_repository.dart';
@@ -42,6 +44,24 @@ class FakeRepo implements ControlPlaneRepository {
   @override
   Future<ApiResult> list(String path, Map<String, String> query) =>
       _call<ApiResult>('list', [path, query], {});
+
+  @override
+  Future<Json> getMap(String path, [Map<String, String>? query]) =>
+      _call<Json>('getMap', [path, query], {});
+
+  @override
+  Future<List<Json>> getList(String path, [Map<String, String>? query]) =>
+      _call<List<Json>>('getList', [path, query], {});
+
+  @override
+  Future<Json> sendMap(String method, String path, [Json? body]) =>
+      _call<Json>('sendMap', [method, path, body], {});
+
+  @override
+  Future<void> deleteAt(String path) => _call<void>('deleteAt', [path], {});
+
+  @override
+  Future<Uint8List> logoBytes() => _call<Uint8List>('logoBytes', [], {});
 
   @override
   Future<Json> submitApplication(Json body) =>
@@ -321,3 +341,34 @@ Map<String, Object?> entitlementsJson({
   'features': {'appointments': level != 'blocked', 'billing': false},
   'limits': {'max_branches': 1, 'max_doctors': 3, 'max_patients': null},
 };
+
+/// Answers the clinic-admin read endpoints for a clinic owner (tests only).
+Map<String, Object?> ownerAccess(String path, {bool writes = true}) {
+  if (path.startsWith('/members/current/permissions')) {
+    return {
+      'tenantId': 'ten_1',
+      'role': 'clinic_owner',
+      'allBranches': true,
+      'branches': <Object?>[],
+      'accessLevel': writes ? 'full' : 'read_only',
+      'writesAllowed': writes,
+      'permissions': <Object?>[
+        'clinic.view',
+        'clinic.update',
+        'branches.view',
+        'doctors.view',
+        'staff.view',
+        'roles.view',
+      ],
+    };
+  }
+  if (path.startsWith('/clinics/current')) {
+    return {
+      'tenantId': 'ten_1',
+      'status': 'active',
+      'verificationStatus': 'verified',
+      'profile': {'name': 'Test Clinic', 'type': 'clinic'},
+    };
+  }
+  return <String, Object?>{};
+}

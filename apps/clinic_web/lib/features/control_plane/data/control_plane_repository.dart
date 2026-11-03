@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:app_core/app_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +15,27 @@ class ControlPlaneRepository {
   // Lists ----------------------------------------------------------------
   Future<ApiResult> list(String path, Map<String, String> query) =>
       _api.get(path, query: query);
+
+  // Generic helpers for the clinic-administration screens -------------------
+  Future<Json> getMap(String path, [Map<String, String>? query]) async =>
+      (await _api.get(path, query: query)).map;
+  Future<List<Json>> getList(String path, [Map<String, String>? query]) async =>
+      (await _api.get(path, query: query)).list;
+  Future<Json> sendMap(String method, String path, [Json? body]) async {
+    final r = switch (method) {
+      'POST' => await _api.post(path, body: body),
+      'PATCH' => await _api.patch(path, body: body),
+      'PUT' => await _api.put(path, body: body),
+      _ => throw ArgumentError('Unsupported method $method'),
+    };
+    return r.data is Map ? r.map : const {};
+  }
+
+  Future<void> deleteAt(String path) async {
+    await _api.delete(path);
+  }
+
+  Future<Uint8List> logoBytes() => _api.getBytes('/clinics/current/logo');
 
   // Applicant ------------------------------------------------------------
   Future<Json> submitApplication(Json body) async =>

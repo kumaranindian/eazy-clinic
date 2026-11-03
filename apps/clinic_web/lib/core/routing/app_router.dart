@@ -4,6 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/clinic_admin/access_pages.dart';
+import '../../features/clinic_admin/branches_pages.dart';
+import '../../features/clinic_admin/clinic_shell.dart';
+import '../../features/clinic_admin/doctors_pages.dart';
+import '../../features/clinic_admin/overview_pages.dart';
+import '../../features/clinic_admin/settings_page.dart';
+import '../../features/clinic_admin/staff_pages.dart';
+import '../../features/onboarding/presentation/accept_invitation_page.dart';
 import '../../features/onboarding/presentation/apply_page.dart';
 import '../../features/onboarding/presentation/my_applications_pages.dart';
 import '../../features/platform/applications_pages.dart';
@@ -14,7 +22,6 @@ import '../../features/platform/platform_shell.dart';
 import '../../features/platform/subscriptions_pages.dart';
 import '../../features/platform/tenants_pages.dart';
 import '../../features/shared/app_frame.dart';
-import '../../features/tenant/clinic_home_page.dart';
 import '../config/client_config_provider.dart';
 
 /// App route paths. Authentication routes (/login, /forgot-password, ...)
@@ -81,8 +88,89 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            path: '/accept-invitation',
+            builder: (context, state) =>
+                AcceptInvitationPage(token: state.uri.queryParameters['token']),
+          ),
+        ],
+      ),
+      ShellRoute(
+        builder: (context, state, child) =>
+            ClinicShell(location: state.uri.path, child: child),
+        routes: [
+          GoRoute(
             path: AppRoutes.clinic,
-            builder: (context, state) => const ClinicHomePage(),
+            builder: (context, state) => const ClinicOverviewPage(),
+          ),
+          GoRoute(
+            path: '/clinic/profile',
+            builder: (context, state) => const ClinicProfileEditPage(),
+          ),
+          GoRoute(
+            path: '/clinic/settings',
+            builder: (context, state) => const ClinicSettingsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/branches',
+            builder: (context, state) => const BranchesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/branches/new',
+            builder: (context, state) => const BranchFormPage(),
+          ),
+          GoRoute(
+            path: '/clinic/branches/:id',
+            builder: (context, state) =>
+                BranchDetailPage(branchId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/branches/:id/edit',
+            builder: (context, state) =>
+                BranchFormPage(branchId: state.pathParameters['id']),
+          ),
+          GoRoute(
+            path: '/clinic/doctors',
+            builder: (context, state) => const DoctorsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/doctors/new',
+            builder: (context, state) => const DoctorFormPage(),
+          ),
+          GoRoute(
+            path: '/clinic/doctors/:id',
+            builder: (context, state) =>
+                DoctorDetailPage(doctorId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/doctors/:id/edit',
+            builder: (context, state) =>
+                DoctorFormPage(doctorId: state.pathParameters['id']),
+          ),
+          GoRoute(
+            path: '/clinic/staff',
+            builder: (context, state) => const StaffPage(),
+          ),
+          GoRoute(
+            path: '/clinic/staff/new',
+            builder: (context, state) => const StaffFormPage(),
+          ),
+          GoRoute(
+            path: '/clinic/staff/:id',
+            builder: (context, state) =>
+                StaffDetailPage(staffId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/staff/:id/edit',
+            builder: (context, state) =>
+                StaffFormPage(staffId: state.pathParameters['id']),
+          ),
+          GoRoute(
+            path: '/clinic/invitations',
+            builder: (context, state) => const InvitationsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/access',
+            builder: (context, state) => const AccessPage(),
           ),
         ],
       ),

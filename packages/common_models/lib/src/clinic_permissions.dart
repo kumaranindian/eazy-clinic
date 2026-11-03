@@ -110,8 +110,9 @@ abstract final class ClinicRolePolicy {
   static bool canGrant(ClinicRole actor, ClinicRole target) {
     if (!roleHas(actor, ClinicPermission.staffAssignRole)) return false;
     if (target == ClinicRole.clinicOwner) return false;
-    if (target == ClinicRole.clinicAdmin)
+    if (target == ClinicRole.clinicAdmin) {
       return actor == ClinicRole.clinicOwner;
+    }
     return assignable.contains(target);
   }
 
@@ -119,8 +120,9 @@ abstract final class ClinicRolePolicy {
   /// [current]. Owners are untouchable; admins are managed by the owner only.
   static bool canManageMember(ClinicRole actor, ClinicRole current) {
     if (current == ClinicRole.clinicOwner) return false;
-    if (current == ClinicRole.clinicAdmin)
+    if (current == ClinicRole.clinicAdmin) {
       return actor == ClinicRole.clinicOwner;
+    }
     return actor == ClinicRole.clinicOwner || actor == ClinicRole.clinicAdmin;
   }
 }
