@@ -19,6 +19,7 @@ import '../platform/common/paging.dart';
 import '../platform/entitlements/entitlement_service.dart';
 import 'branches/branch_service.dart';
 import 'common/clinic_deps.dart';
+import 'doctors/doctor_service.dart';
 import 'common/object_storage.dart';
 import 'common/seat_service.dart';
 import 'common/tenant_context.dart';
@@ -54,6 +55,7 @@ class ClinicModule {
            RateLimiter(maxRequests: 30, window: const Duration(hours: 1)) {
     clinic = ClinicService(deps, storage);
     branches = BranchService(deps);
+    doctors = DoctorService(deps, branches);
   }
 
   final AuthModule auth;
@@ -62,6 +64,7 @@ class ClinicModule {
   final RateLimiter invites;
   late final ClinicService clinic;
   late final BranchService branches;
+  late final DoctorService doctors;
 
   static const String _v1 = apiV1Prefix;
 
@@ -257,6 +260,120 @@ class ClinicModule {
             ok(req, await branches.deactivate(t, id(bid), requestId: rid(req))),
         write: true,
       ),
+    );
+    // Doctors
+    r.get(
+      '$_v1/doctors',
+      secured((Request req, TenantContext t) async {
+        final page = await doctors.list(
+          t,
+          req,
+          q: query(req, 'q'),
+          status: query(req, 'status'),
+          specialty: query(req, 'specialty', max: 60),
+          branchId: query(req, 'branchId', max: 64),
+        );
+        return list(req, page, (d) => doctors.present(t, d.data));
+      }),
+    );
+    r.post(
+      '$_v1/doctors',
+      secured(
+        (Request req, TenantContext t) async => ok(
+          req,
+          await doctors.create(t, await body(req), requestId: rid(req)),
+          status: 201,
+        ),
+        write: true,
+      ),
+    );
+    r.get(
+      '$_v1/doctors/<id>',
+      secured(
+        (Request req, TenantContext t, String did) async =>
+            ok(req, await doctors.detail(t, id(did))),
+      ),
+    );
+    r.patch(
+      '$_v1/doctors/<id>',
+      secured(
+        (Request req, TenantContext t, String did) async => ok(
+          req,
+          await doctors.update(
+            t,
+            id(did),
+            await body(req),
+            requestId: rid(req),
+          ),
+        ),
+        write: true,
+      ),
+    );
+    r.post(
+      '$_v1/doctors/<id>/activate',
+      secured(
+        (Request req, TenantContext t, String did) async => ok(
+          req,
+          await doctors.setActive(
+            t,
+            id(did),
+            active: true,
+            requestId: rid(req),
+          ),
+        ),
+        write: true,
+      ),
+    );
+    r.post(
+      '$_v1/doctors/<id>/deactivate',
+      secured(
+        (Request req, TenantContext t, String did) async => ok(
+          req,
+          await doctors.setActive(
+            t,
+            id(did),
+            active: false,
+            requestId: rid(req),
+          ),
+        ),
+        write: true,
+      ),
+    );
+    r.get(
+      '$_v1/doctors/<id>/branches',
+      secured(
+        (Request req, TenantContext t, String did) async => ok(
+          req,
+          await doctors.listAssignments(
+            t,
+            id(did),
+            status: query(req, 'status'),
+          ),
+        ),
+      ),
+    );
+    r.post(
+      '$_v1/doctors/<id>/branches',
+      secured(
+        (Request req, TenantContext t, String did) async => ok(
+          req,
+          await doctors.assign(
+            t,
+            id(did),
+            await body(req),
+            requestId: rid(req),
+          ),
+          status: 201,
+        ),
+        write: true,
+      ),
+    );
+    r.delete(
+      '$_v1/doctors/<id>/branches/<branchId>',
+      secured((Request req, TenantContext t, String did, String bid) async {
+        await doctors.unassign(t, id(did), id(bid), requestId: rid(req));
+        return ok(req, {'ended': true});
+      }, write: true),
     );
   }
 }

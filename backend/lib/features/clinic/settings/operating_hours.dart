@@ -24,7 +24,7 @@ class HoursParser {
         : int.parse(m.group(1)!) * 60 + int.parse(m.group(2)!);
   }
 
-  static bool validDate(Object? v) {
+  static bool validDate(Object? v, {int minYear = 2000, int maxYear = 2100}) {
     if (v is! String) return false;
     final m = _date.firstMatch(v);
     if (m == null) return false;
@@ -35,8 +35,8 @@ class HoursParser {
     return dt.year == y &&
         dt.month == mo &&
         dt.day == d &&
-        y >= 2000 &&
-        y <= 2100;
+        y >= minYear &&
+        y <= maxYear;
   }
 
   /// Parses one day. Returns the normalised map or null (issues recorded).
