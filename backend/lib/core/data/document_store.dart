@@ -97,6 +97,12 @@ class UpdateOp extends WriteOp {
   final DocData fields;
 }
 
+/// Deletes a document (no error if it is already gone). Used only for
+/// releasing subscription seats; business records are never deleted.
+class DeleteOp extends WriteOp {
+  const DeleteOp(super.path);
+}
+
 /// Reads inside a transaction; all writes commit atomically at the end.
 abstract interface class TxContext {
   Future<DocData?> get(String path);

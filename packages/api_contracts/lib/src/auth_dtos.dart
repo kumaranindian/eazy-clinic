@@ -102,6 +102,7 @@ class MembershipSummaryDto {
     required this.tenantId,
     required this.role,
     this.branchIds = const [],
+    this.allBranches = false,
   });
 
   factory MembershipSummaryDto.fromJson(Map<String, Object?> json) =>
@@ -111,15 +112,21 @@ class MembershipSummaryDto {
         branchIds: ((json['branchIds'] as List?) ?? const [])
             .whereType<String>()
             .toList(),
+        allBranches: json['allBranches'] as bool? ?? false,
       );
 
   final String tenantId;
   final String role;
   final List<String> branchIds;
 
+  /// True when the membership covers every branch of the tenant (including
+  /// branches created later). Otherwise only [branchIds] are in scope.
+  final bool allBranches;
+
   Map<String, Object?> toJson() => {
     'tenantId': tenantId,
     'role': role,
     'branchIds': branchIds,
+    'allBranches': allBranches,
   };
 }

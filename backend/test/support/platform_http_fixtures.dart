@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:backend/app.dart';
 import 'package:backend/config/app_config.dart';
@@ -11,6 +12,8 @@ import 'package:backend/features/auth/data/firebase_auth_admin.dart';
 import 'package:backend/features/auth/data/membership_access_resolver.dart';
 import 'package:backend/features/auth/domain/platform_user.dart';
 import 'package:backend/features/auth/presentation/auth_routes.dart';
+import 'package:backend/features/clinic/clinic_module.dart';
+import 'package:backend/features/clinic/common/object_storage.dart';
 import 'package:backend/features/platform/platform_module.dart';
 import 'package:common_models/common_models.dart';
 import 'package:shelf/shelf.dart';
@@ -45,11 +48,18 @@ class PlatformHarness {
       trustForwardedFor: false,
     );
     platform = PlatformModule(auth: auth, store: store, clock: this.clock.call);
+    clinic = ClinicModule(
+      auth: auth,
+      store: store,
+      storage: storage,
+      clock: this.clock.call,
+    );
     handler = buildApp(
       AppConfig.fromEnvironment({'APP_ENV': 'dev'}),
       AppLogger(minLevel: LogLevel.debug, sink: logs.add),
       auth: auth,
       platform: platform,
+      clinic: clinic,
     );
   }
 
@@ -57,7 +67,9 @@ class PlatformHarness {
   final MemoryDocumentStore store = MemoryDocumentStore();
   final FakeAuthAdmin authAdmin = FakeAuthAdmin();
   final List<String> logs = [];
+  final MemoryObjectStorage storage = MemoryObjectStorage();
   late final PlatformModule platform;
+  late final ClinicModule clinic;
   late final Handler handler;
 
   /// Creates an active platform user (and its Firebase record).
@@ -177,3 +189,135 @@ class PlatformHarness {
     return (await data(r))['tenantId']! as String;
   }
 }
+
+/// In-memory [ObjectStorage] (tests only).
+class MemoryObjectStorage implements ObjectStorage {
+  final Map<String, (Uint8List, String)> objects = {};
+
+  @override
+  Future<void> put(String path, Uint8List bytes, String contentType) async =>
+      objects[path] = (bytes, contentType);
+
+  @override
+  Future<(Uint8List, String)?> get(String path) async => objects[path];
+}
+
+/// A tiny valid PNG header + payload (enough for magic-byte detection).
+Uint8List pngBytes([int extra = 16]) => Uint8List.fromList([
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  ...List.filled(extra, 7),
+]);
+
+extension ClinicFlows on PlatformHarness {
+  /// Creates an approved, active clinic owned by [ownerUid] on a plan with the
+  /// given limits/features. Returns the tenant id.
+  Future<String> createClinic(
+    String ownerUid, {
+    String name = 'Green Valley Clinic',
+    String city = 'Pune',
+    String pin = '411001',
+    int? maxBranches = 3,
+    int? maxDoctors = 5,
+    int? maxStaff = 5,
+    bool multipleBranches = true,
+  }) async {
+    if (!store.docs.containsKey('platform_users/$ownerUid')) user(ownerUid);
+    final planRes = await call(
+      'POST',
+      '/platform/subscription-plans',
+      uid: 'root',
+      body: planBody(
+        name: 'Plan $name',
+        limits: {
+          'max_branches': maxBranches,
+          'max_doctors': maxDoctors,
+          'max_staff': maxStaff,
+          'max_patients': null,
+        },
+        features: {
+          'appointments': true,
+          'patient_management': true,
+          'doctor_workspace': true,
+          'multiple_branches': multipleBranches,
+        },
+      ),
+    );
+    final planId = (await data(planRes))['planId']! as String;
+    await call(
+      'POST',
+      '/platform/subscription-plans/$planId/activate',
+      uid: 'root',
+    );
+    final appId = await apply(
+      ownerUid,
+      body: applicationBody(name: name, city: city, postalCode: pin),
+    );
+    return approve(appId, planId: planId);
+  }
+
+  /// Trusted membership record, as provisioning / invitation acceptance would
+  /// create it (tests seed it directly to set up role scenarios).
+  void member(
+    String uid,
+    String tenantId,
+    String role, {
+    bool allBranches = true,
+    List<String> branchIds = const [],
+    String status = 'active',
+  }) {
+    if (!store.docs.containsKey('platform_users/$uid')) user(uid);
+    store.docs['tenants/$tenantId/members/$uid'] = {
+      'uid': uid,
+      'role': role,
+      'status': status,
+      'allBranches': allBranches,
+      'branchIds': branchIds,
+      'createdAt': clock.now,
+    };
+  }
+
+  Future<Map<String, Object?>> okData(
+    Future<Response> f, {
+    int status = 200,
+  }) async {
+    final r = await f;
+    if (r.statusCode != status) {
+      throw StateError(
+        'expected $status got ${r.statusCode}: ${await r.readAsString()}',
+      );
+    }
+    return data(r);
+  }
+}
+
+Map<String, Object?> branchBody({
+  String name = 'Main Branch',
+  String code = 'MAIN',
+  String city = 'Pune',
+}) => {
+  'name': name,
+  'code': code,
+  'type': 'main',
+  'email': 'main@gv.test',
+  'phone': '9876543210',
+  'address': {
+    'line1': '12 Main Road',
+    'city': city,
+    'state': 'Maharashtra',
+    'country': 'India',
+    'postalCode': '411001',
+  },
+};
+
+Map<String, Object?> day(
+  String from,
+  String to, [
+  List<Map<String, String>> breaks = const [],
+]) => {'open': true, 'from': from, 'to': to, 'breaks': breaks};

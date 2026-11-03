@@ -8,6 +8,7 @@ import 'core/middleware/request_id_middleware.dart';
 import 'core/middleware/request_logging_middleware.dart';
 import 'core/middleware/security_headers_middleware.dart';
 import 'features/auth/presentation/auth_routes.dart';
+import 'features/clinic/clinic_module.dart';
 import 'features/platform/platform_module.dart';
 import 'routes/api_v1_router.dart';
 
@@ -23,6 +24,7 @@ Handler buildApp(
   AppLogger logger, {
   AuthModule? auth,
   PlatformModule? platform,
+  ClinicModule? clinic,
 }) {
   return Pipeline()
       .addMiddleware(requestIdMiddleware())
@@ -30,5 +32,7 @@ Handler buildApp(
       .addMiddleware(securityHeadersMiddleware())
       .addMiddleware(requestLoggingMiddleware(logger))
       .addMiddleware(errorHandlerMiddleware(logger))
-      .addHandler(buildRouter(auth: auth, platform: platform).call);
+      .addHandler(
+        buildRouter(auth: auth, platform: platform, clinic: clinic).call,
+      );
 }

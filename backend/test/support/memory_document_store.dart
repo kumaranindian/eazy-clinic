@@ -125,13 +125,21 @@ class MemoryDocumentStore implements DocumentStore {
         case CreateOp():
           if (current(op.path) != null) throw const AlreadyExistsException();
           staged[op.path] = _copy(op.data);
+        case DeleteOp():
+          staged[op.path] = null;
         case UpdateOp():
           final existing = current(op.path);
           if (existing == null) throw const NotFoundException();
           staged[op.path] = {...existing, ..._copy(op.fields)};
       }
     }
-    staged.forEach((p, d) => docs[p] = d!);
+    staged.forEach((p, d) {
+      if (d == null) {
+        docs.remove(p);
+      } else {
+        docs[p] = d;
+      }
+    });
   }
 
   @override

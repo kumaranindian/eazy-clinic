@@ -30,13 +30,16 @@ class MembershipAccessResolver implements AccessResolver {
       final segs = r.path.split('/');
       // tenants/{tenantId}/members/{uid}
       if (segs.length != 4 || segs[0] != 'tenants') continue;
+      final branchIds = ((r.data['branchIds'] as List?) ?? const [])
+          .whereType<String>()
+          .toList();
       out.add(
         MembershipSummaryDto(
           tenantId: segs[1],
           role: r.data['role'] as String? ?? '',
-          branchIds: ((r.data['branchIds'] as List?) ?? const [])
-              .whereType<String>()
-              .toList(),
+          branchIds: branchIds,
+          // Phase 2 owner memberships have no flag: an empty list meant "all".
+          allBranches: r.data['allBranches'] as bool? ?? branchIds.isEmpty,
         ),
       );
     }

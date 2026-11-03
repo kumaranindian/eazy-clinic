@@ -247,6 +247,7 @@ class FirestoreDocumentStore implements DocumentStore {
       'update': {'name': _name(op.path), 'fields': encodeFields(op.data)},
       'currentDocument': {'exists': false},
     },
+    DeleteOp() => {'delete': _name(op.path)},
     UpdateOp() => {
       'update': {'name': _name(op.path), 'fields': encodeFields(op.fields)},
       'updateMask': {'fieldPaths': op.fields.keys.map(_fieldPath).toList()},

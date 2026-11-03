@@ -303,6 +303,7 @@ class TenantService {
               'role': ClinicRole.clinicOwner.wireName,
               'status': 'active',
               'branchIds': <String>[],
+              'allBranches': true,
               'permissionOverrides': <String, Object?>{},
               'source': 'application_approval',
               'createdAt': _now,

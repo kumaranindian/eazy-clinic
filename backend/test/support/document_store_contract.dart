@@ -83,6 +83,35 @@ void documentStoreContract(
     expect(await store.get('$p/new'), isNull);
   });
 
+  test(
+    'delete removes a document, is idempotent, and is atomic with other ops',
+    () async {
+      await store.commit([
+        CreateOp('$p/gone', {'v': 1}),
+      ]);
+      await store.commit([
+        DeleteOp('$p/gone'),
+        CreateOp('$p/kept', {'v': 2}),
+      ]);
+      expect(await store.get('$p/gone'), isNull);
+      expect((await store.get('$p/kept'))!['v'], 2);
+      await store.commit([DeleteOp('$p/gone')]); // already gone: no error
+      await expectLater(
+        store.commit([
+          DeleteOp('$p/kept'),
+          CreateOp('$p/kept2', {}),
+          CreateOp('$p/kept2', {}),
+        ]),
+        throwsA(isA<Object>()),
+      );
+      expect(
+        await store.get('$p/kept'),
+        isNotNull,
+        reason: 'rolled back with the failed commit',
+      );
+    },
+  );
+
   group('queries', () {
     setUp(() async {
       await store.commit([
