@@ -122,7 +122,9 @@ Documentation index: [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMA
 
 ## Development Status
 
-**Phase 1 (authentication and security foundation) implemented, awaiting review** on top of Phase 0. Available: Firebase email/password sign-in, registration (no roles granted), password reset, logout and session restoration in all three apps (shared `packages/app_core`); backend ID-token verification, account-status gating, `/api/v1/auth/*`, rate limiting and security-event logging; documentation in [docs/authentication/](docs/authentication/AUTHENTICATION_ARCHITECTURE.md).
+**Phase 2 (SaaS platform and multi-tenant management) implemented, awaiting review** on top of Phases 0–1: clinic applications, idempotent tenant provisioning, tenant lifecycle, subscription plans/lifecycle, entitlements, platform dashboard and audit (backend + Clinic Web). Details: [docs/phase-2/](docs/phase-2/PHASE_2_IMPLEMENTATION.md). No payments yet.
+
+**Phase 1 (authentication and security foundation) implemented** on top of Phase 0. Available: Firebase email/password sign-in, registration (no roles granted), password reset, logout and session restoration in all three apps (shared `packages/app_core`); backend ID-token verification, account-status gating, `/api/v1/auth/*`, rate limiting and security-event logging; documentation in [docs/authentication/](docs/authentication/AUTHENTICATION_ARCHITECTURE.md).
 **Not yet verified against a live Firebase project** and **no business functionality exists yet** (no clinics, tenants, patients, appointments, consultations or billing). See [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md).
 
 ## License and Ownership
