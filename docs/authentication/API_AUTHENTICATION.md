@@ -7,10 +7,13 @@ Protected endpoints require `Authorization: Bearer <Firebase ID token>`.
 |---|---|---|---|
 | `GET /auth/me` | token + profile | pending, active | Caller's verified profile (`AuthProfileDto`) |
 | `GET /auth/session` | token + profile | all | Account/access status (`AuthSessionDto`); lets the UI explain suspended/disabled |
-| `POST /auth/provision` | token only | all (no change to suspended/disabled) | Create profile on first use; sync e-mail; record login; activate if verified |
+| `POST /auth/profile/initialize` | token only | all (no change to suspended/disabled) | Create the profile on first use (idempotent, no duplicates); sync e-mail; record login; activate if verified. Returns the session plus `profile`. Body optional: `{"displayName"?}` (used only if the token has no name) |
+| `PATCH /auth/me` | token + profile | pending, active | Update `displayName`, `phoneNumber` (Indian mobile; `null` clears). Audit event `profile_updated` |
 | `POST /auth/logout` | token + profile | all | Record logout; body `{"allDevices": bool}` optionally revokes all refresh tokens |
 | `POST /auth/revoke-sessions` | token + profile | active | Revoke refresh tokens. Own account: any active user. Another user: needs `platform.users.revoke_sessions` (super admin). Body `{"targetUid"?: string}` |
 | `POST /auth/account-status` | – | – | **Not implemented** (deferred). Returns 404. |
+
+**Strict bodies:** `profile/initialize` and `PATCH /auth/me` accept only the fields listed above. Any other field (`uid`, `accountStatus`, `platformRole`, `role`, `tenantId`, `memberships`, `permissions`, `email`, `emailVerified`, ...) is rejected with 422 `validation_failed` / `not_allowed` and nothing is written; fields are never silently ignored.
 
 `targetUid` names the **target**, never the caller; the caller is always the token's uid.
 
@@ -21,7 +24,7 @@ Protected endpoints require `Authorization: Bearer <Firebase ID token>`.
 | 401 | `unauthenticated` | Missing/malformed header, invalid token, unknown key, wrong project, deleted user |
 | 401 | `token_expired` | Token expired (client refreshes once and retries) |
 | 401 | `session_revoked` | Token issued before refresh tokens were revoked |
-| 403 | `account_not_provisioned` | Valid token, no `platform_users` record → call `provision` |
+| 403 | `account_not_provisioned` | Valid token, no `platform_users` record → call `profile/initialize` |
 | 403 | `account_pending` / `account_suspended` / `account_disabled` | Status gate |
 | 403 | `forbidden` | Missing permission |
 | 422 | `validation_failed` | Bad body |

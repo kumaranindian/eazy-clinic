@@ -11,7 +11,7 @@ Written **only** by the backend (client rules are deny-all).
 | `emailVerified` | bool | From the verified token |
 | `accountStatus` | string | `pending` \| `active` \| `suspended` \| `disabled` |
 | `createdAt`, `updatedAt` | timestamp | |
-| `lastLoginAt` | timestamp? | Set by `POST /auth/provision` for pending/active accounts |
+| `lastLoginAt` | timestamp? | Set by `POST /auth/profile/initialize` for pending/active accounts |
 | `phoneNumber`, `profileImageUrl` | string? | Reserved; no write path yet |
 | `platformRole` | string? | `super_admin` \| `platform_support_admin`. **Never** set by registration or any API; assigned out-of-band until a platform admin workflow exists |
 
@@ -28,7 +28,7 @@ authorized administrative workflows (deferred with `POST /auth/account-status`);
 Unknown stored values are treated as `disabled`. Only `active` may use protected features.
 
 ## `platform_audit_logs/{autoId}` (security events)
-`event` (`user_provisioned`, `login_recorded`, `login_denied`, `account_activated`, `logout`, `sessions_revoked`), `uid`, `actorUid`,
+`event` (`user_provisioned`, `profile_updated`, `login_recorded`, `login_denied`, `account_activated`, `logout`, `sessions_revoked`), `uid`, `actorUid`,
 `requestId`, `outcome`, `reason`, `timestamp`. Rejections (`token_rejected`, `access_denied`, `rate_limited`) go to the structured log only.
 No tokens, e-mail addresses or names are recorded. Persistence is best-effort; the log line is the fallback.
 

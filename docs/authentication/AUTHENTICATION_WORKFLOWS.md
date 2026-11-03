@@ -3,23 +3,26 @@
 ## 1. Sign in
 1. User enters email/password (validated locally: email format, password present).
 2. Firebase SDK signs in (`signInWithEmailAndPassword`). Errors map to one generic message for wrong password / unknown user.
-3. App calls `POST /auth/provision` (creates the profile on first use, records the login).
+3. App calls `POST /auth/profile/initialize` (creates the profile on first use, records the login).
 4. Backend returns the session (`accountStatus`, `accessGranted`, `platformRole?`, `memberships`).
 5. `AuthController` decides: `Authenticated` | `AccessDenied(reason)` | error. Router redirects accordingly.
 
 ## 2. Registration (Clinic Web, Patient)
 Fields: full name, email, password, confirm password, terms/privacy checkbox. Firebase creates the identity → display name set →
-token refreshed → verification e-mail sent → `POST /auth/provision` → status `pending` → "Verify your email" screen.
+token refreshed → verification e-mail sent → `POST /auth/profile/initialize` → status `pending` → "Verify your email" screen.
 After the user clicks the link: "I've verified my email" reloads the user, force-refreshes the token and re-asks the backend, which
 activates the account (`pending → active`) from the verified token claim.
 Doctor app: no self-registration (staff are invited, Phase 3).
 
 ## 3. Forgot password
-Email → Firebase `sendPasswordResetEmail`. The UI always shows the same confirmation; Firebase errors for rate limiting / invalid e-mail are shown.
+Email → Firebase `sendPasswordResetEmail` → always the same "Check your email" confirmation screen (`/password-reset-sent`), whether or not the address has an account. Rate-limit / invalid-email / network errors stay on the form.
+
+### Partial failure during registration
+If the Firebase account is created but `profile/initialize` fails (offline/5xx), the user stays signed in, sees the retry screen, and **Try again** re-runs session resolution, which initializes the profile. The Firebase identity is never created twice and the backend never creates a duplicate profile (Firestore `create` with precondition; a lost race reuses the existing document). Tested.
 
 ## 4. Session restoration (app start)
 State is `AuthResolving` (loading screen; **all** routes held, deep link remembered). If Firebase has a stored user →
-`GET /auth/session` (a missing profile triggers one `provision`). Result → `Authenticated`/`AccessDenied`/`AuthFailed` (offline → retry screen)
+`GET /auth/session` (a missing profile triggers one `profile/initialize`). Result → `Authenticated`/`AccessDenied`/`AuthFailed` (offline → retry screen)
 or `Unauthenticated` for dead sessions (`session_revoked`, `token_expired`, `unauthenticated`), which also calls Firebase sign-out.
 Passwords are never stored; Firebase persists its own refresh token in platform storage; the app keeps no tokens.
 

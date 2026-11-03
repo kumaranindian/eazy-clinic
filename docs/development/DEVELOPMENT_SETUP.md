@@ -73,3 +73,5 @@ Edit sources in `assets/`, then `scripts/sync_brand_assets.sh` to copy into `pac
 - **Apps:** besides `APP_ENV` and `API_BASE_URL`, `--dart-define-from-file` must supply `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID` and (web) `FIREBASE_AUTH_DOMAIN`. `FIREBASE_APP_ID` differs per app, so keep one `app.json` per app. Missing/placeholder values show the configuration-error screen.
 - **Backend:** `FIREBASE_PROJECT_ID`, optional `AUTH_CHECK_REVOKED` (dev only may be `false`) and `TRUST_FORWARDED_FOR`. Credentials via Application Default Credentials (`gcloud auth application-default login` locally, or the Cloud Run service account with Firebase Authentication Admin and Cloud Datastore User roles).
 - Offline checks use `scripts/check_all.sh`; no Firebase project is needed for tests.
+- Emulator tests (Firestore rules + backend store): `scripts/test_emulator.sh` (needs Node 18+, Java 11+; runs `npm install` in `firebase/rules-tests` on first use; never touches a real project).
+- Full Firebase console steps: `docs/authentication/FIREBASE_AUTH_CONFIGURATION.md`.

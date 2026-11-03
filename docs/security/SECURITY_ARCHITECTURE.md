@@ -27,6 +27,8 @@ Details: [docs/authentication/](../authentication/AUTHENTICATION_ARCHITECTURE.md
 - Session revocation: `POST /auth/revoke-sessions`, `POST /auth/logout {allDevices}`; short token lifetime (1 h).
 - Security events (provisioning, login, denied login, activation, logout, revocation) → structured log and `platform_audit_logs`; no tokens/e-mails/names. Rate limiting on `/auth/*` (in-memory, TD-16).
 - Sign-up never grants a role, tenant or membership (tested: body, header, query and token-claim spoofing).
+- Firestore rules: deny-all for clients (no client access to `platform_users` or audit logs); verified by 13 emulator tests, and a mutation check showed the tests fail when the rules are loosened.
+- Identity writes use strict field allow-lists (`not_allowed` 422), so registration and `PATCH /auth/me` cannot carry roles, tenants or status.
 - **Deferred:** MFA enforcement for privileged roles, App Check, shared rate limiter, account-status administration endpoint.
 
 ## 3. Authorization (every protected request)

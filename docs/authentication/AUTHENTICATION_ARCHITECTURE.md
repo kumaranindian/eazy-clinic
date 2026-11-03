@@ -42,15 +42,28 @@ Flutter app ──(Firebase SDK)──► Firebase Auth ──► ID token
 | 012 | **Resolves TD-01.** No official Firebase Admin SDK exists for Dart. The backend verifies ID tokens itself (RS256 against Google's published certificates; checks `alg`, `kid`, signature, `exp`, `iat`, `auth_time`, `aud`, `iss`, `sub`) using `dart_jsonwebtoken`, and calls Identity Toolkit / Firestore REST with `googleapis_auth` Application Default Credentials. | Only Google-published / widely used packages; no unofficial Admin SDK clone; approved by the product owner. |
 | 013 | New shared Flutter package `packages/app_core` (resolves part of TD-05). | Authentication logic must not be duplicated across three apps (Phase 1 requirement). |
 | 014 | `platform_users/{uid}` now holds the identity of **every** account (not only Avail404 staff). Staff are distinguished by a server-written `platformRole`. | Single identity record per Firebase user; supersedes the Phase 0 schema text. |
-| 015 | `POST /auth/provision` creates the identity record. Client SDK still performs sign-in/registration/reset/sign-out. | The backend must hold a trusted profile before any protected call; provisioning derives every field from the verified token. |
+| 015 | `POST /auth/profile/initialize` creates the identity record. Client SDK still performs sign-in/registration/reset/sign-out. | The backend must hold a trusted profile before any protected call; provisioning derives every field from the verified token. |
 | 016 | Revocation is checked on **every** request in staging/production (`AUTH_CHECK_REVOKED=true`, mandatory outside dev). | Immediate effect of suspension/revocation; cost is one Identity Toolkit lookup per request (see TD-14). |
-| 017 | Firebase Auth emulator is not used; tests use in-memory doubles and a locally generated RSA key. | Emulator needs Node/Java tooling not available in CI/this environment (TD-15). |
+| 017 | **Firestore emulator** is used for rules and store tests (`scripts/test_emulator.sh`). The Auth emulator is not (its tokens are unsigned and are correctly rejected by the production verifier); token tests use a generated RSA key and an openssl-issued certificate check. | Real Firestore behaviour without a cloud project (TD-15). |
 
 ## 4. What public registration can and cannot do
 
 Registration creates a Firebase identity and a `platform_users` record (`pending` until the e-mail is verified, then `active`).
 It grants **no** platform role, clinic membership, patient-record access or tenant. There is no role/tenant field in any
 auth request, and tests assert that extra body fields, headers, query parameters and custom token claims are ignored.
+
+## 4a. Authentication state model
+
+| Spec state | Implementation (`AuthState`) |
+|---|---|
+| initializing, profileLoading | `AuthResolving` (every route held on the loading screen) |
+| unauthenticated | `Unauthenticated` (optional notice, e.g. session ended) |
+| authenticated | `Authenticated(user, session)` (only after the backend confirmed an active, admitted account) |
+| profileIncomplete | resolved automatically (`session` → `account_not_provisioned` → `profile/initialize`); if that fails → `AuthFailed` with retry |
+| pending | `AccessDenied(emailUnverified)` |
+| suspended / disabled | `AccessDenied(suspended / disabled)` |
+| unauthorized | `AccessDenied(notAuthorized)` |
+| error | `AuthFailed(isNetwork)` |
 
 ## 5. Access resolution contract
 
@@ -79,6 +92,6 @@ missing profile → 403 `account_not_provisioned`.
 ## 8. Not verified
 
 Because no Firebase project/credentials exist in this environment, the following were **not** run against real services: Firebase sign-in,
-Google signing-key fetch, Identity Toolkit `accounts:lookup/update` request shapes, Firestore REST calls, Android builds (Android SDK
-download is blocked by the sandbox proxy). Request shapes follow Google's REST documentation and are covered by unit tests with a mock HTTP client.
+Google signing-key fetch, Identity Toolkit `accounts:lookup/update` request shapes, Android builds (Android SDK
+download is blocked by the sandbox proxy). Firestore REST calls **were** verified against the local Firestore emulator. Request shapes follow Google's REST documentation and are covered by unit tests with a mock HTTP client.
 Run the manual checklist in `AUTHENTICATION_WORKFLOWS.md` §7 against the dev Firebase project before relying on this.

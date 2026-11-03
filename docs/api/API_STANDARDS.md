@@ -102,3 +102,9 @@ Each phase appends its endpoints here (or a per-domain file under `docs/api/`) w
 | GET | `/health` | none | `{ "status": "ok", "service": "eazyclinic-backend", "version": "0.1.0" }` |
 
 Any other path returns the 404 error envelope.
+
+## Authentication (Phase 1)
+- Protected endpoints require `Authorization: Bearer <Firebase ID token>`; identity comes only from the verified token. Details and error codes: `docs/authentication/API_AUTHENTICATION.md`.
+- Auth error codes added to the envelope: `token_expired`, `session_revoked` (401); `account_not_provisioned`, `account_pending`, `account_suspended`, `account_disabled` (403).
+- **Strict request bodies for identity-related writes:** unknown or security-sensitive fields yield 422 with per-field `not_allowed` issues; they are never ignored silently.
+- Auth responses carry `Cache-Control: no-store`; 429 responses include `Retry-After`.

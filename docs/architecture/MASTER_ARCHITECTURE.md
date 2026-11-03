@@ -60,7 +60,7 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 012 | Backend verifies Firebase ID tokens itself (RS256 + Google certs via `dart_jsonwebtoken`) and uses Identity Toolkit/Firestore REST via `googleapis_auth` ADC; no unofficial Admin SDK | No official Dart Admin SDK exists (TD-01) | Implemented |
 | 013 | Shared Flutter package `packages/app_core` for authentication, session and API client | No duplicated auth logic across apps | Implemented |
 | 014 | `platform_users/{uid}` is the identity record of every account; `platformRole` is server-assigned | One trusted record per Firebase user | Implemented |
-| 015 | `POST /auth/provision` creates the profile from the verified token; client SDK does sign-in/up/reset/out | Backend must hold a trusted profile before protected calls | Implemented |
+| 015 | `POST /auth/profile/initialize` creates the profile from the verified token; client SDK does sign-in/up/reset/out | Backend must hold a trusted profile before protected calls | Implemented |
 | 016 | Revocation checked on every request outside dev | Immediate suspension/revocation | Implemented |
 | 017 | No Firebase Emulator; test doubles + generated RSA key | Emulator tooling unavailable here | Accepted |
 
