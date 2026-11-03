@@ -15,6 +15,7 @@ import '../../core/validation/request_validator.dart';
 import '../auth/application/auth_context_keys.dart';
 import '../auth/domain/auth_context.dart';
 import '../auth/presentation/auth_routes.dart';
+import '../clinical/clinical_module.dart';
 import '../patients/patient_module.dart';
 import '../platform/audit/audit_service.dart';
 import '../platform/common/paging.dart';
@@ -79,6 +80,7 @@ class ClinicModule {
     members = MemberService(deps, staff, branches);
     patients = PatientModule(deps, storage);
     scheduling = SchedulingModule(deps, patients.support);
+    clinical = ClinicalModule(deps, patients.support, scheduling);
   }
 
   final AuthModule auth;
@@ -90,6 +92,7 @@ class ClinicModule {
   final RateLimiter familyLimits;
   late final PatientModule patients;
   late final SchedulingModule scheduling;
+  late final ClinicalModule clinical;
   late final ClinicService clinic;
   late final BranchService branches;
   late final DoctorService doctors;
@@ -176,6 +179,7 @@ class ClinicModule {
 
   void register(Router r) {
     registerSchedulingRoutes(this, scheduling, r);
+    registerClinicalRoutes(this, clinical, r);
     registerPatientRoutes(
       this,
       patients,

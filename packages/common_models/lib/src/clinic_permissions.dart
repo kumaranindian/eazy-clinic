@@ -72,6 +72,26 @@ abstract final class ClinicPermission {
   static const String queueConsult = 'queue.consult';
   static const String queuePriority = 'queue.priority';
 
+  // Phase 6: clinical workspace
+  static const String consultationsView = 'consultations.view';
+  static const String consultationsViewAll = 'consultations.view_all';
+  static const String consultationsManage = 'consultations.manage';
+  static const String consultationsFinalize = 'consultations.finalize';
+  static const String vitalsView = 'vitals.view';
+  static const String vitalsRecord = 'vitals.record';
+  static const String prescriptionsView = 'prescriptions.view';
+  static const String prescriptionsManage = 'prescriptions.manage';
+  static const String prescriptionsFinalize = 'prescriptions.finalize';
+  static const String clinicalCatalogueManage = 'clinical_catalogue.manage';
+  static const String clinicalTemplatesView = 'clinical_templates.view';
+  static const String clinicalTemplatesManage = 'clinical_templates.manage';
+  static const String clinicalTemplatesManageClinic =
+      'clinical_templates.manage_clinic';
+  static const String followupsView = 'followups.view';
+  static const String followupsManage = 'followups.manage';
+  static const String investigationsRequest = 'investigations.request';
+  static const String clinicalAuditView = 'clinical_audit.view';
+
   static const List<String> all = [
     clinicView,
     clinicUpdate,
@@ -131,6 +151,23 @@ abstract final class ClinicPermission {
     queueOperate,
     queueConsult,
     queuePriority,
+    consultationsView,
+    consultationsViewAll,
+    consultationsManage,
+    consultationsFinalize,
+    vitalsView,
+    vitalsRecord,
+    prescriptionsView,
+    prescriptionsManage,
+    prescriptionsFinalize,
+    clinicalCatalogueManage,
+    clinicalTemplatesView,
+    clinicalTemplatesManage,
+    clinicalTemplatesManageClinic,
+    followupsView,
+    followupsManage,
+    investigationsRequest,
+    clinicalAuditView,
   ];
 
   static bool isKnown(String key) => all.contains(key);
@@ -154,6 +191,18 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.medicationsManage,
     ClinicPermission.patientDocumentsView,
     ClinicPermission.patientDocumentsManage,
+    ClinicPermission.consultationsView,
+    ClinicPermission.consultationsViewAll,
+    ClinicPermission.consultationsManage,
+    ClinicPermission.consultationsFinalize,
+    ClinicPermission.vitalsView,
+    ClinicPermission.vitalsRecord,
+    ClinicPermission.prescriptionsView,
+    ClinicPermission.prescriptionsManage,
+    ClinicPermission.prescriptionsFinalize,
+    ClinicPermission.followupsManage,
+    ClinicPermission.investigationsRequest,
+    ClinicPermission.clinicalAuditView,
   };
 
   /// Actions that belong to the treating clinician.
@@ -207,6 +256,19 @@ abstract final class ClinicRolePolicy {
       ClinicPermission.queueView,
       ClinicPermission.queueOperate,
       ClinicPermission.queueConsult,
+      ClinicPermission.consultationsView,
+      ClinicPermission.consultationsManage,
+      ClinicPermission.consultationsFinalize,
+      ClinicPermission.vitalsView,
+      ClinicPermission.vitalsRecord,
+      ClinicPermission.prescriptionsView,
+      ClinicPermission.prescriptionsManage,
+      ClinicPermission.prescriptionsFinalize,
+      ClinicPermission.clinicalTemplatesView,
+      ClinicPermission.clinicalTemplatesManage,
+      ClinicPermission.followupsView,
+      ClinicPermission.followupsManage,
+      ClinicPermission.investigationsRequest,
     },
     ClinicRole.receptionist: {
       ..._readBasics,
@@ -229,6 +291,7 @@ abstract final class ClinicRolePolicy {
       ClinicPermission.appointmentsCancelCheckedIn,
       ClinicPermission.queueView,
       ClinicPermission.queueOperate,
+      ClinicPermission.followupsView,
     },
     ClinicRole.nurse: {
       ..._readBasics,
@@ -240,6 +303,9 @@ abstract final class ClinicRolePolicy {
       ClinicPermission.appointmentsCheckIn,
       ClinicPermission.queueView,
       ClinicPermission.queueOperate,
+      ClinicPermission.vitalsView,
+      ClinicPermission.vitalsRecord,
+      ClinicPermission.followupsView,
     },
     ClinicRole.accountant: {..._readBasics},
     ClinicRole.labTechnician: {..._readBasics},
