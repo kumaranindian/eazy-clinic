@@ -54,6 +54,23 @@ abstract final class ClinicPermission {
   static const String patientDocumentsManage = 'patient_documents.manage';
   static const String patientAuditView = 'patient_audit.view';
 
+  // Phase 5: scheduling and queue
+  static const String appointmentTypesView = 'appointment_types.view';
+  static const String appointmentTypesManage = 'appointment_types.manage';
+  static const String availabilityView = 'availability.view';
+  static const String availabilityManage = 'availability.manage';
+  static const String availabilityManageOwn = 'availability.manage_own';
+  static const String appointmentsView = 'appointments.view';
+  static const String appointmentsBook = 'appointments.book';
+  static const String appointmentsManage = 'appointments.manage';
+  static const String appointmentsCheckIn = 'appointments.check_in';
+  static const String appointmentsConsult = 'appointments.consult';
+  static const String appointmentsCancelCheckedIn = 'appointments.cancel_checked_in';
+  static const String queueView = 'queue.view';
+  static const String queueOperate = 'queue.operate';
+  static const String queueConsult = 'queue.consult';
+  static const String queuePriority = 'queue.priority';
+
   static const List<String> all = [
     clinicView,
     clinicUpdate,
@@ -98,6 +115,21 @@ abstract final class ClinicPermission {
     patientDocumentsView,
     patientDocumentsManage,
     patientAuditView,
+    appointmentTypesView,
+    appointmentTypesManage,
+    availabilityView,
+    availabilityManage,
+    availabilityManageOwn,
+    appointmentsView,
+    appointmentsBook,
+    appointmentsManage,
+    appointmentsCheckIn,
+    appointmentsConsult,
+    appointmentsCancelCheckedIn,
+    queueView,
+    queueOperate,
+    queueConsult,
+    queuePriority,
   ];
 
   static bool isKnown(String key) => all.contains(key);
@@ -121,6 +153,12 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.medicationsManage,
     ClinicPermission.patientDocumentsView,
     ClinicPermission.patientDocumentsManage,
+  };
+
+  /// Actions that belong to the treating clinician.
+  static const Set<String> _consulting = {
+    ClinicPermission.appointmentsConsult,
+    ClinicPermission.queueConsult,
   };
 
   static const Set<String> _patientCare = {
@@ -149,13 +187,25 @@ abstract final class ClinicRolePolicy {
     // (history, allergies, medications, documents) by default.
     ClinicRole.clinicAdmin: {
       for (final p in ClinicPermission.all)
-        if (p != ClinicPermission.rolesManage && !_clinical.contains(p)) p,
+        if (p != ClinicPermission.rolesManage &&
+            !_clinical.contains(p) &&
+            !_consulting.contains(p))
+          p,
     },
     ClinicRole.doctor: {
       ..._readBasics,
       ClinicPermission.doctorsView,
       ..._patientCare,
       ClinicPermission.historyManage,
+      ClinicPermission.appointmentTypesView,
+      ClinicPermission.availabilityView,
+      ClinicPermission.availabilityManageOwn,
+      ClinicPermission.appointmentsView,
+      ClinicPermission.appointmentsBook,
+      ClinicPermission.appointmentsConsult,
+      ClinicPermission.queueView,
+      ClinicPermission.queueOperate,
+      ClinicPermission.queueConsult,
     },
     ClinicRole.receptionist: {
       ..._readBasics,
@@ -169,11 +219,26 @@ abstract final class ClinicRolePolicy {
       ClinicPermission.alertsManage,
       ClinicPermission.consentsView,
       ClinicPermission.consentsManage,
+      ClinicPermission.appointmentTypesView,
+      ClinicPermission.availabilityView,
+      ClinicPermission.appointmentsView,
+      ClinicPermission.appointmentsBook,
+      ClinicPermission.appointmentsManage,
+      ClinicPermission.appointmentsCheckIn,
+      ClinicPermission.appointmentsCancelCheckedIn,
+      ClinicPermission.queueView,
+      ClinicPermission.queueOperate,
     },
     ClinicRole.nurse: {
       ..._readBasics,
       ClinicPermission.doctorsView,
       ..._patientCare,
+      ClinicPermission.appointmentTypesView,
+      ClinicPermission.availabilityView,
+      ClinicPermission.appointmentsView,
+      ClinicPermission.appointmentsCheckIn,
+      ClinicPermission.queueView,
+      ClinicPermission.queueOperate,
     },
     ClinicRole.accountant: {..._readBasics},
     ClinicRole.labTechnician: {..._readBasics},

@@ -64,6 +64,10 @@ class ClinicService {
     'specialDays',
     'doctorRegistrationRequired',
     'minorAgeYears',
+    'queueTokenPrefix',
+    'queueOrdering',
+    'checkInEarlyMinutes',
+    'checkInLateMinutes',
   };
 
   String _profilePath(TenantContext t) =>
@@ -276,6 +280,11 @@ class ClinicService {
     'doctorRegistrationRequired': true,
     // Age below which a patient is treated as a minor (guardian consent).
     'minorAgeYears': 18,
+    // Queue and check-in policy (Phase 5).
+    'queueTokenPrefix': 'A',
+    'queueOrdering': 'check_in',
+    'checkInEarlyMinutes': 120,
+    'checkInLateMinutes': 60,
   };
 
   Future<Map<String, Object?>> getSettings(TenantContext t) async {
@@ -334,6 +343,37 @@ class ClinicService {
       max: 25,
       required: false,
     );
+    final tokenPrefix = r.str(
+      'queueTokenPrefix',
+      min: 1,
+      max: 3,
+      required: false,
+    );
+    if (tokenPrefix != null && !RegExp(r'^[A-Z]{1,3}$').hasMatch(tokenPrefix)) {
+      r.addIssue(
+        'queueTokenPrefix',
+        'invalid_format',
+        'Use 1 to 3 capital letters.',
+      );
+    }
+    final ordering = r.enumOf<String>(
+      'queueOrdering',
+      const ['check_in', 'appointment_time'],
+      (v) => v,
+      required: false,
+    );
+    final early = r.integer(
+      'checkInEarlyMinutes',
+      min: 0,
+      max: 720,
+      required: false,
+    );
+    final late = r.integer(
+      'checkInLateMinutes',
+      min: 0,
+      max: 720,
+      required: false,
+    );
     final hours = HoursParser(r);
     final weekly = body.containsKey('weeklyHours')
         ? hours.weekly(body['weeklyHours'], 'weeklyHours')
@@ -362,6 +402,10 @@ class ClinicService {
       'consultationDurationMinutes': ?consult,
       'doctorRegistrationRequired': ?regRequired,
       'minorAgeYears': ?minorAge,
+      'queueTokenPrefix': ?tokenPrefix,
+      'queueOrdering': ?ordering,
+      'checkInEarlyMinutes': ?early,
+      'checkInLateMinutes': ?late,
       'weeklyHours': ?weekly,
       'holidays': ?holidays,
       'specialDays': ?special,
