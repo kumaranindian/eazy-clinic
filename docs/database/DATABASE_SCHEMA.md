@@ -136,3 +136,6 @@ Global: `patient_accounts`, `patient_account_uids`, `patient_clinic_links`, `fam
 
 ## Phase 5 additions
 `doctor_availability`, `availability_revisions`, `doctor_schedule_exceptions`, `appointment_types`, `appointment_type_names`, `appointments`, `appointment_references`, `appointment_idempotency`, `appointment_slot_reservations`, `queues`, `queue_entries`, `queue_tokens`, `appointment_audit_logs` under `tenants/{t}/`. Details: `docs/phase-5/FIRESTORE_SCHEMA.md`.
+
+## Phase 6 collections
+`consultations`, `consultation_appointments`, `consultation_versions`, `consultation_amendments`, `diagnoses`, `prescriptions`, `prescription_numbers`, `counters`, `vitals`, `investigation_requests`, `followups`, `clinical_templates`, `diagnosis_catalogue`, `medicine_catalogue`, `clinical_audit_logs` under `tenants/{t}/`. Details: `docs/phase-6/FIRESTORE_SCHEMA.md`.

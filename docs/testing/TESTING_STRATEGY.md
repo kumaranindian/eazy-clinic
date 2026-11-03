@@ -87,3 +87,6 @@ Privacy/isolation tests run against the in-memory store (`backend/test/features/
 
 ## Phase 5
 Scheduling and concurrency tests: `backend/test/features/scheduling` (in-memory store, `Future.wait` races), `test/integration/scheduling_flow_emulator_test.dart`, rules tests, Clinic Web `scheduling_test.dart` (incl. queue polling with out-of-order snapshots). Counts: `docs/phase-5/TEST_REPORT.md`.
+
+## Phase 6
+Clinical tests: `backend/test/features/clinical` (consultation, records), `test/integration/clinical_flow_emulator_test.dart`, rules tests, Doctor app `test/workspace_test.dart` with a fake `ClinicalRepository`. Counts: `docs/phase-6/TEST_REPORT.md`.

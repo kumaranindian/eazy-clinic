@@ -108,3 +108,6 @@ Global identity holds no clinical data; linking needs an in-person identity chec
 
 ## Phase 5 additions
 Reservation documents as the double-booking guard, idempotent booking, backend-only slot calculation, doctors acting only on their own queue, non-cancelling exception workflow, polling queue with version checks. See `docs/phase-5/SECURITY_REVIEW.md`.
+
+## Phase 6 additions
+Doctor-self authorship, 404 for other doctors' records, owner-only `view_all`, consent check before a consultation, immutable finalized records with preserved amendments, separate prescription authorization, append-only vitals, empty catalogues and no AI, audit without clinical text. See `docs/phase-6/SECURITY_REVIEW.md`.

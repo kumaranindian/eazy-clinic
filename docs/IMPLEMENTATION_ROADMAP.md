@@ -30,3 +30,6 @@ adds the Phase 0 inventory result and the prerequisites per phase.
 ## Cross-cutting rules per phase
 
 Follow CLAUDE.md §16 (inspect → plan → design → implement → test → document → report). A phase is complete only when the end-to-end workflow works and is tested.
+
+## Phase 6: Doctor workspace and clinical operations (branch `feature/phase-0-foundation`)
+Implemented (see `docs/phase-6/`): doctor workspace, consultation lifecycle with amendments, diagnosis, vitals, prescriptions, templates, follow-ups, investigation-request boundary. Awaiting approval before Phase 7 (billing and payments).

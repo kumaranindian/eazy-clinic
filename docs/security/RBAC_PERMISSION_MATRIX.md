@@ -156,3 +156,20 @@ Administrators run the clinic but do not read clinical information by default. V
 | queue.priority | ✔ | ✔ | | | |
 
 Accountants, lab technicians and pharmacists have no scheduling access.
+
+## Phase 6 clinical permissions
+| Permission | Owner | Admin | Doctor | Nurse | Receptionist |
+|---|---|---|---|---|---|
+| consultations.view | ✔ | | ✔ (own) | | |
+| consultations.view_all | ✔ | | | | |
+| consultations.manage / finalize | ✔ held, cannot author* | | ✔ (own) | | |
+| vitals.view / vitals.record | ✔ held* | | ✔ | ✔ | |
+| prescriptions.view / manage / finalize | ✔ held, cannot author* | | ✔ (own) | | |
+| followups.view | ✔ | ✔ | ✔ | ✔ | ✔ |
+| followups.manage | ✔ held, cannot author* | | ✔ | | |
+| investigations.request | ✔ held, cannot author* | | ✔ | | |
+| clinical_templates.view / manage | ✔ | ✔ | ✔ | | |
+| clinical_templates.manage_clinic, clinical_catalogue.manage | ✔ | ✔ | | | |
+| clinical_audit.view | ✔ | | | | |
+
+*The owner holds every permission, but clinical authoring additionally requires the `doctor` role with a linked `doctorId` (ADR 048), so an owner reads but never authors. Admin deliberately has no clinical read/write permission. Source of truth: `ClinicRolePolicy`.

@@ -87,3 +87,6 @@ platform_users            tenants ──► subscription_plans (via platform_sub
 
 ## Phase 5 relationships
 `doctor` 1—N `doctor_availability` (per branch) and `doctor_schedule_exceptions`; `appointment` N—1 `patient`, `doctor`, `branch`, `appointment_type`; `appointment` 1—N `appointment_slot_reservations` (5-minute cells of one doctor); `appointment` 0..1—1 `queue_entry` N—1 `queue` (branch + doctor + date); `appointment` 0..1 `rescheduledToId/FromId` self-links; every change writes `appointment_audit_logs`.
+
+## Phase 6 relationships
+`consultation` N—1 `patient`, `doctor`, `branch`; 0..1—1 `appointment` (uniqueness key); 1—N `diagnoses`, `prescriptions`, `followups`, `investigation_requests`, `consultation_versions`, `consultation_amendments`; `prescription.supersedesId` → previous version, `rootId` → first version; `followup.appointmentId` → Phase 5 appointment; `vitals` N—1 `patient` (optional `consultationId`).

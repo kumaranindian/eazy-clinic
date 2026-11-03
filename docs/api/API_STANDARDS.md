@@ -117,3 +117,6 @@ Patient sub-resources are addressed under `/patients/{id}`; a resource id belong
 
 ## Phase 5 conventions
 Booking endpoints require an `Idempotency-Key` header; replays return 200 with `idempotentReplay: true`. Conflicts (slot taken, invalid transition, queue busy) answer 409; schedule violations 422; out-of-scope resources 404. Dates are local `YYYY-MM-DD` in the branch time zone; instants are UTC ISO-8601. Endpoint list: `docs/phase-5/API_REFERENCE.md`.
+
+## Phase 6 conventions
+Clinical writes use `expectedVersion` / `expectedRev` (409 on mismatch). Lifecycle changes have dedicated action endpoints (`start`, `finalize`, `amend`); finalize actions are idempotent and replay with `idempotentReplay: true`. Another doctor's record answers 404. Endpoint list: `docs/phase-6/API_REFERENCE.md`.

@@ -93,5 +93,11 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 045 | Schedule exceptions never cancel appointments; they flag `needsAttention` and list the affected ones | Explicit resolution | Implemented |
 | 046 | Queue = branch + doctor + date; token counter on the queue doc with uniqueness keys; polling with a version field instead of push | Integrity first; no client Firestore access | Implemented (TD-44) |
 | 047 | One tenant collection `appointment_audit_logs` serves appointment history and queue history | Fewer duplicate stores | Implemented |
+| 048 | Only a `doctor` whose member record has `doctorId` may author clinical records; other doctors' records answer 404; owner reads with `consultations.view_all` | Clinical accountability, no existence leaks | Implemented (TD-49) |
+| 049 | Consultation lifecycle by dedicated endpoints; finalization stores version r0; amendments keep originals and add versions; finalize idempotent | Records never silently overwritten | Implemented |
+| 050 | Prescriptions are versioned drafts: amend creates a replacement draft, finalizing it supersedes the original and keeps the RX number (counter + uniqueness keys) | Auditable history | Implemented |
+| 051 | Catalogues ship empty; codes need a code system; templates only pre-fill; no AI or suggestions | No fabricated clinical data | Implemented (TD-50, TD-53) |
+| 052 | Laboratory boundary: investigation requests with `processing: not_available`; results wait for Phase 9 | Do not imply a lab workflow | Implemented |
+| 053 | Clinical audit in `clinical_audit_logs` without clinical text; reads are audited | CLAUDE.md §16 | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).
