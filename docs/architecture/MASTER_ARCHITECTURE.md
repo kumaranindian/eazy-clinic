@@ -1,0 +1,59 @@
+# Master Architecture
+
+Normative requirements are in `CLAUDE.md`. This document records how they are realised.
+
+## 1. System context
+
+```
+ Clinic Web (Flutter Web) ─┐
+ Doctor Workspace (Web/Android) ─┼──HTTPS /api/v1──► Shelf backend (Dart) ──Admin SDK──► Firestore / Storage / Auth / FCM
+ Patient App (Android) ────┘                                   │
+                                                                └──► Razorpay (verify signatures + webhooks)
+```
+
+- All three clients use the **same** API, rules and data model.
+- Clients authenticate with Firebase Authentication (ID token) and send it as
+  `Authorization: Bearer`. The backend verifies it on every protected request.
+- Clients **never** access Firestore or Storage directly for protected data (rules are deny-all).
+- Only the backend holds privileged credentials (Firebase Admin, Razorpay secret).
+
+## 2. Layers
+
+| Layer | Responsibility |
+|---|---|
+| Flutter presentation | Widgets, layout, form UX. No business rules, no tenant logic. |
+| Flutter domain/data | Riverpod providers/notifiers, API client (Dio, Phase 1), mapping DTOs. |
+| API contracts | Envelope, error codes, pagination, header names (shared package). |
+| Backend routes | HTTP concerns: routing, parsing, validation, response shape. |
+| Backend services (modules) | Business rules, authorization policy calls, transactions. |
+| Backend repositories | Firestore access behind interfaces (testable with fakes). |
+
+## 3. Request pipeline (backend, implemented)
+
+`request id → CORS → security headers → request logging → error handler → router`
+
+Phase 1 inserts **authentication** and **tenant-context resolution** middleware
+before the router, then per-route **authorization policies**.
+
+## 4. Environments
+
+dev / staging / production, each with its own Firebase project, data and
+credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
+
+## 5. Architecture decision records
+
+| ADR | Decision | Reason | Status |
+|---|---|---|---|
+| 001 | Monorepo with `apps/ backend/ packages/` and path dependencies | One repo for three apps + backend; shared contracts without publishing | Accepted |
+| 002 | Pure-Dart shared packages (`api_contracts`, `validation`, `utilities`, `common_models`) usable by backend and Flutter | No logic duplication (CLAUDE.md §2) | Accepted |
+| 003 | `design_system` is a Flutter package bundling Inter and brand assets; tokens are `const` Dart, theme built from tokens; no third-party font/UI package | Offline-safe fonts, no extra dependency | Accepted |
+| 004 | Riverpod 3.x + GoRouter 17 | Mandated by CLAUDE.md; latest resolvable versions | Accepted |
+| 005 | Cursor-based pagination; single response envelope; machine-readable error codes | Fits Firestore, consistent clients | Accepted |
+| 006 | Tenant data as **subcollections under `tenants/{tenantId}`**; global `patient_accounts`; membership lookup via collection-group query on `members` | Strong isolation, simple per-tenant export/deletion | Accepted (documented, not built) |
+| 007 | Firestore/Storage rules deny all client access; backend is the only data path | Never trust the client; one authorization point | Accepted |
+| 008 | Client config via `--dart-define-from-file`; backend via env vars; both validated at startup, fail-fast | No silent wrong-environment | Implemented |
+| 009 | Phase 0 adds **no** Firebase packages | Admin-SDK-on-Dart choice unresolved (TD-01) | Accepted |
+| 010 | Light theme, red primary actions / navy structure; red active-state accents on mobile nav allowed; red full-width headers not used | CLAUDE.md §11 vs mockup (see UI analysis §11) | Accepted |
+| 011 | Query strings are excluded from request logs; log fields pass a redaction filter | Patient search may carry PII (CLAUDE.md §19.16) | Implemented |
+
+New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).
