@@ -36,3 +36,11 @@
 | TD-32 | Phase 3 indexes (13) and Storage bucket are not deployed or exercised live; logo storage uses ADC against a real bucket only in staging. | Unverified live | Deploy/verify in the dev project. |
 | TD-33 | Doctor registration numbers are not verified with councils; no MFA for clinic admins; per-instance rate limits (TD-16). | Compliance/security | Phase 11. |
 | TD-34 | Clinic Web uses `file_selector` (ADR 033); web file-picking is covered by widget tests only, not a real browser. | Test gap | Browser integration test. |
+| TD-35 | Phase 4 composite indexes (29) and the `patient_link_codes.codeHash` override are not deployed or exercised live; the emulator does not enforce indexes. | Missing-index errors in staging | Deploy and verify in the dev project. |
+| TD-36 | No profile photo upload; `minorAgeYears` is changeable through the settings API but has no field in the settings screen. | Feature gap | Phase 4 follow-up. |
+| TD-37 | Patient merge is not implemented (detection and documented workflow only). Dependent references from later phases make a safe merge a separate change. | Duplicate records stay separate | Dedicated approved change after Phase 6/7. |
+| TD-38 | Guardian verification is a staff attestation; patient-account phone is unverified; account identity verification is e-mail only. No MFA for clinic users; ABDM/ABHA not integrated. | Identity assurance | Phase 8 (patient app) / Phase 11. |
+| TD-39 | Documents are streamed by the backend (≤ 3 MB JSON upload, no signed URLs, no in-app download button, no replacement/versioning). | Usability/scale | Signed URLs + resumable upload when the storage environment exists. |
+| TD-40 | Name-only duplicate matching is not supported (candidates come from birth date, phone or e-mail); search is a name prefix. | Missed duplicates | Search index / normalised name keys. |
+| TD-41 | Clinic Web has no family/dependent screens (relationships are patient-owned; the clinic sees none). Patient-account phone/e-mail changes and account recovery are not handled. | By design / Phase 8 | Patient app. |
+| TD-42 | Sensitive reads write an audit entry in the request path (extra write per read); no tenant-wide patient access report. | Cost/reporting | Phase 11 / reports. |

@@ -118,3 +118,20 @@ Dependent-minor rules (age thresholds, transition to own account at majority) ar
 
 ## Phase 3 clinic permissions
 The implemented clinic matrix is in `docs/phase-3/RBAC_PERMISSION_MATRIX.md`.
+
+## Phase 4 patient permissions
+| Permission group | Owner | Admin | Doctor | Nurse | Receptionist | Others |
+|---|---|---|---|---|---|---|
+| patients.view/create/update/duplicates | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| patients.status (activate/deactivate/archive) | ✔ | ✔ | | | | |
+| patients.link_account | ✔ | ✔ | | | ✔ | |
+| history.view | ✔ | | ✔ | ✔ | | |
+| history.manage | ✔ | | ✔ | | | |
+| allergies / medications view+manage | ✔ | | ✔ | ✔ | | |
+| alerts.view | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| alerts.manage (clinical categories also need clinical rights) | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| consents.view/manage | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| patient_documents view/manage | ✔ | | ✔ | ✔ | | |
+| patient_audit.view | ✔ | ✔ | | | | |
+
+Administrators run the clinic but do not read clinical information by default. Verifying clinical information needs the **doctor** role (not just a permission).

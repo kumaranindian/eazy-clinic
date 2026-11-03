@@ -83,3 +83,22 @@ Detailed status per brief module: `docs/phase-2/PHASE_2_IMPLEMENTATION.md`. Summ
 | Custom roles, owner transfer, live Firebase, Android builds, tenant audit viewer | **Deferred / unverified** | TD-29, TD-31, TD-32 |
 
 Details and test counts: `docs/phase-3/TEST_REPORT.md`.
+
+## Phase 4: Patient management, identity, family, history and consent (branch `feature/phase-0-foundation`)
+
+| Item | Status | Evidence |
+|---|---|---|
+| A Patient registration/directory/status (MRN, branch scope, search, limits) | Implemented, tested (+emulator) | `patient_management_test.dart`, `PATIENT_MANAGEMENT.md` |
+| B Global patient identity (accounts separate from clinic records) | Implemented, tested | `GLOBAL_PATIENT_IDENTITY.md` |
+| Account linking (clinic-issued hashed one-time codes) | Implemented, tested (+emulator) | `PATIENT_ACCOUNT_LINKING.md` |
+| C Duplicate detection | Implemented, tested; **merge not implemented** (TD-37) | `DUPLICATE_DETECTION.md` |
+| D Family / dependents (account-level, scoped, revocable) | Implemented (API), tested; no clinic UI by design | `FAMILY_AND_DEPENDENT_MANAGEMENT.md` |
+| E-G History, allergies, medication history, alerts, emergency contacts | Implemented, tested | `MEDICAL_HISTORY.md`, `ALLERGY_AND_MEDICATION_HISTORY.md` |
+| I Consent service (grant/reject/revoke, enforcement) | Implemented, tested | `CONSENT_MANAGEMENT.md` |
+| J Patient documents (private, audited, retained) | Implemented, tested; no download button (TD-39) | `PATIENT_DOCUMENT_MANAGEMENT.md` |
+| L Patient audit trail | Implemented, tested | `SECURITY_AND_PRIVACY_REVIEW.md` |
+| Firestore rules/indexes | Rules tested (24); indexes undeployed (TD-35) | `FIRESTORE_SCHEMA.md` |
+| Clinic Web patient UI | Implemented, widget-tested (62 total); web build OK | `patients_test.dart` |
+| Live Firebase, Android, profile photo, merge, patient app | **Deferred / unverified** | TD-35…TD-42 |
+
+Test counts: `docs/phase-4/TEST_REPORT.md`.

@@ -81,3 +81,6 @@ Emulator suite (`scripts/test_emulator.sh`, local Firestore emulator, project `d
 Backend coverage areas: application validation/rules, review workflow, idempotent and concurrent approval, injected provisioning failures + retry, tenant lifecycle, plan versioning, subscription lifecycle, entitlement policy matrix, HTTP-level authorization matrix over all 29 platform endpoints, spoofing (role claims/headers/query, tenant id), self-approval, support-admin read-only, audit integrity, log secrecy, rate limiting, pagination.
 Builds: `flutter build web` for clinic_web and doctor_mobile OK. **Not run:** Android builds, live Firebase.
 Emulator findings fixed along the way: transactions that threw were not rolled back (locks leaked), and aggregation queries must not carry an explicit ordering.
+
+## Phase 4
+Privacy/isolation tests run against the in-memory store (`backend/test/features/patients`), the Firestore emulator (`test/integration/patient_flow_emulator_test.dart`, rules tests) and Clinic Web widget tests. Counts: `docs/phase-4/TEST_REPORT.md`.

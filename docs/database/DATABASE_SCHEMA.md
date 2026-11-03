@@ -130,3 +130,6 @@ Indexes: `firebase/firestore.indexes.json` (16: applications by applicant/status
 
 ## Phase 3 additions
 Branches, branch codes, doctors, doctor_branch_assignments, staff, members (role/allBranches/branchIds), invitations (token hash only) and seats under `tenants/{tenantId}/`. Full field list: `docs/phase-3/FIRESTORE_SCHEMA.md`.
+
+## Phase 4 additions
+Global: `patient_accounts`, `patient_account_uids`, `patient_clinic_links`, `family_relationships`. Tenant: `patients`, `patient_mrns`, `counters`, `patient_consents`, `patient_history_entries`, `patient_allergies`, `patient_medications`, `patient_alerts`, `patient_emergency_contacts`, `patient_documents`, `patient_link_codes`, `patient_identity_links`, `patient_duplicate_reviews`, `patient_record_revisions`, `patient_audit_logs`. Details: `docs/phase-4/FIRESTORE_SCHEMA.md`.

@@ -111,3 +111,6 @@ Any other path returns the 404 error envelope.
 
 ## Phase 3 conventions
 Strict request bodies (unknown/sensitive fields → 422), out-of-scope resources → 404, limit/duplicate → 409, `X-Tenant-Id` is a selector validated against memberships. Endpoint list: `docs/phase-3/API_REFERENCE.md`.
+
+## Phase 4 conventions
+Patient sub-resources are addressed under `/patients/{id}`; a resource id belonging to another patient or tenant answers 404. Consent conflicts and duplicate-review requirements answer 409 with an issue code. Patient-account routes use the authenticated account, never an id from the request. Endpoint list: `docs/phase-4/API_REFERENCE.md`.

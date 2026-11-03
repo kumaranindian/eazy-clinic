@@ -79,5 +79,12 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 031 | Invitations store only a SHA-256 token hash; single-use transactional acceptance bound to verified e-mail; delivery not faked | Secure onboarding | Implemented (delivery blocked) |
 | 032 | Logo in private object storage (`STORAGE_BUCKET`), magic-byte validated, served via authenticated endpoint | No public PHI-adjacent assets | Implemented |
 | 033 | Clinic Web adds `file_selector` (official Flutter plugin) for logo selection | No equivalent in the SDK; first-party package | Implemented |
+| 034 | Global patient accounts hold identity only; clinical data stays in tenant collections; `patient_clinic_links` are pointers | Prevent cross-clinic record sharing | Implemented |
+| 035 | Account linking = in-person identity check + hashed single-use clinic-issued code claimed by a verified-e-mail account | Phone/e-mail similarity must never authorize | Implemented |
+| 036 | Family relationships are account-level, scoped, revocable and never grant clinic-record access; dependents are verified by the clinic at linking | CLAUDE.md §7 | Implemented |
+| 037 | Clinical permissions (history, allergies, medications, documents) are separate from administrative ones; admins lack them by default | Least privilege | Implemented |
+| 038 | Consent is an append-only backend service; staff are never the grantor; revocation blocks new processing, evidence retained | DPDP-oriented consent | Implemented |
+| 039 | Changes keep previous versions (`patient_record_revisions`); verification resets on content change; no deletion | No silent overwrite | Implemented |
+| 040 | Duplicate detection is advisory (never auto-merge); merge deferred | Safety | Implemented (merge deferred) |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

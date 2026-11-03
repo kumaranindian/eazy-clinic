@@ -102,3 +102,6 @@ Security test suite is mandatory per phase (CLAUDE.md §15): unauthorized access
 
 ## Phase 3 additions
 Central RBAC (`ClinicPermission`/`ClinicRolePolicy`), branch-scoped access, hash-only single-use invitations, private logo storage and atomic audit. See `docs/phase-3/SECURITY_REVIEW.md` and `RBAC_PERMISSION_MATRIX.md`.
+
+## Phase 4 additions
+Global identity holds no clinical data; linking needs an in-person identity check plus a hashed one-time code claimed by a verified-e-mail account; family relationships never grant clinic access; clinical permissions are separate from administrative ones; consent is enforced in writing transactions; documents are private, audited and retained. See `docs/phase-4/SECURITY_AND_PRIVACY_REVIEW.md` and `docs/security/DATA_RETENTION.md`.
