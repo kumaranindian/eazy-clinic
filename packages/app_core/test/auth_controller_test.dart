@@ -128,7 +128,7 @@ void main() {
       final c = makeContainer(
         FakeAuthRepository(initial: testUser),
         api,
-        audience: AppAudience.clinicWeb,
+        audience: AppAudience.doctor,
       );
       c.read(authControllerProvider);
       await settle();
@@ -341,36 +341,13 @@ void main() {
   });
 
   group('AppAudience', () {
-    test('clinic web needs a platform role or clinic staff membership', () {
-      expect(AppAudience.clinicWeb.admits(activeSession()), isFalse);
+    test('clinic web admits any active account (applicants included)', () {
+      expect(AppAudience.clinicWeb.admits(activeSession()), isTrue);
       expect(
         AppAudience.clinicWeb.admits(
           activeSession(platformRole: PlatformRole.superAdmin),
         ),
         isTrue,
-      );
-      expect(
-        AppAudience.clinicWeb.admits(
-          activeSession(
-            memberships: [
-              const MembershipSummaryDto(tenantId: 't', role: 'receptionist'),
-            ],
-          ),
-        ),
-        isTrue,
-      );
-    });
-
-    test('unknown membership roles are denied', () {
-      expect(
-        AppAudience.clinicWeb.admits(
-          activeSession(
-            memberships: [
-              const MembershipSummaryDto(tenantId: 't', role: 'wizard'),
-            ],
-          ),
-        ),
-        isFalse,
       );
     });
 

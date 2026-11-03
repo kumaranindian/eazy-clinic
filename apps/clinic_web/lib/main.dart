@@ -50,6 +50,15 @@ Future<void> main() async {
         authApiProvider.overrideWithValue(
           DioAuthApi(baseUrl: config.apiBaseUrl, auth: authRepository),
         ),
+        apiClientProvider.overrideWith(
+          (ref) => ApiClient(
+            baseUrl: config.apiBaseUrl,
+            auth: authRepository,
+            onSessionInvalid: () => ref
+                .read(authControllerProvider.notifier)
+                .handleSessionInvalid(),
+          ),
+        ),
         appAudienceProvider.overrideWithValue(AppAudience.clinicWeb),
         authUiConfigProvider.overrideWithValue(
           const AuthUiConfig(

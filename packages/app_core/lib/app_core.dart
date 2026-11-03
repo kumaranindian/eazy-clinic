@@ -3,6 +3,7 @@
 /// apps; nothing here knows about clinics, patients or consultations.
 library;
 
+export 'src/api/api_client.dart';
 export 'src/auth/application/auth_controller.dart';
 export 'src/auth/application/auth_providers.dart';
 export 'src/auth/application/auth_redirect.dart';

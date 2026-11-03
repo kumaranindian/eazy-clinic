@@ -28,8 +28,12 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  api_contracts:
+    path: ../../packages/api_contracts
   app_core:
     path: ../../packages/app_core
+  common_models:
+    path: ../../packages/common_models
   design_system:
     path: ../../packages/design_system
   flutter:
@@ -38,12 +42,10 @@ dependencies:
   go_router: ^17.0.0
   utilities:
     path: ../../packages/utilities
+  validation:
+    path: ../../packages/validation
 
 dev_dependencies:
-  api_contracts:
-    path: ../../packages/api_contracts
-  common_models:
-    path: ../../packages/common_models
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your

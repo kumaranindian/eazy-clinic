@@ -166,7 +166,7 @@ void main() {
 
     testWidgets('unauthorized role sees access-not-available', (t) async {
       final h = Harness(
-        audience: AppAudience.clinicWeb,
+        audience: AppAudience.doctor,
         repo: FakeAuthRepository(initial: testUser),
         api: FakeAuthApi()..sessions = [activeSession()],
       );

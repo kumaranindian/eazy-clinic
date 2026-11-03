@@ -15,8 +15,11 @@ enum AppAudience {
     if (!session.accessGranted) return false;
     switch (this) {
       case AppAudience.clinicWeb:
-        return session.platformRole != null ||
-            session.memberships.any(_isClinicStaff);
+        // Any active account may open Clinic Web: it is where a clinic
+        // applies to join. What the account can then *do* depends on the
+        // server-resolved platform role / memberships (and the backend
+        // re-authorizes every request).
+        return true;
       case AppAudience.doctor:
         return session.memberships.any(
           (m) => m.role == ClinicRole.doctor.wireName,
@@ -27,7 +30,4 @@ enum AppAudience {
         return true;
     }
   }
-
-  static bool _isClinicStaff(MembershipSummaryDto m) =>
-      ClinicRole.tryParse(m.role) != null;
 }

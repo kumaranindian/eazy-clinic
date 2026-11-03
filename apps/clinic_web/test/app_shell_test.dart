@@ -2,21 +2,28 @@ import 'package:api_contracts/api_contracts.dart';
 import 'package:app_core/app_core.dart';
 import 'package:clinic_web/app.dart';
 import 'package:clinic_web/core/config/client_config_provider.dart';
+import 'package:clinic_web/core/routing/app_router.dart';
+import 'package:clinic_web/features/control_plane/data/control_plane_repository.dart';
 import 'package:common_models/common_models.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:utilities/utilities.dart';
 
 import 'support/fake_auth.dart';
+import 'support/fake_repo.dart';
 
-Widget _app(
-  String env,
-  String url, {
-  bool signedIn = false,
+/// Builds the real app with fake identity + backend.
+Widget buildApp({
+  String env = 'dev',
+  String url = 'http://localhost:8080',
+  bool signedIn = true,
   AuthSessionDto? session,
+  FakeRepo? repo,
 }) {
+  final fake = repo ?? FakeRepo();
   return ProviderScope(
     overrides: [
       clientConfigProvider.overrideWithValue(
@@ -38,88 +45,54 @@ Widget _app(
           registrationEnabled: true,
         ),
       ),
+      controlPlaneRepositoryProvider.overrideWithValue(fake),
     ],
     child: const EazyClinicApp(),
   );
 }
 
-void _bigScreen(WidgetTester tester) {
+void bigScreen(WidgetTester tester, {Size size = const Size(1280, 3200)}) {
   tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = const Size(900, 3000);
+  tester.view.physicalSize = size;
   addTearDown(tester.view.reset);
 }
 
+GoRouter routerOf(WidgetTester tester) => ProviderScope.containerOf(
+  tester.element(find.byType(MaterialApp)),
+).read(appRouterProvider);
+
 void main() {
-  testWidgets('signed-out users see the sign-in screen, not the app', (
-    tester,
-  ) async {
-    _bigScreen(tester);
-    await tester.pumpWidget(_app('dev', 'http://localhost:8080'));
+  testWidgets('signed-out users see the sign-in screen', (tester) async {
+    bigScreen(tester);
+    await tester.pumpWidget(buildApp(signedIn: false));
     await tester.pumpAndSettle();
     expect(find.text('Sign in'), findsWidgets);
-    expect(find.text('Signed in as Test User'), findsNothing);
+    expect(find.text('Platform overview'), findsNothing);
   });
 
-  testWidgets('signed-in admitted users see the home screen', (tester) async {
-    _bigScreen(tester);
-    await tester.pumpWidget(
-      _app('dev', 'http://localhost:8080', signedIn: true),
-    );
+  testWidgets('design-system gallery is reachable in dev only', (tester) async {
+    bigScreen(tester);
+    await tester.pumpWidget(buildApp(signedIn: false));
     await tester.pumpAndSettle();
-    expect(find.byType(EcBrandLogo), findsOneWidget);
-    expect(find.text('Signed in as Test User'), findsOneWidget);
-    expect(find.text('Environment: dev'), findsOneWidget);
-  });
-
-  testWidgets('sign out returns to the sign-in screen', (tester) async {
-    _bigScreen(tester);
-    await tester.pumpWidget(
-      _app('dev', 'http://localhost:8080', signedIn: true),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Sign out'));
-    await tester.pumpAndSettle();
-    expect(find.text('Signed in as Test User'), findsNothing);
-    expect(find.text('Sign in'), findsWidgets);
-  });
-
-  testWidgets('design-system gallery is reachable in dev', (tester) async {
-    _bigScreen(tester);
-    await tester.pumpWidget(
-      _app('dev', 'http://localhost:8080', signedIn: true),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Open design system'));
-    // The gallery contains looping progress indicators, so pumpAndSettle would
-    // never finish; advance time explicitly instead.
+    routerOf(tester).go(AppRoutes.designSystem);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byType(DesignSystemGallery), findsOneWidget);
   });
 
-  testWidgets('production hides the gallery entry point', (tester) async {
-    _bigScreen(tester);
+  testWidgets('production does not register the gallery', (tester) async {
+    bigScreen(tester);
     await tester.pumpWidget(
-      _app('production', 'https://api.example.com', signedIn: true),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Environment: production'), findsOneWidget);
-    expect(find.text('Open design system'), findsNothing);
-  });
-
-  testWidgets('an active account without a role is denied', (tester) async {
-    _bigScreen(tester);
-    await tester.pumpWidget(
-      _app(
-        'dev',
-        'http://localhost:8080',
-        signedIn: true,
-        session: sessionWith(),
+      buildApp(
+        env: 'production',
+        url: 'https://api.example.com',
+        signedIn: false,
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Access not available'), findsOneWidget);
-    expect(find.text('Signed in as Test User'), findsNothing);
+    routerOf(tester).go(AppRoutes.designSystem);
+    await tester.pumpAndSettle();
+    expect(find.byType(DesignSystemGallery), findsNothing);
   });
 
   testWidgets('invalid configuration shows an error screen, not the app', (

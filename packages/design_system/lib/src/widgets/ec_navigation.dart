@@ -179,9 +179,13 @@ class _SideNavItem extends StatelessWidget {
               ),
               if (!collapsed) ...[
                 const SizedBox(width: EcSpacing.md),
-                Text(
-                  destination.label,
-                  style: EcTypography.bodyStrong.copyWith(color: color),
+                Flexible(
+                  child: Text(
+                    destination.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: EcTypography.bodyStrong.copyWith(color: color),
+                  ),
                 ),
               ],
             ],
