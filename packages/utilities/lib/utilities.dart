@@ -3,4 +3,5 @@ library;
 
 export 'src/app_environment.dart';
 export 'src/client_config.dart';
+export 'src/firebase_client_config.dart';
 export 'src/redaction.dart';

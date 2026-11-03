@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:utilities/utilities.dart';
 
 void main() {
+  firebaseClientConfigTests();
   group('AppEnvironment', () {
     test('parses known values and rejects unknown ones', () {
       expect(AppEnvironment.parse('dev'), AppEnvironment.dev);
@@ -76,6 +77,45 @@ void main() {
         redactedValue,
       );
       expect(((out['items']! as List).single as Map)['id'], 1);
+    });
+  });
+}
+
+void firebaseClientConfigTests() {
+  group('FirebaseClientConfig', () {
+    test('accepts complete configuration', () {
+      final c = FirebaseClientConfig.validated(
+        apiKey: 'k',
+        appId: 'a',
+        messagingSenderId: 's',
+        projectId: 'p',
+        authDomain: 'p.firebaseapp.com',
+      );
+      expect(c.projectId, 'p');
+      expect(c.authDomain, 'p.firebaseapp.com');
+    });
+
+    test('reports every missing or placeholder value', () {
+      expect(
+        () => FirebaseClientConfig.validated(
+          apiKey: '',
+          appId: 'REPLACE_WITH_APP_ID',
+          messagingSenderId: 's',
+          projectId: '',
+        ),
+        throwsA(
+          isA<ConfigurationException>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('FIREBASE_API_KEY'),
+              contains('FIREBASE_APP_ID'),
+              contains('FIREBASE_PROJECT_ID'),
+              isNot(contains('MESSAGING')),
+            ),
+          ),
+        ),
+      );
     });
   });
 }

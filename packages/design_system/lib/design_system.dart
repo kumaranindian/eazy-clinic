@@ -16,6 +16,7 @@ export 'src/widgets/ec_dialogs.dart';
 export 'src/widgets/ec_dropdown.dart';
 export 'src/widgets/ec_empty_state.dart';
 export 'src/widgets/ec_error_state.dart';
+export 'src/widgets/ec_inline_message.dart';
 export 'src/widgets/ec_loading.dart';
 export 'src/widgets/ec_navigation.dart';
 export 'src/widgets/ec_responsive.dart';
