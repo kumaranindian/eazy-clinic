@@ -1,0 +1,45 @@
+# OS / IDE
+.DS_Store
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec_overrides.yaml
+# Lock files: apps and backend are committed; packages are libraries.
+packages/*/pubspec.lock
+
+# Android
+**/android/.gradle/
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.*
+*.jks
+*.keystore
+key.properties
+
+# Secrets and real environment files (only *.example.* are committed)
+.env
+.env.*
+!.env.example
+environments/*/backend.env
+environments/*/app.json
+firebase/.firebaserc
+.firebaserc
+.firebase/
+**/google-services.json
+**/GoogleService-Info.plist
+*service-account*.json
+*serviceAccount*.json
+*.pem
+*.p12
+*.key
+
+# Coverage / logs
+coverage/
+*.log

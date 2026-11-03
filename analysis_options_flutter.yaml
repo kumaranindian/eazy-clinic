@@ -1,0 +1,23 @@
+# Shared analysis rules for Flutter projects (apps/* and packages/design_system).
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    missing_required_param: error
+    missing_return: error
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_print
+    - prefer_final_locals
+    - prefer_single_quotes
+    - require_trailing_commas
+    - unawaited_futures
+    - directives_ordering
+    - sort_pub_dependencies
+    - use_super_parameters

@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// EazyClinic Firestore rules, Phase 0 baseline: DENY EVERYTHING to clients.
+//
+// All reads and writes go through the Shelf backend, which uses the Firebase
+// Admin SDK (the Admin SDK bypasses these rules). Clients never access
+// Firestore directly for tenant, clinical or financial data.
+//
+// Realtime features that need direct client reads (e.g. queue display) must be
+// designed and reviewed in the relevant phase, with rules that check tenant
+// membership from server-written records. See docs/security/SECURITY_ARCHITECTURE.md.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
