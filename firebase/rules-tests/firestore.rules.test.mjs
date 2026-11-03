@@ -31,6 +31,16 @@ const patientPaths = [
   'tenants/t1/patient_record_revisions/r1',
   'tenants/t1/patient_emergency_contacts/p1',
   'tenants/t1/patient_duplicate_reviews/dr1',
+  'tenants/t1/doctor_availability/sch1',
+  'tenants/t1/doctor_schedule_exceptions/exc1',
+  'tenants/t1/appointment_types/aty1',
+  'tenants/t1/appointments/apt1',
+  'tenants/t1/appointment_slot_reservations/r1',
+  'tenants/t1/appointment_idempotency/k1',
+  'tenants/t1/appointment_audit_logs/au1',
+  'tenants/t1/queues/q1',
+  'tenants/t1/queue_entries/qe1',
+  'tenants/t1/queue_tokens/q1_1',
 ];
 
 before(async () => {
@@ -199,7 +209,7 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
   });
 });
 
-describe('patient data is backend-only (Phase 4)', () => {
+describe('patient and scheduling data is backend-only (Phases 4-5)', () => {
   const paths = patientPaths;
 
 
@@ -222,6 +232,15 @@ describe('patient data is backend-only (Phase 4)', () => {
       await assertFails(updateDoc(doc(alice(), p), { status: 'revoked' }));
       await assertFails(deleteDoc(doc(alice(), p)));
     }
+  });
+
+  it('no client can read or change appointments, reservations, queues or tokens', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'appointments'), where('doctorId', '==', 'd1'))));
+    await assertFails(getDocs(query(collectionGroup(anon(), 'queue_entries'), where('queueId', '==', 'q1'))));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/queue_entries/qe1'), { status: 'completed', tokenNumber: 1 }));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/appointment_slot_reservations/free'), { doctorId: 'd1' }));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/appointments/apt1'), { status: 'completed' }));
   });
 
   it('link codes cannot be looked up by hash from a client (collection group)', async () => {
