@@ -48,7 +48,7 @@ void main() {
   test('never sends identity or role in the request body', () async {
     final adapter = ScriptedAdapter((_) => json(200, okSession));
     final api = build(adapter, FakeAuthRepository(initial: testUser));
-    await api.provision();
+    await api.initializeProfile();
     expect(adapter.requests.single.data, isNull);
   });
 

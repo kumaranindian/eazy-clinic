@@ -5,8 +5,8 @@ abstract interface class AuthApi {
   /// `GET /auth/session`.
   Future<AuthSessionDto> getSession();
 
-  /// `POST /auth/provision`: first-time profile creation and login record.
-  Future<AuthSessionDto> provision();
+  /// `POST /auth/profile/initialize`: first-time profile creation and login record.
+  Future<AuthSessionDto> initializeProfile();
 
   /// `POST /auth/logout`.
   Future<void> logout({bool allDevices = false});

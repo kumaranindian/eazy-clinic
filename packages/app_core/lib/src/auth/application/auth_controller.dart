@@ -170,13 +170,13 @@ class AuthController extends Notifier<AuthState> {
     try {
       final AuthSessionDto session;
       if (login) {
-        session = await api.provision();
+        session = await api.initializeProfile();
       } else {
         try {
           session = await api.getSession();
         } on AuthApiException catch (e) {
           if (e.code != ApiErrorCode.accountNotProvisioned) rethrow;
-          final provisioned = await api.provision();
+          final provisioned = await api.initializeProfile();
           state = _fromSession(user, provisioned);
           return;
         }

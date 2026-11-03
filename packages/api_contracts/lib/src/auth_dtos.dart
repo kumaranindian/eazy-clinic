@@ -47,7 +47,7 @@ class AuthProfileDto {
   };
 }
 
-/// Response of `GET /auth/session` and `POST /auth/provision`.
+/// Response of `GET /auth/session` and `POST /auth/profile/initialize`.
 ///
 /// [platformRole] and [memberships] are *informational*: they let the UI pick
 /// a screen. The backend re-authorizes every request on its own.

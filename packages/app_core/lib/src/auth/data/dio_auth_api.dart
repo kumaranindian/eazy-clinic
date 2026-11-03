@@ -30,8 +30,8 @@ class DioAuthApi implements AuthApi {
       AuthSessionDto.fromJson(await _send('GET', '/auth/session'));
 
   @override
-  Future<AuthSessionDto> provision() async =>
-      AuthSessionDto.fromJson(await _send('POST', '/auth/provision'));
+  Future<AuthSessionDto> initializeProfile() async =>
+      AuthSessionDto.fromJson(await _send('POST', '/auth/profile/initialize'));
 
   @override
   Future<void> logout({bool allDevices = false}) async {

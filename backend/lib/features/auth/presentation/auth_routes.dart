@@ -128,7 +128,14 @@ class AuthModule {
       '/session',
       wrap(_sessionHandler, protect(allowedStatuses: anyStatus)),
     );
-    r.post('/provision', wrap(_provision, _identityOnly()));
+    r.post('/profile/initialize', wrap(_initializeProfile, _identityOnly()));
+    r.patch(
+      '/me',
+      wrap(
+        _updateMe,
+        protect(allowedStatuses: {AccountStatus.pending, AccountStatus.active}),
+      ),
+    );
     r.post('/logout', wrap(_logout, protect(allowedStatuses: anyStatus)));
     r.post('/revoke-sessions', wrap(_revokeSessions, protect()));
     // POST /account-status is intentionally not registered (deferred).
@@ -160,16 +167,87 @@ class AuthModule {
     return ok(request, _session(ctx.user, ctx.memberships).toJson());
   }
 
-  Future<Response> _provision(Request request) async {
+  Future<Response> _initializeProfile(Request request) async {
     final identity = identityOf(request);
-    final user = await accounts.provision(
+    final body = await _optionalBody(request);
+    // Strict allow-list: privileged or identity fields are rejected, not ignored.
+    _rejectUnknownFields(body, const {'displayName'});
+    final v = RequestValidator(body);
+    final hint = body.containsKey('displayName')
+        ? v.string(
+            'displayName',
+            Validators.compose([
+              (s) => Validators.required(s, field: 'displayName'),
+              Validators.minLength(2, field: 'displayName'),
+              Validators.maxLength(80, field: 'displayName'),
+            ]),
+          )
+        : null;
+    v.throwIfInvalid();
+    final user = await accounts.initializeProfile(
       identity,
+      displayNameHint: hint,
       requestId: requestIdOf(request),
     );
     final memberships = user.accountStatus.canAccessProtectedFeatures
         ? await access.membershipsFor(user)
         : <MembershipSummaryDto>[];
-    return ok(request, _session(user, memberships).toJson());
+    return ok(request, {
+      ..._session(user, memberships).toJson(),
+      'profile': _profile(user).toJson(),
+    });
+  }
+
+  Future<Response> _updateMe(Request request) async {
+    final ctx = authContextOf(request);
+    final body = await readJsonObject(request);
+    _rejectUnknownFields(body, const {'displayName', 'phoneNumber'});
+    final v = RequestValidator(body);
+    String? name;
+    if (body.containsKey('displayName')) {
+      name = v.string(
+        'displayName',
+        Validators.compose([
+          (s) => Validators.required(s, field: 'displayName'),
+          Validators.minLength(2, field: 'displayName'),
+          Validators.maxLength(80, field: 'displayName'),
+        ]),
+      );
+    }
+    String? phone;
+    final clearPhone =
+        body.containsKey('phoneNumber') && body['phoneNumber'] == null;
+    if (body.containsKey('phoneNumber') && !clearPhone) {
+      phone = v.string('phoneNumber', Validators.indianMobile);
+    }
+    v.throwIfInvalid();
+    if (name == null && phone == null && !clearPhone) {
+      throw const ApiException.badRequest('No profile fields to update.');
+    }
+    final updated = await accounts.updateProfile(
+      ctx.user,
+      displayName: name,
+      phoneNumber: phone,
+      clearPhone: clearPhone,
+      requestId: requestIdOf(request),
+    );
+    return ok(request, _profile(updated).toJson());
+  }
+
+  /// Fails with 422 listing every field that is not in [allowed]. Security
+  /// sensitive names (uid, accountStatus, roles, tenant ids ...) therefore
+  /// produce an explicit rejection instead of being silently dropped.
+  void _rejectUnknownFields(Map<String, Object?> body, Set<String> allowed) {
+    final extra = body.keys.where((k) => !allowed.contains(k)).toList();
+    if (extra.isEmpty) return;
+    throw ApiException.validation([
+      for (final k in extra)
+        FieldIssue(
+          field: k,
+          code: 'not_allowed',
+          message: 'This field cannot be set by the client.',
+        ),
+    ]);
   }
 
   Future<Response> _logout(Request request) async {

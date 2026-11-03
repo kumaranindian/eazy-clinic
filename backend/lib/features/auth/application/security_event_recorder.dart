@@ -7,6 +7,7 @@ enum SecurityEvent {
   loginRecorded('login_recorded'),
   loginDenied('login_denied'),
   accountActivated('account_activated'),
+  profileUpdated('profile_updated'),
   logout('logout'),
   sessionsRevoked('sessions_revoked'),
   accessDenied('access_denied'),

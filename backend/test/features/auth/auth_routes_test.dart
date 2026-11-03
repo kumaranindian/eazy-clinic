@@ -11,12 +11,12 @@ void main() {
   late AuthHarness h;
   setUp(() => h = AuthHarness());
 
-  group('POST /auth/provision', () {
+  group('POST /auth/profile/initialize', () {
     test('creates a pending profile for an unverified new user', () async {
       h.admin.records['new-1'] = const AuthUserRecord(disabled: false);
       final r = await h.call(
         'POST',
-        '/auth/provision',
+        '/auth/profile/initialize',
         token: h.keys.token(uid: 'new-1', emailVerified: false),
       );
       expect(r.statusCode, 200);
@@ -32,7 +32,7 @@ void main() {
       h.admin.records['new-2'] = const AuthUserRecord(disabled: false);
       await h.call(
         'POST',
-        '/auth/provision',
+        '/auth/profile/initialize',
         token: h.keys.token(uid: 'new-2'),
       );
       final user = h.store.users['new-2']!;
@@ -43,36 +43,86 @@ void main() {
     test('is idempotent', () async {
       h.admin.records['new-3'] = const AuthUserRecord(disabled: false);
       final t = h.keys.token(uid: 'new-3');
-      await h.call('POST', '/auth/provision', token: t);
-      await h.call('POST', '/auth/provision', token: t);
+      await h.call('POST', '/auth/profile/initialize', token: t);
+      await h.call('POST', '/auth/profile/initialize', token: t);
       expect(h.store.users, hasLength(1));
     });
 
-    test('ignores role / status / tenant / uid in the body', () async {
-      h.admin.records['new-4'] = const AuthUserRecord(disabled: false);
+    test(
+      'rejects role / status / tenant / uid fields and creates nothing',
+      () async {
+        h.admin.records['new-4'] = const AuthUserRecord(disabled: false);
+        for (final field in [
+          'uid',
+          'platformRole',
+          'role',
+          'accountStatus',
+          'tenantId',
+          'permissions',
+          'email',
+          'emailVerified',
+        ]) {
+          final r = await h.call(
+            'POST',
+            '/auth/profile/initialize',
+            token: h.keys.token(uid: 'new-4'),
+            body: {field: 'super_admin'},
+          );
+          expect(r.statusCode, 422, reason: field);
+        }
+        expect(h.store.users, isEmpty);
+      },
+    );
+
+    test('uses the body display name only when the token has none', () async {
+      h.admin.records['n5'] = const AuthUserRecord(disabled: false);
+      await h.call(
+        'POST',
+        '/auth/profile/initialize',
+        token: h.keys.token(uid: 'n5', name: null),
+        body: {'displayName': 'Hinted Name'},
+      );
+      expect(h.store.users['n5']!.displayName, 'Hinted Name');
+      h.admin.records['n6'] = const AuthUserRecord(disabled: false);
+      await h.call(
+        'POST',
+        '/auth/profile/initialize',
+        token: h.keys.token(uid: 'n6', name: 'Token Name'),
+        body: {'displayName': 'Hinted Name'},
+      );
+      expect(h.store.users['n6']!.displayName, 'Token Name');
+    });
+
+    test('invalid display name hint → 422', () async {
+      h.admin.records['n7'] = const AuthUserRecord(disabled: false);
       final r = await h.call(
         'POST',
-        '/auth/provision',
-        token: h.keys.token(uid: 'new-4'),
-        body: {
-          'uid': 'victim',
-          'platformRole': 'super_admin',
-          'role': 'clinic_owner',
-          'accountStatus': 'active',
-          'tenantId': 'clinic-a',
-        },
+        '/auth/profile/initialize',
+        token: h.keys.token(uid: 'n7'),
+        body: {'displayName': 'x'},
       );
-      expect(r.statusCode, 200);
-      expect(h.store.users.containsKey('victim'), isFalse);
-      final user = h.store.users['new-4']!;
-      expect(user.platformRole, isNull);
+      expect(r.statusCode, 422);
+    });
+
+    test('response includes the profile and never a role', () async {
+      h.admin.records['n8'] = const AuthUserRecord(disabled: false);
+      final r = await h.call(
+        'POST',
+        '/auth/profile/initialize',
+        token: h.keys.token(uid: 'n8'),
+      );
       final data = (await jsonBody(r))['data']! as Map;
-      expect(data['memberships'], isEmpty);
+      expect((data['profile']! as Map)['uid'], 'n8');
+      expect(data.containsKey('platformRole'), isFalse);
     });
 
     test('does not reactivate or log in a suspended account', () async {
       h.seedUser(status: AccountStatus.suspended);
-      final r = await h.call('POST', '/auth/provision', token: h.keys.token());
+      final r = await h.call(
+        'POST',
+        '/auth/profile/initialize',
+        token: h.keys.token(),
+      );
       expect(r.statusCode, 200);
       final data = (await jsonBody(r))['data']! as Map;
       expect(data['accountStatus'], 'suspended');
@@ -81,7 +131,7 @@ void main() {
     });
 
     test('requires a token', () async {
-      final r = await h.call('POST', '/auth/provision');
+      final r = await h.call('POST', '/auth/profile/initialize');
       expect(r.statusCode, 401);
     });
 
@@ -89,7 +139,7 @@ void main() {
       h.admin.records['no-mail'] = const AuthUserRecord(disabled: false);
       final r = await h.call(
         'POST',
-        '/auth/provision',
+        '/auth/profile/initialize',
         token: h.keys.token(uid: 'no-mail', email: null),
       );
       expect(r.statusCode, 400);
@@ -169,6 +219,105 @@ void main() {
       );
       final data = (await jsonBody(r))['data']! as Map;
       expect(data.containsKey('platformRole'), isFalse);
+    });
+  });
+
+  group('PATCH /auth/me', () {
+    setUp(() => h.seedUser());
+
+    Future<dynamic> patch(Object body, {String uid = 'user-1'}) => h.call(
+      'PATCH',
+      '/auth/me',
+      token: h.keys.token(uid: uid),
+      body: body,
+    );
+
+    test('updates permitted fields', () async {
+      final r = await patch({
+        'displayName': 'New Name',
+        'phoneNumber': '9876543210',
+      });
+      expect(r.statusCode, 200);
+      final u = h.store.users['user-1']!;
+      expect(u.displayName, 'New Name');
+      expect(u.phoneNumber, '9876543210');
+      expect(h.store.audit.any((e) => e['event'] == 'profile_updated'), isTrue);
+    });
+
+    test('null phone number clears it', () async {
+      await patch({'phoneNumber': '9876543210'});
+      await patch({'phoneNumber': null});
+      expect(h.store.users['user-1']!.phoneNumber, isNull);
+    });
+
+    for (final field in [
+      'uid',
+      'accountStatus',
+      'platformRole',
+      'role',
+      'tenantId',
+      'memberships',
+      'permissions',
+      'email',
+      'emailVerified',
+      'lastLoginAt',
+      'createdAt',
+    ]) {
+      test('rejects forbidden field "$field"', () async {
+        final before = h.store.users['user-1']!.toMap();
+        final r = await patch({'displayName': 'Ok Name', field: 'x'});
+        expect(r.statusCode, 422);
+        expect(
+          h.store.users['user-1']!.toMap(),
+          before,
+          reason: 'nothing may change when any field is rejected',
+        );
+      });
+    }
+
+    test('cannot self-promote to active or admin', () async {
+      h.seedUser(
+        uid: 'p1',
+        status: AccountStatus.pending,
+        emailVerified: false,
+      );
+      final r = await h.call(
+        'PATCH',
+        '/auth/me',
+        token: h.keys.token(uid: 'p1', emailVerified: false),
+        body: {'accountStatus': 'active', 'platformRole': 'super_admin'},
+      );
+      expect(r.statusCode, 422);
+      final u = h.store.users['p1']!;
+      expect(u.accountStatus, AccountStatus.pending);
+      expect(u.platformRole, isNull);
+    });
+
+    test('invalid values → 422', () async {
+      expect((await patch({'displayName': ''})).statusCode, 422);
+      expect((await patch({'phoneNumber': '123'})).statusCode, 422);
+      expect((await patch({'displayName': 5})).statusCode, 422);
+    });
+
+    test('empty update → 400', () async {
+      expect((await patch(<String, Object?>{})).statusCode, 400);
+    });
+
+    test('suspended account cannot modify its profile', () async {
+      h.seedUser(status: AccountStatus.suspended);
+      expect((await patch({'displayName': 'Hacker'})).statusCode, 403);
+    });
+
+    test('requires authentication', () async {
+      final r = await h.call('PATCH', '/auth/me', body: {'displayName': 'X Y'});
+      expect(r.statusCode, 401);
+    });
+
+    test('cannot target another user via uid', () async {
+      h.seedUser(uid: 'victim');
+      final r = await patch({'uid': 'victim', 'displayName': 'Pwned'});
+      expect(r.statusCode, 422);
+      expect(h.store.users['victim']!.displayName, isNot('Pwned'));
     });
   });
 

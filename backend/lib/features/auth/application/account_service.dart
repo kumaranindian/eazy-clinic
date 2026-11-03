@@ -66,8 +66,9 @@ class AccountService {
 
   /// Creates `platform_users/{uid}` for a first-time identity, or refreshes
   /// the existing one, and records the login. Grants no roles or memberships.
-  Future<PlatformUser> provision(
+  Future<PlatformUser> initializeProfile(
     VerifiedIdentity identity, {
+    String? displayNameHint,
     String? requestId,
   }) async {
     final email = identity.email;
@@ -81,7 +82,11 @@ class AccountService {
     if (user == null) {
       final created = PlatformUser(
         uid: identity.uid,
-        displayName: (identity.name ?? '').trim(),
+        displayName:
+            ((identity.name?.trim().isNotEmpty ?? false)
+                    ? identity.name!
+                    : (displayNameHint ?? ''))
+                .trim(),
         email: email,
         emailVerified: identity.emailVerified,
         accountStatus: identity.emailVerified
@@ -129,6 +134,32 @@ class AccountService {
       requestId: requestId,
     );
     return user.copyWith(email: email, lastLoginAt: now, updatedAt: now);
+  }
+
+  /// Updates the profile fields a user may change themselves. The caller has
+  /// already restricted [displayName]/[phoneNumber] to the allow-list.
+  Future<PlatformUser> updateProfile(
+    PlatformUser user, {
+    String? displayName,
+    String? phoneNumber,
+    bool clearPhone = false,
+    String? requestId,
+  }) async {
+    final now = _clock();
+    final fields = <String, Object?>{
+      'updatedAt': now.toUtc(),
+      if (displayName != null) 'displayName': displayName,
+      if (phoneNumber != null) 'phoneNumber': phoneNumber,
+      if (clearPhone) 'phoneNumber': null,
+    };
+    await _store.update(user.uid, fields);
+    await _events.record(
+      SecurityEvent.profileUpdated,
+      uid: user.uid,
+      requestId: requestId,
+      reason: fields.keys.where((k) => k != 'updatedAt').join(','),
+    );
+    return (await _store.get(user.uid)) ?? user;
   }
 
   /// Revokes every refresh token of [targetUid].

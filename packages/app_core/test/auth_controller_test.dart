@@ -45,7 +45,7 @@ void main() {
       await settle();
       expect(c.read(authControllerProvider), isA<Authenticated>());
       expect(api.sessionCalls, 1);
-      expect(api.provisionCalls, 0, reason: 'restore is not a login');
+      expect(api.initializeCalls, 0, reason: 'restore is not a login');
     });
 
     test('unprovisioned account is provisioned once', () async {
@@ -56,7 +56,7 @@ void main() {
       final c = makeContainer(FakeAuthRepository(initial: testUser), api);
       c.read(authControllerProvider);
       await settle();
-      expect(api.provisionCalls, 1);
+      expect(api.initializeCalls, 1);
       expect(c.read(authControllerProvider), isA<Authenticated>());
     });
 
@@ -142,7 +142,7 @@ void main() {
   group('sign in / register', () {
     test('successful sign in provisions and authenticates', () async {
       final repo = FakeAuthRepository();
-      final api = FakeAuthApi()..provisionResult = activeSession();
+      final api = FakeAuthApi()..initializeResult = activeSession();
       final c = makeContainer(repo, api);
       c.read(authControllerProvider);
       await settle();
@@ -151,7 +151,7 @@ void main() {
           .signIn(email: 'a@b.co', password: 'secret123');
       expect(failure, isNull);
       expect(c.read(authControllerProvider), isA<Authenticated>());
-      expect(api.provisionCalls, 1);
+      expect(api.initializeCalls, 1);
     });
 
     test(
@@ -174,7 +174,7 @@ void main() {
 
     test('registration with unverified email lands on verification', () async {
       final api = FakeAuthApi()
-        ..provisionResult = activeSession(status: AccountStatus.pending);
+        ..initializeResult = activeSession(status: AccountStatus.pending);
       final c = makeContainer(FakeAuthRepository(), api);
       c.read(authControllerProvider);
       await settle();
@@ -194,7 +194,7 @@ void main() {
       // The controller API has no role or tenant parameter at all; access
       // comes only from the backend session, which is empty for new users.
       final api = FakeAuthApi()
-        ..provisionResult = activeSession(status: AccountStatus.active);
+        ..initializeResult = activeSession(status: AccountStatus.active);
       final c = makeContainer(
         FakeAuthRepository(),
         api,
@@ -216,11 +216,47 @@ void main() {
     });
 
     test(
+      'registration survives a failed profile initialization (retry)',
+      () async {
+        // The Firebase account is created, then the backend call fails: the user
+        // stays signed in with a retry screen, and retry completes setup
+        // without creating a second identity.
+        final repo = FakeAuthRepository();
+        final api = FakeAuthApi()
+          ..initializeResult = const AuthApiException(isNetwork: true)
+          ..sessions = [
+            const AuthApiException(code: ApiErrorCode.accountNotProvisioned),
+          ];
+        final c = makeContainer(repo, api);
+        c.read(authControllerProvider);
+        await settle();
+        await c
+            .read(authControllerProvider.notifier)
+            .register(
+              displayName: 'New User',
+              email: 'n@b.co',
+              password: 'secret123',
+            );
+        expect(c.read(authControllerProvider), isA<AuthFailed>());
+
+        api.initializeResult = activeSession(status: AccountStatus.pending);
+        await c.read(authControllerProvider.notifier).retry();
+        final s = c.read(authControllerProvider) as AccessDenied;
+        expect(s.reason, AccessDeniedReason.emailUnverified);
+        expect(
+          repo.registerCalls,
+          1,
+          reason: 'identity must not be created twice',
+        );
+      },
+    );
+
+    test(
       'backend dead-session error during sign in closes the session',
       () async {
         final repo = FakeAuthRepository();
         final api = FakeAuthApi()
-          ..provisionResult = const AuthApiException(
+          ..initializeResult = const AuthApiException(
             code: ApiErrorCode.sessionRevoked,
           );
         final c = makeContainer(repo, api);

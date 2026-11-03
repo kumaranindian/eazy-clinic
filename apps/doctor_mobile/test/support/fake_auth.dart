@@ -63,7 +63,7 @@ class FakeAuthApi implements AuthApi {
   Future<AuthSessionDto> getSession() async => session;
 
   @override
-  Future<AuthSessionDto> provision() async => session;
+  Future<AuthSessionDto> initializeProfile() async => session;
 
   @override
   Future<void> logout({bool allDevices = false}) async {}

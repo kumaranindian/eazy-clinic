@@ -19,6 +19,7 @@ class FakeAuthRepository implements AuthRepository {
   AuthFailure? signOutFailure;
   final List<String> resetRequests = [];
   int signOutCalls = 0;
+  int registerCalls = 0;
   int verificationEmails = 0;
   AuthUser? reloadResult;
 
@@ -50,6 +51,7 @@ class FakeAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
+    registerCalls++;
     if (registerFailure != null) throw registerFailure!;
     final user = AuthUser(
       uid: 'u2',
@@ -88,9 +90,9 @@ class FakeAuthRepository implements AuthRepository {
 class FakeAuthApi implements AuthApi {
   /// Responses are consumed in order; the last one repeats.
   List<Object> sessions = [];
-  Object? provisionResult;
+  Object? initializeResult;
   int sessionCalls = 0;
-  int provisionCalls = 0;
+  int initializeCalls = 0;
   int logoutCalls = 0;
   bool logoutAllDevices = false;
   bool logoutFails = false;
@@ -105,9 +107,9 @@ class FakeAuthApi implements AuthApi {
   Future<AuthSessionDto> getSession() => _next(sessions, sessionCalls++);
 
   @override
-  Future<AuthSessionDto> provision() {
-    provisionCalls++;
-    final r = provisionResult;
+  Future<AuthSessionDto> initializeProfile() {
+    initializeCalls++;
+    final r = initializeResult;
     if (r is Exception) throw r;
     return Future.value(r as AuthSessionDto? ?? activeSession());
   }
