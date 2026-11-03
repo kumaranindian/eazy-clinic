@@ -78,3 +78,6 @@ platform_users            tenants ──► subscription_plans (via platform_sub
 | Platform | `platform_users`, `tenants`, `subscription_plans`, `platform_subscriptions`, `platform_audit_logs`, `clinic_invites` |
 | Global patient identity | `patient_accounts`, `patient_links`, `family_relationships` |
 | Tenant | everything under `tenants/{tenantId}/` |
+
+## Phase 3 relationships
+`doctor` 1—N `doctor_branch_assignments` N—1 `branch`; `member` ↔ `doctor`/`staff` (by id, created at invitation acceptance); `invitation` → `staff`/`doctor`; `seat` slots count entities per kind against subscription limits.

@@ -71,5 +71,13 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 023 | Entitlements are evaluated only on the backend (`evaluateAccess` + `EntitlementService`); tenant comes from server-side memberships, `X-Tenant-Id` is a selector | CLAUDE.md §4 tenant isolation | Implemented |
 | 024 | Generic `DocumentStore` (Firestore REST + in-memory twin, one contract suite incl. emulator); failed REST transactions are rolled back | Queries/counts/transactions needed; emulator caught lock-leak and aggregation-ordering bugs | Implemented |
 | 025 | Clinic Web admits every active account; platform/clinic/applicant screens depend on server-resolved role/memberships (UI hint only) | Applicants must reach the registration form | Implemented |
+| 026 | Predefined clinic roles only; custom roles deferred | Safe default; catalog/policy ready for overrides | Implemented |
+| 027 | `ClinicPermission` catalog and role matrix live in `common_models`; effective permissions computed server-side | Single source of truth | Implemented |
+| 028 | Authority rules: no self-change, owner-only admin management, immutable owner (last-owner protection), owner transfer deferred | Prevent privilege escalation | Implemented |
+| 029 | Branch scope = `allBranches` or `branchIds` on the membership; out-of-scope → 404; UI branch selector is a hint | CLAUDE.md §4 | Implemented |
+| 030 | Subscription limits via atomic seat-slot documents (does-not-exist preconditions) | Race-free without transactions across queries | Implemented |
+| 031 | Invitations store only a SHA-256 token hash; single-use transactional acceptance bound to verified e-mail; delivery not faked | Secure onboarding | Implemented (delivery blocked) |
+| 032 | Logo in private object storage (`STORAGE_BUCKET`), magic-byte validated, served via authenticated endpoint | No public PHI-adjacent assets | Implemented |
+| 033 | Clinic Web adds `file_selector` (official Flutter plugin) for logo selection | No equivalent in the SDK; first-party package | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

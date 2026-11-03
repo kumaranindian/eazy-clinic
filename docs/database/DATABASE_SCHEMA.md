@@ -127,3 +127,6 @@ All are **backend-only** (deny-all rules, verified by emulator tests). Timestamp
 | `platform_audit_logs/{id}` | Phase 2 shape: `action*`, `actorUid*`, `actorRole*`, `targetType*`, `targetId*`, `tenantId?`, `reason?`, `requestId?`, `before?`, `after?`, `timestamp*`. Phase 1 authentication events keep `event`,`uid`,`outcome` and are mapped by the viewer | Append-only: the service has no update/delete; rules deny clients. `before/after` hold statuses/plan ids/limits only, no personal data or tokens. |
 
 Indexes: `firebase/firestore.indexes.json` (16: applications by applicant/status/submittedAt/decidedAt/name; tenants and plans by status; subscriptions by status/tenant/plan/endDate; audit by tenant/action/targetType/actor; collection-group `members`). Not deployed.
+
+## Phase 3 additions
+Branches, branch codes, doctors, doctor_branch_assignments, staff, members (role/allBranches/branchIds), invitations (token hash only) and seats under `tenants/{tenantId}/`. Full field list: `docs/phase-3/FIRESTORE_SCHEMA.md`.

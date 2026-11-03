@@ -66,3 +66,20 @@ Commands and counts: see the Phase 1 completion report and `docs/testing/TESTING
 ## Phase 2: SaaS platform and multi-tenant management (branch `feature/phase-0-foundation`)
 
 Detailed status per brief module: `docs/phase-2/PHASE_2_IMPLEMENTATION.md`. Summary: backend control plane (applications, provisioning, tenants, plans, subscriptions, entitlements, dashboard, audit), the Firestore document store, indexes, rules tests and the Clinic Web platform/onboarding UI are **implemented and tested** with test doubles and the Firestore emulator. **Deferred:** platform-admin management API, payments, notifications. **Blocked/unverified:** live Firebase, deployed indexes, Android builds.
+
+## Phase 3: Clinic setup, branches, doctors, staff and RBAC (branch `feature/phase-0-foundation`)
+
+| Item | Status | Evidence |
+|---|---|---|
+| A Clinic profile + private logo | Implemented, tested | `clinic_config_test.dart`, `CLINIC_CONFIGURATION.md` |
+| B Operating hours, breaks, holidays, special days, time zone, branch override | Implemented, tested | same |
+| C Branches (limit, no delete, last-active protection) | Implemented, tested (+emulator) | `branch_test.dart` |
+| D Doctors + `doctor_branch_assignments` | Implemented, tested (+emulator) | `doctor_test.dart` |
+| E Staff + secure invitations | Implemented, tested (+emulator); **delivery not configured** (TD-28) | `staff_invitation_test.dart` |
+| F/G Centralized RBAC, branch-scoped access | Implemented, tested | `RBAC_PERMISSION_MATRIX.md` |
+| H Membership lifecycle | Implemented; owner transfer deferred (TD-29) | |
+| Firestore model/rules/indexes | Implemented; rules emulator-tested (20); indexes undeployed (TD-32) | `FIRESTORE_SCHEMA.md` |
+| Clinic Web UI (setup, branches, doctors, staff, invitations, roles/access, branch selector, accept page) | Implemented, widget-tested (45); web build OK | `clinic_admin_test.dart` |
+| Custom roles, owner transfer, live Firebase, Android builds, tenant audit viewer | **Deferred / unverified** | TD-29, TD-31, TD-32 |
+
+Details and test counts: `docs/phase-3/TEST_REPORT.md`.

@@ -99,3 +99,6 @@ Firestore scheduled exports to a locked bucket (per environment), restore drill,
 ## 14. Testing
 
 Security test suite is mandatory per phase (CLAUDE.md §15): unauthorized access, cross-tenant access, role escalation, patient record access, document access, payment manipulation, invalid tokens. Phase 0 tests cover config validation, redaction, error hiding, CORS allow-list and security headers.
+
+## Phase 3 additions
+Central RBAC (`ClinicPermission`/`ClinicRolePolicy`), branch-scoped access, hash-only single-use invitations, private logo storage and atomic audit. See `docs/phase-3/SECURITY_REVIEW.md` and `RBAC_PERMISSION_MATRIX.md`.

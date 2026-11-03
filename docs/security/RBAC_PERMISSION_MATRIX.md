@@ -115,3 +115,6 @@ Dependent-minor rules (age thresholds, transition to own account at majority) ar
 3. UI reads `GET /members/me` → permission list; hides actions but never relies on it.
 4. Changing a member's role/permissions writes an audit entry and revokes that user's refresh tokens.
 5. This matrix and the code must not diverge: updating one requires updating the other in the same change.
+
+## Phase 3 clinic permissions
+The implemented clinic matrix is in `docs/phase-3/RBAC_PERMISSION_MATRIX.md`.

@@ -29,3 +29,10 @@
 | TD-25 | Firestore indexes (16) are defined but not deployed or exercised (the emulator does not enforce them). Combined audit filters are rejected for lack of composite indexes. | Missing-index errors in staging | Deploy and verify in the dev project before Phase 3 merges. |
 | TD-26 | No scheduled job: expired subscriptions are *evaluated* but not persisted as `expired`; no reminder/e-mail notifications. | Reporting drift | Daily job + notifications in Phase 10. |
 | TD-27 | Tenant `slug` is reserved but unused; no tenant configuration beyond `configurationVersion`. | – | Clinic setup module. |
+| TD-28 | Invitation delivery (e-mail/SMS) is not configured: the one-time link is returned to the admin and reported as `delivery: not_configured`. | Manual sharing | Notification provider (Phase 10). |
+| TD-29 | Custom/configurable roles and per-user permission overrides, and clinic owner transfer, are deferred (owner role immutable via API). | Product gap vs CLAUDE.md §5 | Dedicated approved change. |
+| TD-30 | Seat-slot limit enforcement scans slots linearly (limit = number of slot docs); fine for plan limits in the hundreds, not for unlimited plans. | Scale | Counter + transactional reservation. |
+| TD-31 | No tenant-facing audit viewer; Phase 3 audit entries are readable only through platform audit. | Operational | Phase 11 / reports. |
+| TD-32 | Phase 3 indexes (13) and Storage bucket are not deployed or exercised live; logo storage uses ADC against a real bucket only in staging. | Unverified live | Deploy/verify in the dev project. |
+| TD-33 | Doctor registration numbers are not verified with councils; no MFA for clinic admins; per-instance rate limits (TD-16). | Compliance/security | Phase 11. |
+| TD-34 | Clinic Web uses `file_selector` (ADR 033); web file-picking is covered by widget tests only, not a real browser. | Test gap | Browser integration test. |
