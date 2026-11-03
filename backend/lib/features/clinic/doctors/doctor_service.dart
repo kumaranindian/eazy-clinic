@@ -180,7 +180,7 @@ class DoctorService {
   /// Loads a doctor the caller may see. All-branch callers see every doctor;
   /// scoped callers only doctors assigned to at least one of their branches.
   /// Anything else answers 404.
-  Future<Map<String, Object?>> _visible(
+  Future<Map<String, Object?>> loadVisible(
     TenantContext t,
     String doctorId,
   ) async {
@@ -296,7 +296,7 @@ class DoctorService {
     final input = _parse(body, partial: true, regRequired: false);
     if (input.isEmpty)
       throw const ApiException.badRequest('No doctor fields to update.');
-    await _visible(t, id);
+    await loadVisible(t, id);
     final newReg = input['registrationNumber'] as String?;
     final now = _d.now;
     return _d.store.transaction((tx) async {
@@ -351,7 +351,7 @@ class DoctorService {
     String? requestId,
   }) async {
     t.require(ClinicPermission.doctorsActivate);
-    await _visible(t, id);
+    await loadVisible(t, id);
     final now = _d.now;
     Future<(Map<String, Object?>, List<WriteOp>)> build(
       TxContext tx,
@@ -497,20 +497,41 @@ class DoctorService {
       to: to,
     );
     try {
-      await _d.store.commit([
-        ...ops,
-        _d.audit.op(
-          AuditEntry(
-            actor: _d.actorOf(t),
-            action: 'doctor.branch_assigned',
-            targetType: 'doctor',
-            targetId: doctorId,
-            tenantId: t.tenantId,
-            requestId: requestId,
-            after: {'branchId': branchId},
+      await _d.store.transaction((tx) async {
+        // keep the linked login's branch scope in step with the assignments
+        final extra = <WriteOp>[];
+        final uid = doc['uid'] as String?;
+        if (uid != null) {
+          final m = await tx.get(_d.path(t, 'members', uid));
+          if (m != null) {
+            final ids = {
+              ...((m['branchIds'] as List?) ?? const []).cast<String>(),
+              branchId,
+            };
+            extra.add(
+              UpdateOp(_d.path(t, 'members', uid), {
+                'branchIds': ids.toList(),
+                'updatedAt': now,
+              }),
+            );
+          }
+        }
+        tx.write([
+          ...ops,
+          ...extra,
+          _d.audit.op(
+            AuditEntry(
+              actor: _d.actorOf(t),
+              action: 'doctor.branch_assigned',
+              targetType: 'doctor',
+              targetId: doctorId,
+              tenantId: t.tenantId,
+              requestId: requestId,
+              after: {'branchId': branchId},
+            ),
           ),
-        ),
-      ]);
+        ]);
+      });
     } on AlreadyExistsException {
       throw const ApiException.conflict(
         'The doctor is already assigned to this branch.',
@@ -548,7 +569,7 @@ class DoctorService {
   }) async {
     t.require(ClinicPermission.doctorsAssignBranch);
     t.scope.require(branchId);
-    await _visible(t, doctorId);
+    await loadVisible(t, doctorId);
     final now = _d.now;
     await _d.store.transaction((tx) async {
       final key = await tx.get(
@@ -557,7 +578,22 @@ class DoctorService {
       if (key == null)
         throw const ApiException.notFound('Assignment not found.');
       final aid = key['assignmentId']! as String;
+      final doctor = await tx.get(_d.path(t, collection, doctorId));
+      final uid = doctor?['uid'] as String?;
+      final member = uid == null
+          ? null
+          : await tx.get(_d.path(t, 'members', uid));
       tx.write([
+        if (member != null)
+          UpdateOp(_d.path(t, 'members', uid!), {
+            'branchIds': [
+              for (final b
+                  in ((member['branchIds'] as List?) ?? const [])
+                      .cast<String>())
+                if (b != branchId) b,
+            ],
+            'updatedAt': now,
+          }),
         UpdateOp(_d.path(t, assignments, aid), {
           'status': 'ended',
           'endedAt': now,
@@ -585,7 +621,7 @@ class DoctorService {
     String? status,
   }) async {
     t.require(ClinicPermission.doctorsView);
-    await _visible(t, doctorId);
+    await loadVisible(t, doctorId);
     final rows = await _d.store.query(
       DocQuery(
         _d.path(t, assignments),
@@ -624,7 +660,7 @@ class DoctorService {
 
   Future<Map<String, Object?>> detail(TenantContext t, String id) async {
     t.require(ClinicPermission.doctorsView);
-    final doc = await _visible(t, id);
+    final doc = await loadVisible(t, id);
     return {
       ...present(t, doc),
       'branches': await listAssignments(t, id, status: 'active'),
