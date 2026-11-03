@@ -84,3 +84,6 @@ platform_users            tenants ──► subscription_plans (via platform_sub
 
 ## Phase 4 relationships
 `patient_account` 1—N `patient_clinic_link` (pointer) N—1 tenant `patient`; tenant `patient` 1—N history entries / allergies / medications / alerts / consents / documents / revisions / audit; `patient` 1—1 emergency contacts; `family_relationship` links two `patient_accounts` and holds no clinical data; `patient_link_code` → `patient` (single use).
+
+## Phase 5 relationships
+`doctor` 1—N `doctor_availability` (per branch) and `doctor_schedule_exceptions`; `appointment` N—1 `patient`, `doctor`, `branch`, `appointment_type`; `appointment` 1—N `appointment_slot_reservations` (5-minute cells of one doctor); `appointment` 0..1—1 `queue_entry` N—1 `queue` (branch + doctor + date); `appointment` 0..1 `rescheduledToId/FromId` self-links; every change writes `appointment_audit_logs`.

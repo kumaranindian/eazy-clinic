@@ -105,3 +105,6 @@ Central RBAC (`ClinicPermission`/`ClinicRolePolicy`), branch-scoped access, hash
 
 ## Phase 4 additions
 Global identity holds no clinical data; linking needs an in-person identity check plus a hashed one-time code claimed by a verified-e-mail account; family relationships never grant clinic access; clinical permissions are separate from administrative ones; consent is enforced in writing transactions; documents are private, audited and retained. See `docs/phase-4/SECURITY_AND_PRIVACY_REVIEW.md` and `docs/security/DATA_RETENTION.md`.
+
+## Phase 5 additions
+Reservation documents as the double-booking guard, idempotent booking, backend-only slot calculation, doctors acting only on their own queue, non-cancelling exception workflow, polling queue with version checks. See `docs/phase-5/SECURITY_REVIEW.md`.

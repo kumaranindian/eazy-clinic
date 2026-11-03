@@ -44,3 +44,9 @@
 | TD-40 | Name-only duplicate matching is not supported (candidates come from birth date, phone or e-mail); search is a name prefix. | Missed duplicates | Search index / normalised name keys. |
 | TD-41 | Clinic Web has no family/dependent screens (relationships are patient-owned; the clinic sees none). Patient-account phone/e-mail changes and account recovery are not handled. | By design / Phase 8 | Patient app. |
 | TD-42 | Sensitive reads write an audit entry in the request path (extra write per read); no tenant-wide patient access report. | Cost/reporting | Phase 11 / reports. |
+| TD-43 | Scheduling supports only time zones without daylight saving (fixed-offset table; India and similar). A DST zone is refused with a clear 409. | Limits non-India markets | Add a tz database (documented dependency) before launching in DST regions. |
+| TD-44 | Queue "live" updates are polling (10 s) with version checks; there is no push/streaming channel, and no queue display screen for waiting rooms. | Latency, load | Server-sent events or FCM (Phase 10); public display screen. |
+| TD-45 | `maxPerSlot > 1` lanes are per doctor and date, not per branch. | Capacity semantics | Per-branch lanes if multi-branch capacity scheduling is needed. |
+| TD-46 | 20 Phase 5 composite indexes are not deployed or exercised live. List search `q` filters only inside the selected window (≤ 62 days). | Missing-index errors; search scope | Deploy/verify in dev; search index. |
+| TD-47 | Walk-ins never overbook (no configurable walk-in capacity or emergency policy); no appointment reminders/notifications (Phase 10); no recurring or video appointments; no doctor-change on reschedule. | Product gaps | Product decisions. |
+| TD-48 | Appointment reads are not individually audited; the Clinic Web calendar has no drag-and-drop and no printable queue token. | Reporting / UX | Phase 10/11. |

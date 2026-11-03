@@ -84,3 +84,6 @@ Emulator findings fixed along the way: transactions that threw were not rolled b
 
 ## Phase 4
 Privacy/isolation tests run against the in-memory store (`backend/test/features/patients`), the Firestore emulator (`test/integration/patient_flow_emulator_test.dart`, rules tests) and Clinic Web widget tests. Counts: `docs/phase-4/TEST_REPORT.md`.
+
+## Phase 5
+Scheduling and concurrency tests: `backend/test/features/scheduling` (in-memory store, `Future.wait` races), `test/integration/scheduling_flow_emulator_test.dart`, rules tests, Clinic Web `scheduling_test.dart` (incl. queue polling with out-of-order snapshots). Counts: `docs/phase-5/TEST_REPORT.md`.

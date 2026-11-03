@@ -135,3 +135,24 @@ The implemented clinic matrix is in `docs/phase-3/RBAC_PERMISSION_MATRIX.md`.
 | patient_audit.view | ✔ | ✔ | | | | |
 
 Administrators run the clinic but do not read clinical information by default. Verifying clinical information needs the **doctor** role (not just a permission).
+
+## Phase 5 scheduling permissions
+| Permission | Owner | Admin | Doctor | Nurse | Receptionist |
+|---|---|---|---|---|---|
+| appointment_types.view | ✔ | ✔ | ✔ | ✔ | ✔ |
+| appointment_types.manage | ✔ | ✔ | | | |
+| availability.view | ✔ | ✔ | ✔ | ✔ | ✔ |
+| availability.manage | ✔ | ✔ | | | |
+| availability.manage_own | | | ✔ (own profile) | | |
+| appointments.view | ✔ | ✔ | ✔ | ✔ | ✔ |
+| appointments.book | ✔ | ✔ | ✔ | | ✔ |
+| appointments.manage (confirm, cancel, reschedule, no-show, notes) | ✔ | ✔ | | | ✔ |
+| appointments.check_in | ✔ | ✔ | | ✔ | ✔ |
+| appointments.cancel_checked_in | ✔ | ✔ | | | ✔ |
+| appointments.consult (start, complete) | ✔ | | ✔ (own patients) | | |
+| queue.view | ✔ | ✔ | ✔ | ✔ | ✔ |
+| queue.operate | ✔ | ✔ | ✔ | ✔ | ✔ |
+| queue.consult | ✔ | | ✔ (own queue) | | |
+| queue.priority | ✔ | ✔ | | | |
+
+Accountants, lab technicians and pharmacists have no scheduling access.

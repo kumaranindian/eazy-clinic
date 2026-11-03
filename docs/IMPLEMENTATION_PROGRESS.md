@@ -102,3 +102,23 @@ Details and test counts: `docs/phase-3/TEST_REPORT.md`.
 | Live Firebase, Android, profile photo, merge, patient app | **Deferred / unverified** | TD-35…TD-42 |
 
 Test counts: `docs/phase-4/TEST_REPORT.md`.
+
+## Phase 5: Appointments, availability, scheduling and queue (branch `feature/phase-0-foundation`)
+
+| Item | Status | Evidence |
+|---|---|---|
+| A Doctor availability (sessions, breaks, per branch, versions) | Implemented, tested (+emulator) | `availability_test.dart`, `DOCTOR_AVAILABILITY.md` |
+| B Exceptions, holidays, special days, affected-appointment workflow | Implemented, tested | `SCHEDULE_EXCEPTIONS.md` |
+| C Backend slot generation | Implemented, tested; fixed-offset zones only (TD-43) | `APPOINTMENT_BOOKING.md` |
+| D Appointment types | Implemented, tested | `APPOINTMENT_TYPES.md` |
+| E Booking with reservation-based double-booking prevention and idempotency | Implemented, tested incl. concurrency | `DOUBLE_BOOKING_PREVENTION.md` |
+| F Walk-ins (never overbook) | Implemented, tested | `WALK_IN_MANAGEMENT.md` |
+| G Lifecycle (confirm, cancel, reschedule, check-in, start, complete, no-show) | Implemented, tested | `APPOINTMENT_LIFECYCLE.md` |
+| H Calendar (day, week, month, list, doctor/branch filters, availability) | Implemented, widget-tested; simple grid, no drag-and-drop | `scheduling_test.dart` |
+| I-K Queue, tokens, check-in, live dashboard | Implemented, tested; polling not push (TD-44) | `QUEUE_AND_TOKEN_MANAGEMENT.md` |
+| L Patient appointment timeline | Implemented, tested | |
+| M Audit | Implemented, tested | `SECURITY_REVIEW.md` |
+| Firestore rules/indexes | Rules tested (25); indexes undeployed (TD-46) | `FIRESTORE_SCHEMA.md` |
+| Live Firebase, Android, notifications, payments, consultation | **Deferred / unverified** | TD-43…TD-48 |
+
+Test counts: `docs/phase-5/TEST_REPORT.md`.

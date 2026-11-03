@@ -86,5 +86,12 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 038 | Consent is an append-only backend service; staff are never the grantor; revocation blocks new processing, evidence retained | DPDP-oriented consent | Implemented |
 | 039 | Changes keep previous versions (`patient_record_revisions`); verification resets on content change; no deletion | No silent overwrite | Implemented |
 | 040 | Duplicate detection is advisory (never auto-merge); merge deferred | Safety | Implemented (merge deferred) |
+| 041 | Double booking is prevented by per-cell reservation documents created atomically with the appointment (not only by transaction isolation) | Hard uniqueness on any store; tested under concurrency | Implemented |
+| 042 | Booking and walk-in require an `Idempotency-Key`; a body fingerprint detects misuse | Safe retries | Implemented |
+| 043 | Scheduling time zones are fixed-offset only; DST zones are refused | No tz database dependency yet | Implemented (limit TD-43) |
+| 044 | Reschedule creates a new appointment and marks the old `rescheduled` | History preserved | Implemented |
+| 045 | Schedule exceptions never cancel appointments; they flag `needsAttention` and list the affected ones | Explicit resolution | Implemented |
+| 046 | Queue = branch + doctor + date; token counter on the queue doc with uniqueness keys; polling with a version field instead of push | Integrity first; no client Firestore access | Implemented (TD-44) |
+| 047 | One tenant collection `appointment_audit_logs` serves appointment history and queue history | Fewer duplicate stores | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).
