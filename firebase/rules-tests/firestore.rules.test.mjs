@@ -41,6 +41,21 @@ const patientPaths = [
   'tenants/t1/queues/q1',
   'tenants/t1/queue_entries/qe1',
   'tenants/t1/queue_tokens/q1_1',
+  'tenants/t1/consultations/con1',
+  'tenants/t1/consultation_versions/con1_r0',
+  'tenants/t1/consultation_amendments/amd1',
+  'tenants/t1/consultation_appointments/apt1',
+  'tenants/t1/diagnoses/dx1',
+  'tenants/t1/diagnosis_catalogue/dc1',
+  'tenants/t1/medicine_catalogue/md1',
+  'tenants/t1/prescriptions/rx1',
+  'tenants/t1/prescription_numbers/RX-000001',
+  'tenants/t1/patient_vitals/vt1',
+  'tenants/t1/clinical_templates/tpl1',
+  'tenants/t1/followups/fu1',
+  'tenants/t1/investigation_requests/inv1',
+  'tenants/t1/clinical_audit_logs/ca1',
+  'tenants/t1/counters/prescription_number',
 ];
 
 before(async () => {
@@ -209,7 +224,7 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
   });
 });
 
-describe('patient and scheduling data is backend-only (Phases 4-5)', () => {
+describe('patient, scheduling and clinical data is backend-only (Phases 4-6)', () => {
   const paths = patientPaths;
 
 
@@ -241,6 +256,17 @@ describe('patient and scheduling data is backend-only (Phases 4-5)', () => {
     await assertFails(setDoc(doc(alice(), 'tenants/t1/queue_entries/qe1'), { status: 'completed', tokenNumber: 1 }));
     await assertFails(setDoc(doc(alice(), 'tenants/t1/appointment_slot_reservations/free'), { doctorId: 'd1' }));
     await assertFails(updateDoc(doc(alice(), 'tenants/t1/appointments/apt1'), { status: 'completed' }));
+  });
+
+  it('no client can read or change consultations, prescriptions, vitals or clinical audit records', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'consultations'), where('doctorId', '==', 'd1'))));
+    await assertFails(getDocs(query(collectionGroup(alice(), 'prescriptions'), where('patientId', '==', 'p1'))));
+    await assertFails(getDocs(query(collectionGroup(anon(), 'patient_vitals'), where('patientId', '==', 'p1'))));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/consultations/con1'), { status: 'finalized' }));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/prescriptions/rx1'), { status: 'finalized' }));
+    await assertFails(deleteDoc(doc(alice(), 'tenants/t1/clinical_audit_logs/ca1')));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/consultation_versions/con1_r1'), { content: {} }));
   });
 
   it('link codes cannot be looked up by hash from a client (collection group)', async () => {
