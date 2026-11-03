@@ -54,8 +54,12 @@ class FakeRepo implements ControlPlaneRepository {
       _call<List<Json>>('getList', [path, query], {});
 
   @override
-  Future<Json> sendMap(String method, String path, [Json? body]) =>
-      _call<Json>('sendMap', [method, path, body], {});
+  Future<Json> sendMap(
+    String method,
+    String path, [
+    Json? body,
+    Map<String, String>? headers,
+  ]) => _call<Json>('sendMap', [method, path, body], {'headers': headers});
 
   @override
   Future<void> deleteAt(String path) => _call<void>('deleteAt', [path], {});

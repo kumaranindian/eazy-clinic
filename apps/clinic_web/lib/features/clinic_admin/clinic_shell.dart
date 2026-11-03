@@ -43,6 +43,30 @@ const _destinations = [
     ClinicPermission.patientsView,
   ),
   _Dest(
+    'Appointments',
+    Icons.event_outlined,
+    '/clinic/appointments',
+    ClinicPermission.appointmentsView,
+  ),
+  _Dest(
+    'Queue',
+    Icons.format_list_numbered,
+    '/clinic/queue',
+    ClinicPermission.queueView,
+  ),
+  _Dest(
+    'Availability',
+    Icons.schedule,
+    '/clinic/availability',
+    ClinicPermission.availabilityView,
+  ),
+  _Dest(
+    'Appointment types',
+    Icons.category_outlined,
+    '/clinic/appointment-types',
+    ClinicPermission.appointmentTypesView,
+  ),
+  _Dest(
     'Doctors',
     Icons.medical_services_outlined,
     '/clinic/doctors',

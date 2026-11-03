@@ -23,6 +23,9 @@ import '../../features/platform/plans_pages.dart';
 import '../../features/platform/platform_shell.dart';
 import '../../features/platform/subscriptions_pages.dart';
 import '../../features/platform/tenants_pages.dart';
+import '../../features/scheduling/appointments_pages.dart';
+import '../../features/scheduling/queue_page.dart';
+import '../../features/scheduling/types_and_availability_pages.dart';
 import '../../features/shared/app_frame.dart';
 import '../config/client_config_provider.dart';
 
@@ -183,6 +186,40 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/clinic/patients/:id/edit',
             builder: (context, state) =>
                 PatientFormPage(patientId: state.pathParameters['id']),
+          ),
+          GoRoute(
+            path: '/clinic/appointments',
+            builder: (context, state) => const AppointmentsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/appointments/new',
+            builder: (context, state) =>
+                BookAppointmentPage(initial: state.uri.queryParameters),
+          ),
+          GoRoute(
+            path: '/clinic/appointments/walk-in',
+            builder: (context, state) => BookAppointmentPage(
+              walkIn: true,
+              initial: state.uri.queryParameters,
+            ),
+          ),
+          GoRoute(
+            path: '/clinic/appointments/:id',
+            builder: (context, state) => AppointmentDetailPage(
+              appointmentId: state.pathParameters['id']!,
+            ),
+          ),
+          GoRoute(
+            path: '/clinic/queue',
+            builder: (context, state) => const QueuePage(),
+          ),
+          GoRoute(
+            path: '/clinic/availability',
+            builder: (context, state) => const AvailabilityPage(),
+          ),
+          GoRoute(
+            path: '/clinic/appointment-types',
+            builder: (context, state) => const AppointmentTypesPage(),
           ),
           GoRoute(
             path: '/clinic/invitations',

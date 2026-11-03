@@ -65,7 +65,8 @@ abstract final class ClinicPermission {
   static const String appointmentsManage = 'appointments.manage';
   static const String appointmentsCheckIn = 'appointments.check_in';
   static const String appointmentsConsult = 'appointments.consult';
-  static const String appointmentsCancelCheckedIn = 'appointments.cancel_checked_in';
+  static const String appointmentsCancelCheckedIn =
+      'appointments.cancel_checked_in';
   static const String queueView = 'queue.view';
   static const String queueOperate = 'queue.operate';
   static const String queueConsult = 'queue.consult';

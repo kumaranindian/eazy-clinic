@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../clinic_admin/providers.dart';
 import '../control_plane/data/control_plane_repository.dart';
+import '../scheduling/queue_page.dart' show PatientAppointmentsTab;
 import '../shared/async_body.dart';
 import '../shared/ui_helpers.dart';
 import '../shared/ui_kit.dart';
@@ -38,6 +39,8 @@ class PatientDetailPage extends ConsumerWidget {
             ('Medications', MedicationsTab(patientId: patientId)),
           if (can(ref, ClinicPermission.alertsView))
             ('Alerts', AlertsTab(patientId: patientId)),
+          if (can(ref, ClinicPermission.appointmentsView))
+            ('Appointments', PatientAppointmentsTab(patientId: patientId)),
           if (can(ref, ClinicPermission.consentsView))
             ('Consent', ConsentTab(patient: p)),
           if (can(ref, ClinicPermission.patientDocumentsView))

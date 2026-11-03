@@ -21,9 +21,14 @@ class ControlPlaneRepository {
       (await _api.get(path, query: query)).map;
   Future<List<Json>> getList(String path, [Map<String, String>? query]) async =>
       (await _api.get(path, query: query)).list;
-  Future<Json> sendMap(String method, String path, [Json? body]) async {
+  Future<Json> sendMap(
+    String method,
+    String path, [
+    Json? body,
+    Map<String, String>? headers,
+  ]) async {
     final r = switch (method) {
-      'POST' => await _api.post(path, body: body),
+      'POST' => await _api.post(path, body: body, headers: headers),
       'PATCH' => await _api.patch(path, body: body),
       'PUT' => await _api.put(path, body: body),
       _ => throw ArgumentError('Unsupported method $method'),
