@@ -13,6 +13,26 @@ import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, addDoc 
 
 let env;
 
+const patientPaths = [
+  'patient_accounts/pa_1',
+  'patient_account_uids/alice',
+  'patient_clinic_links/t1_p1',
+  'family_relationships/fr_1',
+  'tenants/t1/patients/p1',
+  'tenants/t1/patient_consents/c1',
+  'tenants/t1/patient_history_entries/h1',
+  'tenants/t1/patient_allergies/a1',
+  'tenants/t1/patient_medications/m1',
+  'tenants/t1/patient_alerts/al1',
+  'tenants/t1/patient_documents/d1',
+  'tenants/t1/patient_link_codes/lc1',
+  'tenants/t1/patient_identity_links/il1',
+  'tenants/t1/patient_audit_logs/au1',
+  'tenants/t1/patient_record_revisions/r1',
+  'tenants/t1/patient_emergency_contacts/p1',
+  'tenants/t1/patient_duplicate_reviews/dr1',
+];
+
 before(async () => {
   env = await initializeTestEnvironment({
     projectId: 'demo-eazyclinic-rules',
@@ -37,6 +57,7 @@ beforeEach(async () => {
     });
     await setDoc(doc(db, 'platform_audit_logs/log1'), { event: 'logout', uid: 'alice' });
     await setDoc(doc(db, 'tenants/t1/patients/p1'), { name: 'Patient One' });
+    for (const p of patientPaths) await setDoc(doc(db, p), { patientId: 'p1', accountId: 'alice', status: 'active', codeHash: 'abc', phoneNorm: '9876500001' });
   });
 });
 
@@ -175,6 +196,38 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
   it('collection-group queries on members are denied to clients', async () => {
     const { collectionGroup, query, where } = await import('firebase/firestore');
     await assertFails(getDocs(query(collectionGroup(alice(), 'members'), where('uid', '==', 'alice'))));
+  });
+});
+
+describe('patient data is backend-only (Phase 4)', () => {
+  const paths = patientPaths;
+
+
+  it('no client can read patient, consent, document, identity or audit data', async () => {
+    for (const p of paths) {
+      await assertFails(getDoc(doc(alice(), p)));
+      await assertFails(getDoc(doc(anon(), p)));
+    }
+  });
+
+  it('a patient cannot read or edit their own account, links or relationships directly', async () => {
+    await assertFails(updateDoc(doc(alice(), 'patient_accounts/pa_1'), { status: 'verified' }));
+    await assertFails(updateDoc(doc(alice(), 'family_relationships/fr_1'), { status: 'active', verificationStatus: 'verified' }));
+    await assertFails(setDoc(doc(alice(), 'patient_clinic_links/t2_p9'), { accountId: 'alice', tenantId: 't2', patientId: 'p9', status: 'linked' }));
+  });
+
+  it('no client can write, change or delete any patient collection, including audit and consent evidence', async () => {
+    for (const p of paths) {
+      await assertFails(setDoc(doc(alice(), p.replace(/[^/]+$/, 'new_doc')), { status: 'active' }));
+      await assertFails(updateDoc(doc(alice(), p), { status: 'revoked' }));
+      await assertFails(deleteDoc(doc(alice(), p)));
+    }
+  });
+
+  it('link codes cannot be looked up by hash from a client (collection group)', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'patient_link_codes'), where('codeHash', '==', 'abc'))));
+    await assertFails(getDocs(query(collectionGroup(alice(), 'patients'), where('phoneNorm', '==', '9876500001'))));
   });
 });
 
