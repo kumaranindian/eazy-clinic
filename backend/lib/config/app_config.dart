@@ -12,6 +12,8 @@ class AppConfig {
     required this.logLevel,
     required this.corsAllowedOrigins,
     required this.firebaseProjectId,
+    required this.authCheckRevoked,
+    required this.trustForwardedFor,
   });
 
   /// Builds a validated config from [env] (normally `Platform.environment`).
@@ -67,6 +69,24 @@ class AppConfig {
       );
     }
 
+    final checkRevokedRaw = (env['AUTH_CHECK_REVOKED'] ?? 'true').toLowerCase();
+    if (checkRevokedRaw != 'true' && checkRevokedRaw != 'false') {
+      problems.add('AUTH_CHECK_REVOKED must be "true" or "false".');
+    }
+    final checkRevoked = checkRevokedRaw != 'false';
+    if (!checkRevoked &&
+        environment != null &&
+        environment != AppEnvironment.dev) {
+      problems.add(
+        'AUTH_CHECK_REVOKED=false is only allowed in dev '
+        '(revocation checks are mandatory in ${environment.wireName}).',
+      );
+    }
+    final trustRaw = (env['TRUST_FORWARDED_FOR'] ?? 'false').toLowerCase();
+    if (trustRaw != 'true' && trustRaw != 'false') {
+      problems.add('TRUST_FORWARDED_FOR must be "true" or "false".');
+    }
+
     if (problems.isNotEmpty) {
       throw ConfigurationException(problems.join(' '));
     }
@@ -79,6 +99,8 @@ class AppConfig {
       firebaseProjectId: (projectId == null || projectId.isEmpty)
           ? null
           : projectId,
+      authCheckRevoked: checkRevoked,
+      trustForwardedFor: trustRaw == 'true',
     );
   }
 
@@ -90,8 +112,17 @@ class AppConfig {
   final List<String> corsAllowedOrigins;
 
   /// Firebase project of this environment. Dev/staging/production use
-  /// different projects. Not used until Phase 1.
+  /// different projects. Required to verify ID tokens; when absent (dev only)
+  /// every protected endpoint answers 503.
   final String? firebaseProjectId;
+
+  /// Check each ID token against Firebase revocation state and the disabled
+  /// flag. Mandatory outside dev.
+  final bool authCheckRevoked;
+
+  /// Behind a trusted proxy (Cloud Run), use the last `X-Forwarded-For` entry
+  /// as the client address for rate limiting.
+  final bool trustForwardedFor;
 }
 
 /// Log severity, ordered from most to least verbose.

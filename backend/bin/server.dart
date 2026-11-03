@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:backend/app.dart';
 import 'package:backend/config/app_config.dart';
 import 'package:backend/core/logging/app_logger.dart';
+import 'package:backend/features/auth/auth_wiring.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:utilities/utilities.dart';
 
@@ -17,7 +18,11 @@ Future<void> main() async {
 
   final logger = AppLogger(minLevel: config.logLevel);
   final server = await shelf_io.serve(
-    buildApp(config, logger),
+    buildApp(
+      config,
+      logger,
+      auth: await buildProductionAuthModule(config, logger),
+    ),
     InternetAddress.anyIPv4,
     config.port,
   );

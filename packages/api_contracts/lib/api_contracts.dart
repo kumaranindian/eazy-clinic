@@ -3,5 +3,6 @@ library;
 
 export 'src/api_envelope.dart';
 export 'src/api_paths.dart';
+export 'src/auth_dtos.dart';
 export 'src/error_code.dart';
 export 'src/page_meta.dart';
