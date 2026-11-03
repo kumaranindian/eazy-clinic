@@ -73,3 +73,11 @@ Also run: `flutter build web` for clinic_web and doctor_mobile (OK, placeholder 
 **Not run:** Android builds (SDK download blocked), anything against a live Firebase project (TD-17/18), emulator tests (TD-15).
 
 Emulator suite (`scripts/test_emulator.sh`, local Firestore emulator, project `demo-eazyclinic`): 13 Firestore rules tests + 7 backend store tests pass. A mutation check (rules loosened to `request.auth != null`) made 11 of 13 rules tests fail, then the rules were restored.
+
+## 8. Phase 2 results
+
+`scripts/check_all.sh` (exit 0): backend 237 passed (+16 emulator tests that run in `scripts/test_emulator.sh`), common_models 14, api_contracts 7, validation 5, utilities 8, design_system 14, app_core 71, clinic_web 35, doctor_mobile 7, patient_mobile 7.
+`scripts/test_emulator.sh` (exit 0, Firestore emulator): 18 rules tests; 16 backend tests = DocumentStore contract (15) run against the real REST store + the full control-plane flow (submit → approve → membership → entitlements → lifecycle → audit pagination).
+Backend coverage areas: application validation/rules, review workflow, idempotent and concurrent approval, injected provisioning failures + retry, tenant lifecycle, plan versioning, subscription lifecycle, entitlement policy matrix, HTTP-level authorization matrix over all 29 platform endpoints, spoofing (role claims/headers/query, tenant id), self-approval, support-admin read-only, audit integrity, log secrecy, rate limiting, pagination.
+Builds: `flutter build web` for clinic_web and doctor_mobile OK. **Not run:** Android builds, live Firebase.
+Emulator findings fixed along the way: transactions that threw were not rolled back (locks leaked), and aggregation queries must not carry an explicit ordering.

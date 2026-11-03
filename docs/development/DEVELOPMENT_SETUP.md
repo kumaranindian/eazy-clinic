@@ -75,3 +75,4 @@ Edit sources in `assets/`, then `scripts/sync_brand_assets.sh` to copy into `pac
 - Offline checks use `scripts/check_all.sh`; no Firebase project is needed for tests.
 - Emulator tests (Firestore rules + backend store): `scripts/test_emulator.sh` (needs Node 18+, Java 11+; runs `npm install` in `firebase/rules-tests` on first use; never touches a real project).
 - Full Firebase console steps: `docs/authentication/FIREBASE_AUTH_CONFIGURATION.md`.
+- Platform admin bootstrap and Phase 2 behaviour: `docs/phase-2/PHASE_2_IMPLEMENTATION.md` (set `platform_users/{uid}.platformRole` by hand for the first Super Admin; deploy `firebase/firestore.indexes.json` before staging use).

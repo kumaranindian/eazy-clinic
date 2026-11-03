@@ -29,6 +29,7 @@ Details: [docs/authentication/](../authentication/AUTHENTICATION_ARCHITECTURE.md
 - Sign-up never grants a role, tenant or membership (tested: body, header, query and token-claim spoofing).
 - Firestore rules: deny-all for clients (no client access to `platform_users` or audit logs); verified by 13 emulator tests, and a mutation check showed the tests fail when the rules are loosened.
 - Identity writes use strict field allow-lists (`not_allowed` 422), so registration and `PATCH /auth/me` cannot carry roles, tenants or status.
+- **Phase 2 control plane:** every platform route = `protect()` (verified token, active account) + a platform permission derived from the server-side `platformRole`; support admin is read-only; the applicant can never change status (no field accepted, `approve` forbids actor = applicant); tenant context comes from server-side memberships (`X-Tenant-Id` is a selector only); provisioning is idempotent and atomic; audit entries are append-only and written in the same commit as the change; all new collections are backend-only (rules tested). See `docs/phase-2/`.
 - **Deferred:** MFA enforcement for privileged roles, App Check, shared rate limiter, account-status administration endpoint.
 
 ## 3. Authorization (every protected request)

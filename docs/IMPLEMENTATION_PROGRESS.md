@@ -62,3 +62,7 @@ Legend here: **Tested** = automated tests pass with test doubles; **Unverified l
 | MFA, App Check, device sessions, Auth-emulator tests, CI | **Not implemented / deferred** | TD-06, TD-15, TD-20 |
 
 Commands and counts: see the Phase 1 completion report and `docs/testing/TESTING_STRATEGY.md` (run `scripts/check_all.sh`).
+
+## Phase 2: SaaS platform and multi-tenant management (branch `feature/phase-0-foundation`)
+
+Detailed status per brief module: `docs/phase-2/PHASE_2_IMPLEMENTATION.md`. Summary: backend control plane (applications, provisioning, tenants, plans, subscriptions, entitlements, dashboard, audit), the Firestore document store, indexes, rules tests and the Clinic Web platform/onboarding UI are **implemented and tested** with test doubles and the Firestore emulator. **Deferred:** platform-admin management API, payments, notifications. **Blocked/unverified:** live Firebase, deployed indexes, Android builds.

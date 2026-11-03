@@ -63,5 +63,13 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 015 | `POST /auth/profile/initialize` creates the profile from the verified token; client SDK does sign-in/up/reset/out | Backend must hold a trusted profile before protected calls | Implemented |
 | 016 | Revocation checked on every request outside dev | Immediate suspension/revocation | Implemented |
 | 017 | No Firebase Emulator; test doubles + generated RSA key | Emulator tooling unavailable here | Accepted |
+| 018 | Clinic applications live in a top-level `clinic_applications` collection with history and internal-notes subcollections | Applicants are not members of any tenant yet; internal notes must be separable from applicant-visible data | Implemented |
+| 019 | Tenant provisioning is two-phase: atomic phase A (application, tenant `provisioning`, slug, job, audit) and idempotent phase B (membership, subscription, activation); deterministic ids + create preconditions give idempotency | Firestore transactions cannot span retries/timeouts; a durable job makes recovery explicit | Implemented |
+| 020 | Subscriptions copy the plan (snapshot) and plan edits create immutable versions | Historic price/limits must never be rewritten | Implemented |
+| 021 | One `platform_subscriptions/{subscriptionId}` document per plan period; `tenants.subscriptionId` points to the current one (supersedes `platform_subscriptions/{tenantId}`) | Preserves history across plan changes | Implemented |
+| 022 | Subscription expiry is *evaluated* from dates (no scheduler); no payments in Phase 2 | Correct without background jobs; payment gateway is a separate approved phase | Implemented |
+| 023 | Entitlements are evaluated only on the backend (`evaluateAccess` + `EntitlementService`); tenant comes from server-side memberships, `X-Tenant-Id` is a selector | CLAUDE.md §4 tenant isolation | Implemented |
+| 024 | Generic `DocumentStore` (Firestore REST + in-memory twin, one contract suite incl. emulator); failed REST transactions are rolled back | Queries/counts/transactions needed; emulator caught lock-leak and aggregation-ordering bugs | Implemented |
+| 025 | Clinic Web admits every active account; platform/clinic/applicant screens depend on server-resolved role/memberships (UI hint only) | Applicants must reach the registration form | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

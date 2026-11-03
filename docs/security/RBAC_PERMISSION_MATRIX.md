@@ -16,7 +16,20 @@ directly involved in. All ◐ and ✔ on patient data additionally require tenan
 
 ## 2. Platform roles
 
-**Phase 1 implementation:** `platform_users/{uid}.platformRole` is written server-side only. `PermissionPolicy` (in `common_models`) currently defines
+**Phase 2 implementation:** platform permissions enforced by the backend on every `/platform/*` route:
+
+| Permission | Super Admin | Support Admin |
+|---|---|---|
+| `platform.dashboard.read`, `applications.read`, `tenants.read`, `plans.read`, `subscriptions.read` | ✔ | ✔ |
+| `platform.applications.review` (start review, request info, approve, reject, notes) | ✔ | ✖ |
+| `platform.tenants.manage` (suspend, reactivate, close, retry provisioning) | ✔ | ✖ |
+| `platform.plans.manage`, `platform.subscriptions.manage` | ✔ | ✖ |
+| `platform.entitlements.override` | ✔ | ✖ |
+| `platform.audit.read` | ✔ | ✖ |
+
+Clinic owners get **no** platform permission; their only Phase 2 access is their own clinic's entitlement view. Granting/revoking `platformRole` through an API is deferred (TECHNICAL_DEBT TD-22); today it is set by hand with Admin credentials.
+
+**Phase 1 implementation:** `platform_users/{uid}.platformRole` is written server-side only. `PermissionPolicy` (in `common_models`) defined
 `platform.users.revoke_sessions` (super admin), `platform.users.read` (super admin, support admin) and `platform.users.change_status` (super admin, no endpoint yet).
 Clinic and patient role mappings are intentionally empty and denied by default until Phases 3/4. The table below is the target matrix.
 
