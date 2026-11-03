@@ -4,7 +4,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DART_PROJECTS=(backend packages/common_models packages/api_contracts packages/validation packages/utilities)
-FLUTTER_PROJECTS=(packages/design_system apps/clinic_web apps/doctor_mobile apps/patient_mobile)
+FLUTTER_PROJECTS=(packages/design_system packages/app_core apps/clinic_web apps/doctor_mobile apps/patient_mobile)
 
 for p in "${DART_PROJECTS[@]}"; do
   echo "=== $p (dart)"

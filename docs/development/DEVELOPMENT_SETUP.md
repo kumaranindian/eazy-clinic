@@ -8,7 +8,7 @@
 | Android SDK | 36 (for `doctor_mobile`, `patient_mobile`) |
 | Chrome | for Flutter Web |
 | Docker | optional (backend image; not yet exercised) |
-| Firebase CLI | not needed in Phase 0 |
+| Firebase CLI | optional (rules/indexes deploy); a Firebase project per environment is needed to run authentication end to end |
 
 ## Get the code
 
@@ -67,3 +67,15 @@ Edit sources in `assets/`, then `scripts/sync_brand_assets.sh` to copy into `pac
 - *"Waiting for another flutter command to release the startup lock"*: a previous Flutter process is still running; stop it.
 - Android first build can be slow/flaky while Gradle downloads dependencies: re-run (TD-07).
 - `flutter test` for an app that depends on `design_system` loads fonts/assets from the package automatically.
+
+## Authentication configuration (Phase 1)
+
+- **Apps:** besides `APP_ENV` and `API_BASE_URL`, `--dart-define-from-file` must supply `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID` and (web) `FIREBASE_AUTH_DOMAIN`. `FIREBASE_APP_ID` differs per app, so keep one `app.json` per app. Missing/placeholder values show the configuration-error screen.
+- **Backend:** `FIREBASE_PROJECT_ID`, optional `AUTH_CHECK_REVOKED` (dev only may be `false`) and `TRUST_FORWARDED_FOR`. Credentials via Application Default Credentials (`gcloud auth application-default login` locally, or the Cloud Run service account with Firebase Authentication Admin and Cloud Datastore User roles).
+- Offline checks use `scripts/check_all.sh`; no Firebase project is needed for tests.
+- Emulator tests (Firestore rules + backend store): `scripts/test_emulator.sh` (needs Node 18+, Java 11+; runs `npm install` in `firebase/rules-tests` on first use; never touches a real project).
+- Full Firebase console steps: `docs/authentication/FIREBASE_AUTH_CONFIGURATION.md`.
+- Platform admin bootstrap and Phase 2 behaviour: `docs/phase-2/PHASE_2_IMPLEMENTATION.md` (set `platform_users/{uid}.platformRole` by hand for the first Super Admin; deploy `firebase/firestore.indexes.json` before staging use).
+
+## Phase 3 configuration
+Backend requires `STORAGE_BUCKET` (private bucket for clinic logos; see `environments/*/backend.env.example`). Run `scripts/test_emulator.sh` for Firestore-emulator tests.

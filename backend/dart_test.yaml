@@ -1,0 +1,3 @@
+tags:
+  emulator:
+    description: Needs the Firebase Firestore emulator (scripts/test_emulator.sh).

@@ -55,3 +55,32 @@ Command: `scripts/check_all.sh` → format check, `analyze` (backend/packages wi
 
 Builds: `flutter build web` (clinic_web ✓, doctor_mobile ✓) · `flutter build apk --debug` (patient_mobile ✓ on retry, doctor_mobile ✓; see TD-07) · backend run + `curl /health` ✓, and `APP_ENV=production` without project ID exits 78 ✓.
 Not built: backend Docker image, release APKs.
+
+## 7. Phase 1 results (`scripts/check_all.sh`, exit 0)
+
+| Project | Tests |
+|---|---|
+| backend | 126 passed + 7 emulator tests (skipped unless the emulator runs) (token verification, revocation, status gates, routes, spoofing, logging, Firestore/Identity Toolkit REST with mock HTTP, rate limiter, config) |
+| common_models | 5 |
+| api_contracts | 7 |
+| validation | 5 |
+| utilities | 8 |
+| design_system | 14 |
+| app_core | 72 (controller, redirect rules, pages, Dio client, Firebase error mapping) |
+| clinic_web / doctor_mobile / patient_mobile | 7 each |
+
+Also run: `flutter build web` for clinic_web and doctor_mobile (OK, placeholder Firebase values); a one-off check that a real `openssl`-generated X.509 certificate and RS256 token pass `FirebaseTokenVerifier`; a live `dart run bin/server.dart` smoke test (`/health` 200, `/api/v1/auth/me` 503 when unconfigured, `/auth/account-status` 404).
+**Not run:** Android builds (SDK download blocked), anything against a live Firebase project (TD-17/18), emulator tests (TD-15).
+
+Emulator suite (`scripts/test_emulator.sh`, local Firestore emulator, project `demo-eazyclinic`): 13 Firestore rules tests + 7 backend store tests pass. A mutation check (rules loosened to `request.auth != null`) made 11 of 13 rules tests fail, then the rules were restored.
+
+## 8. Phase 2 results
+
+`scripts/check_all.sh` (exit 0): backend 237 passed (+16 emulator tests that run in `scripts/test_emulator.sh`), common_models 14, api_contracts 7, validation 5, utilities 8, design_system 14, app_core 71, clinic_web 35, doctor_mobile 7, patient_mobile 7.
+`scripts/test_emulator.sh` (exit 0, Firestore emulator): 18 rules tests; 16 backend tests = DocumentStore contract (15) run against the real REST store + the full control-plane flow (submit → approve → membership → entitlements → lifecycle → audit pagination).
+Backend coverage areas: application validation/rules, review workflow, idempotent and concurrent approval, injected provisioning failures + retry, tenant lifecycle, plan versioning, subscription lifecycle, entitlement policy matrix, HTTP-level authorization matrix over all 29 platform endpoints, spoofing (role claims/headers/query, tenant id), self-approval, support-admin read-only, audit integrity, log secrecy, rate limiting, pagination.
+Builds: `flutter build web` for clinic_web and doctor_mobile OK. **Not run:** Android builds, live Firebase.
+Emulator findings fixed along the way: transactions that threw were not rolled back (locks leaked), and aggregation queries must not carry an explicit ordering.
+
+## Phase 4
+Privacy/isolation tests run against the in-memory store (`backend/test/features/patients`), the Firestore emulator (`test/integration/patient_flow_emulator_test.dart`, rules tests) and Clinic Web widget tests. Counts: `docs/phase-4/TEST_REPORT.md`.

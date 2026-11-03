@@ -32,10 +32,32 @@ void main() {
         AppConfig.fromEnvironment({
           'APP_ENV': env,
           'FIREBASE_PROJECT_ID': 'p',
+          'STORAGE_BUCKET': 'eazyclinic-$env-private',
         }).firebaseProjectId,
         'p',
       );
     }
+  });
+
+  test('staging and production require a valid STORAGE_BUCKET', () {
+    for (final env in ['staging', 'production']) {
+      expect(
+        () => AppConfig.fromEnvironment({
+          'APP_ENV': env,
+          'FIREBASE_PROJECT_ID': 'p',
+        }),
+        throwsA(isA<ConfigurationException>()),
+      );
+      expect(
+        () => AppConfig.fromEnvironment({
+          'APP_ENV': env,
+          'FIREBASE_PROJECT_ID': 'p',
+          'STORAGE_BUCKET': 'Bad Bucket!',
+        }),
+        throwsA(isA<ConfigurationException>()),
+      );
+    }
+    expect(AppConfig.fromEnvironment({'APP_ENV': 'dev'}).storageBucket, isNull);
   });
 
   test('invalid port, log level and wildcard CORS are all reported', () {

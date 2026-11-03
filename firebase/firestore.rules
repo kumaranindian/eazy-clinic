@@ -9,6 +9,12 @@ rules_version = '2';
 // Realtime features that need direct client reads (e.g. queue display) must be
 // designed and reviewed in the relevant phase, with rules that check tenant
 // membership from server-written records. See docs/security/SECURITY_ARCHITECTURE.md.
+// Phase 1 review: `platform_users` (identity, accountStatus, platformRole) and
+// `platform_audit_logs` are intentionally covered by the deny-all rule below.
+// Profile initialization and edits go through the backend (POST
+// /auth/profile/initialize, PATCH /auth/me), which validates an allow-list of
+// fields, so clients can never change accountStatus, roles or memberships.
+// Behaviour is verified by firebase/rules-tests (scripts/test_emulator.sh).
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {

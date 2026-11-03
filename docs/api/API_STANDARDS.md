@@ -102,3 +102,15 @@ Each phase appends its endpoints here (or a per-domain file under `docs/api/`) w
 | GET | `/health` | none | `{ "status": "ok", "service": "eazyclinic-backend", "version": "0.1.0" }` |
 
 Any other path returns the 404 error envelope.
+
+## Authentication (Phase 1)
+- Protected endpoints require `Authorization: Bearer <Firebase ID token>`; identity comes only from the verified token. Details and error codes: `docs/authentication/API_AUTHENTICATION.md`.
+- Auth error codes added to the envelope: `token_expired`, `session_revoked` (401); `account_not_provisioned`, `account_pending`, `account_suspended`, `account_disabled` (403).
+- **Strict request bodies for identity-related writes:** unknown or security-sensitive fields yield 422 with per-field `not_allowed` issues; they are never ignored silently.
+- Auth responses carry `Cache-Control: no-store`; 429 responses include `Retry-After`.
+
+## Phase 3 conventions
+Strict request bodies (unknown/sensitive fields → 422), out-of-scope resources → 404, limit/duplicate → 409, `X-Tenant-Id` is a selector validated against memberships. Endpoint list: `docs/phase-3/API_REFERENCE.md`.
+
+## Phase 4 conventions
+Patient sub-resources are addressed under `/patients/{id}`; a resource id belonging to another patient or tenant answers 404. Consent conflicts and duplicate-review requirements answer 409 with an issue code. Patient-account routes use the authenticated account, never an id from the request. Endpoint list: `docs/phase-4/API_REFERENCE.md`.

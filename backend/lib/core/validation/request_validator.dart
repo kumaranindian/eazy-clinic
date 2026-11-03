@@ -10,7 +10,10 @@ import '../errors/api_exception.dart';
 const int maxJsonBodyBytes = 256 * 1024;
 
 /// Reads and parses a JSON object body, enforcing content type and size.
-Future<Map<String, Object?>> readJsonObject(Request request) async {
+Future<Map<String, Object?>> readJsonObject(
+  Request request, {
+  int maxBytes = maxJsonBodyBytes,
+}) async {
   final contentType = request.headers['content-type'] ?? '';
   if (!contentType.toLowerCase().startsWith('application/json')) {
     throw const ApiException.badRequest(
@@ -18,7 +21,7 @@ Future<Map<String, Object?>> readJsonObject(Request request) async {
     );
   }
   final declared = request.contentLength;
-  if (declared != null && declared > maxJsonBodyBytes) {
+  if (declared != null && declared > maxBytes) {
     throw const ApiException(
       ApiErrorCode.payloadTooLarge,
       'Request body is too large.',
@@ -28,7 +31,7 @@ Future<Map<String, Object?>> readJsonObject(Request request) async {
   final bytes = <int>[];
   await for (final chunk in request.read()) {
     bytes.addAll(chunk);
-    if (bytes.length > maxJsonBodyBytes) {
+    if (bytes.length > maxBytes) {
       throw const ApiException(
         ApiErrorCode.payloadTooLarge,
         'Request body is too large.',

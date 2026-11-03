@@ -1,0 +1,35 @@
+name: app_core
+description: Shared Flutter authentication, session and API-client logic used by all three EazyClinic apps. Contains no app-specific business logic.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.1
+  flutter: ">=3.32.0"
+
+dependencies:
+  api_contracts:
+    path: ../api_contracts
+  common_models:
+    path: ../common_models
+  design_system:
+    path: ../design_system
+  dio: ^5.8.0
+  firebase_auth: ^5.7.0
+  firebase_core: ^3.15.2
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.3.2
+  go_router: ^17.0.0
+  utilities:
+    path: ../utilities
+  validation:
+    path: ../validation
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

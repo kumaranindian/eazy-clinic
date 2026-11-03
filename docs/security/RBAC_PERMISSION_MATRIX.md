@@ -16,6 +16,23 @@ directly involved in. All ◐ and ✔ on patient data additionally require tenan
 
 ## 2. Platform roles
 
+**Phase 2 implementation:** platform permissions enforced by the backend on every `/platform/*` route:
+
+| Permission | Super Admin | Support Admin |
+|---|---|---|
+| `platform.dashboard.read`, `applications.read`, `tenants.read`, `plans.read`, `subscriptions.read` | ✔ | ✔ |
+| `platform.applications.review` (start review, request info, approve, reject, notes) | ✔ | ✖ |
+| `platform.tenants.manage` (suspend, reactivate, close, retry provisioning) | ✔ | ✖ |
+| `platform.plans.manage`, `platform.subscriptions.manage` | ✔ | ✖ |
+| `platform.entitlements.override` | ✔ | ✖ |
+| `platform.audit.read` | ✔ | ✖ |
+
+Clinic owners get **no** platform permission; their only Phase 2 access is their own clinic's entitlement view. Granting/revoking `platformRole` through an API is deferred (TECHNICAL_DEBT TD-22); today it is set by hand with Admin credentials.
+
+**Phase 1 implementation:** `platform_users/{uid}.platformRole` is written server-side only. `PermissionPolicy` (in `common_models`) defined
+`platform.users.revoke_sessions` (super admin), `platform.users.read` (super admin, support admin) and `platform.users.change_status` (super admin, no endpoint yet).
+Clinic and patient role mappings are intentionally empty and denied by default until Phases 3/4. The table below is the target matrix.
+
 | Permission | Super Admin | Platform Support Admin |
 |---|---|---|
 | Platform dashboard | ✔ | ✔ |
@@ -98,3 +115,23 @@ Dependent-minor rules (age thresholds, transition to own account at majority) ar
 3. UI reads `GET /members/me` → permission list; hides actions but never relies on it.
 4. Changing a member's role/permissions writes an audit entry and revokes that user's refresh tokens.
 5. This matrix and the code must not diverge: updating one requires updating the other in the same change.
+
+## Phase 3 clinic permissions
+The implemented clinic matrix is in `docs/phase-3/RBAC_PERMISSION_MATRIX.md`.
+
+## Phase 4 patient permissions
+| Permission group | Owner | Admin | Doctor | Nurse | Receptionist | Others |
+|---|---|---|---|---|---|---|
+| patients.view/create/update/duplicates | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| patients.status (activate/deactivate/archive) | ✔ | ✔ | | | | |
+| patients.link_account | ✔ | ✔ | | | ✔ | |
+| history.view | ✔ | | ✔ | ✔ | | |
+| history.manage | ✔ | | ✔ | | | |
+| allergies / medications view+manage | ✔ | | ✔ | ✔ | | |
+| alerts.view | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| alerts.manage (clinical categories also need clinical rights) | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| consents.view/manage | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| patient_documents view/manage | ✔ | | ✔ | ✔ | | |
+| patient_audit.view | ✔ | ✔ | | | | |
+
+Administrators run the clinic but do not read clinical information by default. Verifying clinical information needs the **doctor** role (not just a permission).

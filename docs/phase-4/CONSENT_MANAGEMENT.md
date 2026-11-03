@@ -1,0 +1,7 @@
+# Consent Management (Module I)
+
+Backend service over `patient_consents` (append-only decisions). Types: `data_processing`, `communication_sms|email|whatsapp`, `family_access`, `record_sharing`, `account_linking`, `document_processing`, `other` (needs a described purpose). `GET /consent-catalog` serves each purpose with its exact **text and version** (`1.0`); a decision must quote the current version (409/422 otherwise).
+
+Record (`POST /patients/{id}/consents`): type, decision `granted|rejected`, text version, **grantedBy** (`patient`, or `guardian` for a minor whose guardian is verified), collection method (`in_person_signed|in_person_verbal|digital_form|phone_recorded`), optional evidence reference and expiry. **Staff are never a grantor**: an adult's consent must be recorded as the patient's own decision; a minor's needs a verified guardian; `staff`/`caregiver` are rejected. Nothing is preselected or inferred; registration requires an explicit consent.
+
+Revoke (`POST …/{consentId}/revoke`, reason required): status → `revoked`, `revokedAt/By/Reason`; the evidence stays. **Enforcement:** new clinical records (history, allergies, medications) need a granted `data_processing` consent; document upload needs `data_processing` **and** `document_processing`; both are re-checked inside the writing transaction. Existing information stays readable to authorized staff (retention). Other types (communication, record sharing) are recorded for the later features that must check them; no sharing feature exists in Phase 4. Every decision and revocation is audited.
