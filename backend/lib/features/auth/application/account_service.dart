@@ -1,6 +1,7 @@
 import 'package:api_contracts/api_contracts.dart';
 import 'package:common_models/common_models.dart';
 
+import '../../../core/data/document_store.dart' show AlreadyExistsException;
 import '../../../core/errors/api_exception.dart';
 import '../data/firebase_auth_admin.dart';
 import '../data/platform_user_store.dart';

@@ -14,6 +14,18 @@ abstract final class Permission {
 
   /// Change an account's status (deferred; no endpoint yet).
   static const String changeAccountStatus = 'platform.users.change_status';
+
+  static const String readDashboard = 'platform.dashboard.read';
+  static const String readApplications = 'platform.applications.read';
+  static const String reviewApplications = 'platform.applications.review';
+  static const String readTenants = 'platform.tenants.read';
+  static const String manageTenants = 'platform.tenants.manage';
+  static const String readPlans = 'platform.plans.read';
+  static const String managePlans = 'platform.plans.manage';
+  static const String readSubscriptions = 'platform.subscriptions.read';
+  static const String manageSubscriptions = 'platform.subscriptions.manage';
+  static const String overrideEntitlements = 'platform.entitlements.override';
+  static const String readAuditLogs = 'platform.audit.read';
 }
 
 /// Maps roles to permissions. Backend policies call this; apps must never use
@@ -28,8 +40,28 @@ abstract final class PermissionPolicy {
       Permission.revokeUserSessions,
       Permission.readPlatformUsers,
       Permission.changeAccountStatus,
+      Permission.readDashboard,
+      Permission.readApplications,
+      Permission.reviewApplications,
+      Permission.readTenants,
+      Permission.manageTenants,
+      Permission.readPlans,
+      Permission.managePlans,
+      Permission.readSubscriptions,
+      Permission.manageSubscriptions,
+      Permission.overrideEntitlements,
+      Permission.readAuditLogs,
     },
-    PlatformRole.platformSupportAdmin: {Permission.readPlatformUsers},
+    // Support can investigate (read) but cannot change anything sensitive and
+    // has no access to audit logs or clinical data.
+    PlatformRole.platformSupportAdmin: {
+      Permission.readPlatformUsers,
+      Permission.readDashboard,
+      Permission.readApplications,
+      Permission.readTenants,
+      Permission.readPlans,
+      Permission.readSubscriptions,
+    },
   };
 
   static Set<String> forPlatformRole(PlatformRole? role) =>

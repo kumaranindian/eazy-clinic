@@ -3,11 +3,7 @@ import 'dart:convert';
 import 'package:backend/config/app_config.dart';
 import 'package:backend/core/security/rate_limiter.dart';
 import 'package:backend/features/auth/data/firebase_auth_admin.dart';
-import 'package:backend/features/auth/data/firestore_codec.dart';
-import 'package:backend/features/auth/data/firestore_platform_user_store.dart';
-import 'package:backend/features/auth/data/platform_user_store.dart';
 import 'package:backend/features/auth/data/signing_key_provider.dart';
-import 'package:backend/features/auth/domain/platform_user.dart';
 import 'package:common_models/common_models.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -102,99 +98,6 @@ void main() {
       final c = AppConfig.fromEnvironment({'APP_ENV': 'dev'});
       expect(c.authCheckRevoked, true);
       expect(c.trustForwardedFor, false);
-    });
-  });
-
-  group('firestore codec', () {
-    test('round-trips supported types', () {
-      final when = DateTime.utc(2026, 1, 2, 3, 4, 5);
-      final map = <String, Object?>{
-        's': 'x',
-        'b': true,
-        'n': null,
-        'i': 7,
-        't': when,
-      };
-      expect(decodeFields(encodeFields(map)), map);
-    });
-    test('rejects unsupported types', () {
-      expect(() => encodeValue(1.5), throwsArgumentError);
-    });
-  });
-
-  group('FirestorePlatformUserStore', () {
-    late List<http.Request> requests;
-    late FirestorePlatformUserStore store;
-    http.Response Function(http.Request) responder = (_) =>
-        http.Response('', 200);
-
-    setUp(() {
-      responder = (_) => http.Response('', 200);
-      requests = [];
-      store = FirestorePlatformUserStore(
-        projectId: 'proj',
-        client: MockClient((r) async {
-          requests.add(r);
-          return responder(r);
-        }),
-      );
-    });
-
-    final user = PlatformUser(
-      uid: 'u1',
-      displayName: 'A',
-      email: 'a@example.test',
-      emailVerified: false,
-      accountStatus: AccountStatus.pending,
-      createdAt: DateTime.utc(2026),
-      updatedAt: DateTime.utc(2026),
-    );
-
-    test('get → null on 404', () async {
-      responder = (_) => http.Response('{}', 404);
-      expect(await store.get('u1'), isNull);
-      expect(
-        requests.single.url.path,
-        '/v1/projects/proj/databases/(default)/documents/platform_users/u1',
-      );
-    });
-
-    test('get parses a stored document', () async {
-      responder = (_) => http.Response(
-        jsonEncode({'fields': encodeFields(user.toMap())}),
-        200,
-      );
-      final loaded = await store.get('u1');
-      expect(loaded?.accountStatus, AccountStatus.pending);
-      expect(loaded?.email, 'a@example.test');
-    });
-
-    test('create posts with documentId and maps 409', () async {
-      await store.create(user);
-      expect(requests.single.url.queryParameters['documentId'], 'u1');
-      responder = (_) => http.Response('', 409);
-      expect(store.create(user), throwsA(isA<AlreadyExistsException>()));
-    });
-
-    test('update sends an update mask and requires existing doc', () async {
-      await store.update('u1', {'accountStatus': 'active'});
-      final q = requests.single.url.queryParametersAll;
-      expect(q['updateMask.fieldPaths'], ['accountStatus']);
-      expect(q['currentDocument.exists'], ['true']);
-    });
-
-    test('errors do not leak response bodies', () async {
-      responder = (_) => http.Response('SECRET-DOC-CONTENT', 500);
-      await expectLater(
-        store.get('u1'),
-        throwsA(
-          isA<StoreException>().having(
-            (e) => e.message,
-            'message',
-            isNot(contains('SECRET')),
-          ),
-        ),
-      );
     });
   });
 

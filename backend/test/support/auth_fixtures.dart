@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:backend/app.dart';
 import 'package:backend/config/app_config.dart';
+import 'package:backend/core/data/document_store.dart'
+    show AlreadyExistsException;
 import 'package:backend/core/logging/app_logger.dart';
 import 'package:backend/features/auth/application/account_service.dart';
 import 'package:backend/features/auth/application/security_event_recorder.dart';

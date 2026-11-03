@@ -2,12 +2,13 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
 import '../../config/app_config.dart';
+import '../../core/data/firestore_document_store.dart';
 import '../../core/logging/app_logger.dart';
 import 'application/account_service.dart';
 import 'application/security_event_recorder.dart';
 import 'application/token_verifier.dart';
+import 'data/document_platform_user_store.dart';
 import 'data/firebase_auth_admin.dart';
-import 'data/firestore_platform_user_store.dart';
 import 'data/signing_key_provider.dart';
 import 'domain/access_resolver.dart';
 import 'presentation/auth_routes.dart';
@@ -34,9 +35,8 @@ Future<AuthModule?> buildProductionAuthModule(
       'https://www.googleapis.com/auth/datastore',
     ],
   );
-  final store = FirestorePlatformUserStore(
-    projectId: projectId,
-    client: authed,
+  final store = DocumentPlatformUserStore(
+    FirestoreDocumentStore(projectId: projectId, client: authed),
   );
   final admin = IdentityToolkitAuthAdmin(projectId: projectId, client: authed);
   final events = SecurityEventRecorder(logger, store);
