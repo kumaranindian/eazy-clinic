@@ -8,7 +8,7 @@
 | Android SDK | 36 (for `doctor_mobile`, `patient_mobile`) |
 | Chrome | for Flutter Web |
 | Docker | optional (backend image; not yet exercised) |
-| Firebase CLI | not needed in Phase 0 |
+| Firebase CLI | optional (rules/indexes deploy); a Firebase project per environment is needed to run authentication end to end |
 
 ## Get the code
 
@@ -67,3 +67,9 @@ Edit sources in `assets/`, then `scripts/sync_brand_assets.sh` to copy into `pac
 - *"Waiting for another flutter command to release the startup lock"*: a previous Flutter process is still running; stop it.
 - Android first build can be slow/flaky while Gradle downloads dependencies: re-run (TD-07).
 - `flutter test` for an app that depends on `design_system` loads fonts/assets from the package automatically.
+
+## Authentication configuration (Phase 1)
+
+- **Apps:** besides `APP_ENV` and `API_BASE_URL`, `--dart-define-from-file` must supply `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID` and (web) `FIREBASE_AUTH_DOMAIN`. `FIREBASE_APP_ID` differs per app, so keep one `app.json` per app. Missing/placeholder values show the configuration-error screen.
+- **Backend:** `FIREBASE_PROJECT_ID`, optional `AUTH_CHECK_REVOKED` (dev only may be `false`) and `TRUST_FORWARDED_FOR`. Credentials via Application Default Credentials (`gcloud auth application-default login` locally, or the Cloud Run service account with Firebase Authentication Admin and Cloud Datastore User roles).
+- Offline checks use `scripts/check_all.sh`; no Firebase project is needed for tests.

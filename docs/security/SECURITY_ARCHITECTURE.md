@@ -17,13 +17,17 @@ compliance or connectivity is claimed.
 | Firebase (Auth, Firestore, Storage, FCM) | Trusted storage/identity, accessed from backend only. |
 | Razorpay | Trusted only after signature/webhook verification. |
 
-## 2. Authentication (Phase 1)
+## 2. Authentication (Phase 1: implemented)
 
-- Firebase Authentication; clients send ID tokens; backend verifies signature, issuer (`https://securetoken.google.com/<projectId>`), audience (project ID of the **current environment**), expiry; checks revocation for sensitive operations.
-- Session revocation: `revokeRefreshTokens` on password reset, role change, deactivation; short token lifetime (1 h Firebase default).
-- MFA: required for platform roles, Clinic Owner/Admin and Accountant (financial) where supported; recovery codes policy in Phase 1.
-- Login history and failed-attempt tracking → `audit_logs`/security events; throttling on auth endpoints.
-- Sign-up must **never** let a user choose a privileged role (see UI analysis §11).
+Details: [docs/authentication/](../authentication/AUTHENTICATION_ARCHITECTURE.md).
+
+- Firebase Authentication; clients send ID tokens. The backend verifies them itself (no official Dart Admin SDK, ADR 012): RS256 only, `kid` from Google's published certificates, signature, `exp`/`iat`/`auth_time`, issuer `https://securetoken.google.com/<projectId>`, audience = the **current environment's** project id, `sub`, non-anonymous provider.
+- Revocation and the Firebase `disabled` flag are checked on every request outside dev (`AUTH_CHECK_REVOKED` cannot be turned off in staging/production); lookup failures fail closed (503).
+- Trusted profile `platform_users/{uid}` + `accountStatus` gate every protected route; only `active` passes unless a route explicitly allows more.
+- Session revocation: `POST /auth/revoke-sessions`, `POST /auth/logout {allDevices}`; short token lifetime (1 h).
+- Security events (provisioning, login, denied login, activation, logout, revocation) → structured log and `platform_audit_logs`; no tokens/e-mails/names. Rate limiting on `/auth/*` (in-memory, TD-16).
+- Sign-up never grants a role, tenant or membership (tested: body, header, query and token-claim spoofing).
+- **Deferred:** MFA enforcement for privileged roles, App Check, shared rate limiter, account-status administration endpoint.
 
 ## 3. Authorization (every protected request)
 

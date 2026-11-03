@@ -22,8 +22,8 @@ Legend: **Implemented** = code exists and was verified · **Documented** = desig
 | Firestore schema (36 collections) | Documented | `docs/database/` |
 | API standards | Documented + envelope implemented | `docs/api/API_STANDARDS.md` |
 | Security architecture + RBAC matrix | Documented | `docs/security/` |
-| Authentication, any business module | **Not implemented** (out of scope) | |
-| Firebase integration / Admin SDK | **Not implemented**; research needed | TD-01 |
+| Authentication, any business module | Authentication implemented in Phase 1 (below); business modules **not implemented** | |
+| Firebase integration / Admin SDK | Implemented in Phase 1 (ADR 012) | TD-01 resolved; TD-17 |
 | CI pipeline | Not implemented | TD-06 |
 
 ## Test results (2026-11-03)
@@ -33,3 +33,30 @@ See `docs/testing/TESTING_STRATEGY.md` §6 for the exact commands and counts.
 ## Commits
 
 See `git log feature/phase-0-foundation`.
+
+## Phase 1: Authentication and security foundation (branch `feature/phase-1-authentication`)
+
+Legend here: **Tested** = automated tests pass with test doubles; **Unverified live** = not run against real Firebase (TD-17).
+
+| Item | Status | Evidence |
+|---|---|---|
+| ADR 012–017, TD-01 resolved | Implemented, documented | `MASTER_ARCHITECTURE.md` |
+| `AccountStatus`, transitions, `Permission`, `PermissionPolicy`; auth DTOs and error codes | Implemented, tested | `common_models`, `api_contracts` tests |
+| Backend Firebase ID-token verification (RS256, claims, key cache) | Implemented, **tested** (generated keys); unverified live | `backend/test/features/auth` |
+| Revocation + disabled check, fail-closed | Implemented, tested; unverified live | same |
+| `tokenAuthMiddleware` / `accountMiddleware` / `AuthModule.protect()` | Implemented, tested | same |
+| `GET /auth/me`, `GET /auth/session`, `POST /auth/provision`, `POST /auth/logout`, `POST /auth/revoke-sessions` | Implemented, tested | `docs/authentication/API_AUTHENTICATION.md` |
+| `POST /auth/account-status` | **Deferred** (no authorized use case) | |
+| Account identity (`platform_users`), security events (`platform_audit_logs`) | Implemented; Firestore REST tested with mock HTTP only | `ACCOUNT_IDENTITY_MODEL.md` |
+| Rate limiting (IP on `/auth/*`, per-user on revoke) | Implemented, tested (per instance) | TD-16 |
+| Shared Flutter `app_core` (Firebase repo, Dio client, controller, redirect, screens) | Implemented, tested | 71 tests |
+| Clinic Web: login, register, forgot password, loading, unauthorized, suspended | Implemented, tested; web build OK | |
+| Doctor: login, forgot password, loading, access denied (no self-registration) | Implemented, tested; web build OK; **Android build not run** | TD-18 |
+| Patient: welcome, register, login, forgot password, loading | Implemented, tested; **Android build not run** | TD-18 |
+| Route protection, deep links, post-login redirect, open-redirect guard | Implemented, tested | `auth_redirect_test.dart`, `auth_pages_test.dart` |
+| Security tests: unauthenticated, spoofed uid/role/tenant/claims, revoked, suspended, no token in logs | Implemented, passing | `auth_routes_test.dart`, `auth_middleware_test.dart` |
+| Registration grants no role/tenant/membership | Implemented, tested | |
+| Email verification flow (pending → active) | Implemented, tested | |
+| MFA, App Check, device sessions, emulator tests, CI | **Not implemented / deferred** | TD-06, TD-15, TD-20 |
+
+Commands and counts: see the Phase 1 completion report and `docs/testing/TESTING_STRATEGY.md` (run `scripts/check_all.sh`).

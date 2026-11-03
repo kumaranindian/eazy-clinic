@@ -30,6 +30,8 @@ Normative requirements are in `CLAUDE.md`. This document records how they are re
 
 ## 3. Request pipeline (backend, implemented)
 
+Phase 1: authentication is applied per route group via `AuthModule.protect()` (token verification → account gate); public routes such as `/health` stay open. See `docs/authentication/`.
+
 `request id → CORS → security headers → request logging → error handler → router`
 
 Phase 1 inserts **authentication** and **tenant-context resolution** middleware
@@ -52,8 +54,14 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 006 | Tenant data as **subcollections under `tenants/{tenantId}`**; global `patient_accounts`; membership lookup via collection-group query on `members` | Strong isolation, simple per-tenant export/deletion | Accepted (documented, not built) |
 | 007 | Firestore/Storage rules deny all client access; backend is the only data path | Never trust the client; one authorization point | Accepted |
 | 008 | Client config via `--dart-define-from-file`; backend via env vars; both validated at startup, fail-fast | No silent wrong-environment | Implemented |
-| 009 | Phase 0 adds **no** Firebase packages | Admin-SDK-on-Dart choice unresolved (TD-01) | Accepted |
+| 009 | Phase 0 adds **no** Firebase packages | Admin-SDK-on-Dart choice unresolved (TD-01) | Superseded by 012 |
 | 010 | Light theme, red primary actions / navy structure; red active-state accents on mobile nav allowed; red full-width headers not used | CLAUDE.md §11 vs mockup (see UI analysis §11) | Accepted |
 | 011 | Query strings are excluded from request logs; log fields pass a redaction filter | Patient search may carry PII (CLAUDE.md §19.16) | Implemented |
+| 012 | Backend verifies Firebase ID tokens itself (RS256 + Google certs via `dart_jsonwebtoken`) and uses Identity Toolkit/Firestore REST via `googleapis_auth` ADC; no unofficial Admin SDK | No official Dart Admin SDK exists (TD-01) | Implemented |
+| 013 | Shared Flutter package `packages/app_core` for authentication, session and API client | No duplicated auth logic across apps | Implemented |
+| 014 | `platform_users/{uid}` is the identity record of every account; `platformRole` is server-assigned | One trusted record per Firebase user | Implemented |
+| 015 | `POST /auth/provision` creates the profile from the verified token; client SDK does sign-in/up/reset/out | Backend must hold a trusted profile before protected calls | Implemented |
+| 016 | Revocation checked on every request outside dev | Immediate suspension/revocation | Implemented |
+| 017 | No Firebase Emulator; test doubles + generated RSA key | Emulator tooling unavailable here | Accepted |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

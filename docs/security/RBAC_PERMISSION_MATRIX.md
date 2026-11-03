@@ -16,6 +16,10 @@ directly involved in. All ◐ and ✔ on patient data additionally require tenan
 
 ## 2. Platform roles
 
+**Phase 1 implementation:** `platform_users/{uid}.platformRole` is written server-side only. `PermissionPolicy` (in `common_models`) currently defines
+`platform.users.revoke_sessions` (super admin), `platform.users.read` (super admin, support admin) and `platform.users.change_status` (super admin, no endpoint yet).
+Clinic and patient role mappings are intentionally empty and denied by default until Phases 3/4. The table below is the target matrix.
+
 | Permission | Super Admin | Platform Support Admin |
 |---|---|---|
 | Platform dashboard | ✔ | ✔ |
