@@ -956,29 +956,37 @@ At the end of each implementation task, provide:
 
 ## 17. Project Documentation
 
-Maintain the following documentation:
+Maintain the following documentation (layout established in Phase 0; it supersedes the earlier flat list):
 
 `docs/`
-- `PROJECT_OVERVIEW.md`
-- `PRODUCT_REQUIREMENTS.md`
-- `MASTER_ARCHITECTURE.md`
-- `MODULE_IMPLEMENTATION_PLAN.md`
-- `DATABASE_SCHEMA.md`
-- `API_DOCUMENTATION.md`
-- `RBAC_PERMISSION_MATRIX.md`
-- `PATIENT_DATA_PRIVACY.md`
-- `SECURITY_ARCHITECTURE.md`
-- `UI_UX_GUIDELINES.md`
-- `USER_WORKFLOWS.md`
-- `TESTING_STRATEGY.md`
-- `DEPLOYMENT_GUIDE.md`
-- `PRODUCTION_READINESS_CHECKLIST.md`
-- `TECHNICAL_DEBT.md`
-- `IMPLEMENTATION_PROGRESS.md`
+- `REPOSITORY_ASSESSMENT.md`, `IMPLEMENTATION_ROADMAP.md`, `IMPLEMENTATION_PROGRESS.md`, `TECHNICAL_DEBT.md`
+- `architecture/` – `MASTER_ARCHITECTURE.md` (includes ADRs), `REPOSITORY_STRUCTURE.md`, `MULTI_TENANT_ARCHITECTURE.md`
+- `database/` – `DATABASE_SCHEMA.md`, `DATABASE_RELATIONSHIPS.md`
+- `api/` – `API_STANDARDS.md`
+- `security/` – `SECURITY_ARCHITECTURE.md`, `RBAC_PERMISSION_MATRIX.md`
+- `design/` – `DESIGN_SYSTEM.md`, `UI_UX_REFERENCE_ANALYSIS.md`, `SCREEN_INVENTORY.md`
+- `development/` – `DEVELOPMENT_SETUP.md`, `CODING_STANDARDS.md`
+- `testing/` – `TESTING_STRATEGY.md`
+- `deployment/` – `ENVIRONMENT_STRATEGY.md`
+- Added in later phases: patient data privacy (Phase 4), user workflows (per module), production readiness checklist (Phase 11).
 
 Update documentation whenever a significant implementation decision or feature changes.
 
 Do not allow documentation to contradict the actual code.
+
+---
+
+## 17a. Repository Layout and Standing Decisions (added in Phase 0)
+
+- Monorepo: `apps/{clinic_web,doctor_mobile,patient_mobile}`, `backend/`, `packages/{common_models,api_contracts,validation,utilities,design_system}`, `assets/`, `firebase/`, `environments/`, `docs/`, `scripts/`. Path dependencies, no workspace tool.
+- Official brand references: `assets/branding/original/EazyClinic Caring Healthcare Logo.png` (never modify; use `EcBrandLogo`) and `docs/design/reference/EazyClinic Healthcare App Flow Mockup (1).png` (visual direction only, not a functional spec).
+- All UI uses `packages/design_system` tokens and components. No hex colours, font sizes or one-off buttons in feature code.
+- Every API response uses the `api_contracts` envelope; errors use `ApiErrorCode`.
+- Firestore/Storage rules are deny-all for clients; the backend is the only data path. Tenant data lives under `tenants/{tenantId}/` (see `docs/database/DATABASE_SCHEMA.md`).
+- Configuration: backend via environment variables, apps via `--dart-define-from-file`; both validated at startup. Only `*.example.*` templates are committed.
+- Run `scripts/check_all.sh` before every commit that changes code.
+- Git: `master` ← `develop` ← `feature/*`; never push, merge or deploy without explicit approval.
+- Open decision before Phase 1: how the Dart backend accesses Firebase (Admin SDK options) - see `docs/TECHNICAL_DEBT.md` TD-01.
 
 ---
 
