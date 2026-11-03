@@ -17,6 +17,7 @@ GoRouter buildAuthAwareRouter(
   String home = '/',
   Set<String> publicPaths = const {},
   bool registrationEnabled = true,
+  String? signedOutLanding,
 }) {
   final refresh = ValueNotifier<int>(0);
   ref.listen(authControllerProvider, (_, _) => refresh.value++);
@@ -31,6 +32,7 @@ GoRouter buildAuthAwareRouter(
       isPublic: publicPaths.contains,
       home: home,
       registrationEnabled: registrationEnabled,
+      signedOutLanding: signedOutLanding,
     ),
     routes: [
       ...routes,

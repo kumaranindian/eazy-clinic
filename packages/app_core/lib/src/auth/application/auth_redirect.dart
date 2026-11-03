@@ -30,6 +30,8 @@ abstract final class AuthPaths {
 /// - While [AuthResolving], every location is held on the loading screen and
 ///   the requested location is remembered, so deep links survive startup.
 /// - Unauthenticated users can only reach entry screens and [isPublic] paths.
+///   Opening [home] sends them to [signedOutLanding] (e.g. a welcome screen)
+///   when one is configured, otherwise to the sign-in screen.
 /// - Accounts that are signed in but not admitted see a dedicated screen.
 /// - Authenticated users are moved off auth screens to the remembered
 ///   location (if it is a safe internal path) or [home].
@@ -41,6 +43,7 @@ String? authRedirect({
   required bool Function(String path) isPublic,
   String home = '/',
   bool registrationEnabled = true,
+  String? signedOutLanding,
 }) {
   final path = location.path;
   final onAuthScreen = AuthPaths.all.contains(path);
@@ -67,6 +70,12 @@ String? authRedirect({
         return AuthPaths.login;
       }
       if (AuthPaths.entry.contains(path) || isPublic(path)) return null;
+      if (signedOutLanding != null &&
+          (path == home || onAuthScreen) &&
+          !AuthPaths.entry.contains(path)) {
+        // Home, or a transient status screen (e.g. the startup loader).
+        return signedOutLanding;
+      }
       return withFrom(AuthPaths.login);
     case AuthFailed():
       return path == AuthPaths.authError ? null : AuthPaths.authError;

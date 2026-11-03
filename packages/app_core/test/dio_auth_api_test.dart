@@ -116,7 +116,9 @@ void main() {
   });
 
   test('logout sends allDevices', () async {
-    final adapter = ScriptedAdapter((_) => json(200, {'data': {}}));
+    final adapter = ScriptedAdapter(
+      (_) => json(200, {'data': <String, Object?>{}}),
+    );
     final api = build(adapter, FakeAuthRepository(initial: testUser));
     await api.logout(allDevices: true);
     expect(adapter.requests.single.data, <String, Object?>{'allDevices': true});

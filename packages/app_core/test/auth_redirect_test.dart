@@ -51,6 +51,18 @@ void main() {
       expect(redirect(const Unauthenticated(), '/access-denied'), '/login');
       expect(redirect(const Unauthenticated(), '/verify-email'), '/login');
     });
+    test('signed-out landing replaces login for the home location only', () {
+      String? r(String loc) => authRedirect(
+        auth: const Unauthenticated(),
+        location: Uri.parse(loc),
+        isPublic: (p) => p == '/welcome',
+        signedOutLanding: '/welcome',
+      );
+      expect(r('/'), '/welcome');
+      expect(r('/welcome'), isNull);
+      expect(r('/starting'), '/welcome', reason: 'after startup resolves');
+      expect(r('/patients/1'), '/login?from=%2Fpatients%2F1');
+    });
     test('registration disabled → login', () {
       expect(
         authRedirect(
