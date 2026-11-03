@@ -100,7 +100,16 @@ class FirestoreDocumentStore implements DocumentStore {
 
   @override
   Future<int> count(DocQuery q) async {
-    final (parent, structured) = _structured(q);
+    // Counting needs no ordering, cursor or limit (and Firestore rejects an
+    // explicit ordering after an inequality filter on another field).
+    final (parent, structured) = _structured(
+      DocQuery(
+        q.collection,
+        filters: q.filters,
+        collectionGroup: q.collectionGroup,
+      ),
+      ordered: false,
+    );
     final r = await _send(
       () => _client.post(
         Uri.parse('$_root$parent:runAggregationQuery'),
@@ -122,7 +131,10 @@ class FirestoreDocumentStore implements DocumentStore {
   }
 
   /// Returns (parent path suffix, structuredQuery).
-  (String, Map<String, Object?>) _structured(DocQuery q) {
+  (String, Map<String, Object?>) _structured(
+    DocQuery q, {
+    bool ordered = true,
+  }) {
     String parent = '';
     String collectionId;
     if (q.collectionGroup) {
@@ -165,17 +177,20 @@ class FirestoreDocumentStore implements DocumentStore {
         'where': {
           'compositeFilter': {'op': 'AND', 'filters': filters},
         },
-      'orderBy': [
-        if (q.orderBy != null)
+      // Explicit __name__ tie-breaker only when a field ordering (or a
+      // cursor) is requested; otherwise Firestore applies its own default.
+      if (ordered && (q.orderBy != null || q.after != null))
+        'orderBy': [
+          if (q.orderBy != null)
+            {
+              'field': {'fieldPath': q.orderBy!.field},
+              'direction': direction,
+            },
           {
-            'field': {'fieldPath': q.orderBy!.field},
+            'field': {'fieldPath': '__name__'},
             'direction': direction,
           },
-        {
-          'field': {'fieldPath': '__name__'},
-          'direction': direction,
-        },
-      ],
+        ],
       if (q.limit != null) 'limit': q.limit,
       if (q.after != null)
         'startAt': {
@@ -259,7 +274,15 @@ class FirestoreDocumentStore implements DocumentStore {
       final txId = (jsonDecode(begin.body) as Map)['transaction']! as String;
       final ctx = _Tx(this, txId);
       try {
-        final result = await body(ctx);
+        final T result;
+        try {
+          result = await body(ctx);
+        } on Object {
+          // Release the read locks right away; otherwise they linger until
+          // the transaction times out and block unrelated requests.
+          await _rollback(txId);
+          rethrow;
+        }
         await _commit(ctx.pending, txId);
         return result;
       } on _Aborted {
@@ -268,6 +291,18 @@ class FirestoreDocumentStore implements DocumentStore {
         }
         await _backoff(attempt);
       }
+    }
+  }
+
+  Future<void> _rollback(String txId) async {
+    try {
+      await _client.post(
+        Uri.parse('$_root:rollback'),
+        headers: _json,
+        body: jsonEncode({'transaction': txId}),
+      );
+    } on Object {
+      // best effort: the transaction expires on its own
     }
   }
 

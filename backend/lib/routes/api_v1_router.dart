@@ -5,6 +5,7 @@ import 'package:shelf_router/shelf_router.dart';
 import '../core/errors/api_exception.dart';
 import '../core/responses/responses.dart';
 import '../features/auth/presentation/auth_routes.dart';
+import '../features/platform/platform_module.dart';
 import 'health_routes.dart';
 
 /// Builds the root router.
@@ -14,7 +15,7 @@ import 'health_routes.dart';
 /// `router.mount('$apiV1Prefix/clinics/', clinicsRouter.call)`.
 /// Phase 1 mounts `/auth`. When authentication is not configured (dev only)
 /// the auth routes answer 503 rather than being absent.
-Router buildRouter({AuthModule? auth}) {
+Router buildRouter({AuthModule? auth, PlatformModule? platform}) {
   final router = Router(
     notFoundHandler: (Request request) =>
         failure(request, ApiErrorCode.notFound, 'Resource not found.'),
@@ -29,6 +30,18 @@ Router buildRouter({AuthModule? auth}) {
         'Authentication is not configured.',
       );
     });
+  }
+  if (platform != null) {
+    platform.register(router);
+  } else {
+    for (final prefix in ['platform', 'clinic-applications', 'tenants']) {
+      router.all('$apiV1Prefix/$prefix/<ignored|.*>', (Request request) {
+        throw const ApiException(
+          ApiErrorCode.unavailable,
+          'The platform is not configured.',
+        );
+      });
+    }
   }
   return router;
 }

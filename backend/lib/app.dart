@@ -8,6 +8,7 @@ import 'core/middleware/request_id_middleware.dart';
 import 'core/middleware/request_logging_middleware.dart';
 import 'core/middleware/security_headers_middleware.dart';
 import 'features/auth/presentation/auth_routes.dart';
+import 'features/platform/platform_module.dart';
 import 'routes/api_v1_router.dart';
 
 /// Assembles the full HTTP handler.
@@ -17,12 +18,17 @@ import 'routes/api_v1_router.dart';
 /// router. Authentication is applied per route group by [AuthModule.protect], so
 /// public routes (health) stay open and every protected router opts in
 /// explicitly.
-Handler buildApp(AppConfig config, AppLogger logger, {AuthModule? auth}) {
+Handler buildApp(
+  AppConfig config,
+  AppLogger logger, {
+  AuthModule? auth,
+  PlatformModule? platform,
+}) {
   return Pipeline()
       .addMiddleware(requestIdMiddleware())
       .addMiddleware(corsMiddleware(config.corsAllowedOrigins))
       .addMiddleware(securityHeadersMiddleware())
       .addMiddleware(requestLoggingMiddleware(logger))
       .addMiddleware(errorHandlerMiddleware(logger))
-      .addHandler(buildRouter(auth: auth).call);
+      .addHandler(buildRouter(auth: auth, platform: platform).call);
 }

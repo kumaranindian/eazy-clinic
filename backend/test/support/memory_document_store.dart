@@ -6,6 +6,9 @@ class MemoryDocumentStore implements DocumentStore {
   final Map<String, DocData> docs = {};
   Future<void> _lock = Future.value();
 
+  /// Test hook: make matching commits fail with a [StoreException].
+  bool Function(List<WriteOp> ops)? failWhen;
+
   DocData _copy(DocData d) => {
     for (final e in d.entries) e.key: _clone(e.value),
   };
@@ -112,6 +115,9 @@ class MemoryDocumentStore implements DocumentStore {
 
   /// Validates all ops first, then applies them (atomic).
   void _apply(List<WriteOp> ops) {
+    if (failWhen?.call(ops) ?? false) {
+      throw const StoreException('injected failure');
+    }
     final staged = <String, DocData?>{};
     DocData? current(String p) => staged.containsKey(p) ? staged[p] : docs[p];
     for (final op in ops) {
