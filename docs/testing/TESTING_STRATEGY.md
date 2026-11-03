@@ -55,3 +55,19 @@ Command: `scripts/check_all.sh` → format check, `analyze` (backend/packages wi
 
 Builds: `flutter build web` (clinic_web ✓, doctor_mobile ✓) · `flutter build apk --debug` (patient_mobile ✓ on retry, doctor_mobile ✓; see TD-07) · backend run + `curl /health` ✓, and `APP_ENV=production` without project ID exits 78 ✓.
 Not built: backend Docker image, release APKs.
+
+## 7. Phase 1 results (`scripts/check_all.sh`, exit 0)
+
+| Project | Tests |
+|---|---|
+| backend | 104 (token verification, revocation, status gates, routes, spoofing, logging, Firestore/Identity Toolkit REST with mock HTTP, rate limiter, config) |
+| common_models | 5 |
+| api_contracts | 7 |
+| validation | 5 |
+| utilities | 8 |
+| design_system | 14 |
+| app_core | 71 (controller, redirect rules, pages, Dio client, Firebase error mapping) |
+| clinic_web / doctor_mobile / patient_mobile | 7 each |
+
+Also run: `flutter build web` for clinic_web and doctor_mobile (OK, placeholder Firebase values); a one-off check that a real `openssl`-generated X.509 certificate and RS256 token pass `FirebaseTokenVerifier`; a live `dart run bin/server.dart` smoke test (`/health` 200, `/api/v1/auth/me` 503 when unconfigured, `/auth/account-status` 404).
+**Not run:** Android builds (SDK download blocked), anything against a live Firebase project (TD-17/18), emulator tests (TD-15).
