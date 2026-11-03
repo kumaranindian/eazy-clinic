@@ -1,9 +1,11 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../config/auth_ui_config.dart';
 import '../application/auth_controller.dart';
+import '../application/auth_redirect.dart';
 import '../domain/auth_state.dart';
 import 'auth_layout.dart';
 
@@ -175,6 +177,47 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
           TextButton(
             onPressed: _busy ? null : () => controller.signOut(),
             child: const Text('Sign out'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Confirmation after requesting a password reset. Deliberately identical for
+/// every address so it cannot be used to discover which e-mails have accounts.
+class PasswordResetSentPage extends StatelessWidget {
+  const PasswordResetSentPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AuthScaffold(
+      title: 'Check your email',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Icon(
+            Icons.mark_email_read_outlined,
+            size: EcIconSizes.xl,
+            color: EcColors.blue,
+          ),
+          const SizedBox(height: EcSpacing.lg),
+          Text(
+            'If an account exists for this email, a password reset link has '
+            'been sent. Check your inbox and spam folder. The link expires '
+            'after a short time.',
+            style: EcTypography.bodySecondary,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: EcSpacing.xl),
+          EcPrimaryButton(
+            label: 'Back to sign in',
+            onPressed: () => context.go(AuthPaths.login),
+          ),
+          const SizedBox(height: EcSpacing.md),
+          EcSecondaryButton(
+            label: 'Use a different email',
+            onPressed: () => context.go(AuthPaths.forgotPassword),
           ),
         ],
       ),

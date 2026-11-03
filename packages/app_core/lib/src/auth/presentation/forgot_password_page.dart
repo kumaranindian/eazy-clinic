@@ -18,7 +18,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   bool _submitting = false;
-  bool _sent = false;
   String? _error;
 
   @override
@@ -40,8 +39,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     setState(() {
       _submitting = false;
       _error = failure?.message;
-      _sent = failure == null;
     });
+    // Same confirmation whether or not the address has an account.
+    if (failure == null) context.go(AuthPaths.resetEmailSent);
   }
 
   @override
@@ -58,15 +58,6 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_sent) ...[
-              const EcInlineMessage(
-                tone: EcStatusTone.success,
-                message:
-                    'If an account exists for this email, a password reset '
-                    'link has been sent. Check your inbox and spam folder.',
-              ),
-              const SizedBox(height: EcSpacing.lg),
-            ],
             if (_error != null) ...[
               EcInlineMessage(message: _error!),
               const SizedBox(height: EcSpacing.lg),
@@ -84,7 +75,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             ),
             const SizedBox(height: EcSpacing.xl),
             EcPrimaryButton(
-              label: _sent ? 'Send again' : 'Send reset link',
+              label: 'Send reset link',
               isLoading: _submitting,
               onPressed: _submit,
             ),

@@ -113,7 +113,7 @@ void main() {
       expect(find.text('PATIENT 42'), findsNothing);
       expect(find.text('Sign in'), findsWidgets);
 
-      h.api.provisionResult = activeSession();
+      h.api.initializeResult = activeSession();
       await t.enterText(field('Email'), 'a@b.co');
       await t.enterText(field('Password'), 'secret123');
       await t.tap(find.widgetWithText(FilledButton, 'Sign in'));
@@ -329,7 +329,7 @@ void main() {
 
     testWidgets('submits valid data and shows verification step', (t) async {
       final h = Harness()
-        ..api.provisionResult = activeSession(status: AccountStatus.pending);
+        ..api.initializeResult = activeSession(status: AccountStatus.pending);
       await open(t, h);
       await t.enterText(field('Full name'), 'New Person');
       await t.enterText(field('Email'), 'new@b.co');
@@ -340,7 +340,7 @@ void main() {
       await t.tap(find.widgetWithText(FilledButton, 'Create account'));
       await t.pumpAndSettle();
       expect(find.text('Verify your email'), findsOneWidget);
-      expect(h.api.provisionCalls, 1);
+      expect(h.api.initializeCalls, 1);
     });
 
     testWidgets('email already in use is reported without leaking details', (
@@ -377,14 +377,18 @@ void main() {
       expect(find.text('Email is required.'), findsOneWidget);
     });
 
-    testWidgets('shows a neutral confirmation', (t) async {
+    testWidgets('navigates to a neutral confirmation screen', (t) async {
       final h = Harness();
       await open(t, h);
       await t.enterText(field('Email'), 'a@b.co');
       await t.tap(find.widgetWithText(FilledButton, 'Send reset link'));
       await t.pumpAndSettle();
       expect(h.repo.resetRequests, ['a@b.co']);
+      expect(find.text('Check your email'), findsOneWidget);
       expect(find.textContaining('If an account exists'), findsOneWidget);
+      await t.tap(find.text('Back to sign in'));
+      await t.pumpAndSettle();
+      expect(find.text('Forgot password?'), findsOneWidget);
     });
 
     testWidgets('shows rate-limit errors', (t) async {

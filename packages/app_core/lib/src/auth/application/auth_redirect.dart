@@ -5,6 +5,7 @@ abstract final class AuthPaths {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String resetEmailSent = '/password-reset-sent';
   static const String verifyEmail = '/verify-email';
   static const String starting = '/starting';
   static const String accessDenied = '/access-denied';
@@ -13,11 +14,17 @@ abstract final class AuthPaths {
   /// Query parameter carrying the originally requested location.
   static const String fromParam = 'from';
 
-  static const Set<String> entry = {login, register, forgotPassword};
+  static const Set<String> entry = {
+    login,
+    register,
+    forgotPassword,
+    resetEmailSent,
+  };
   static const Set<String> all = {
     login,
     register,
     forgotPassword,
+    resetEmailSent,
     verifyEmail,
     starting,
     accessDenied,

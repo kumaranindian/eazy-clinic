@@ -23,6 +23,10 @@ List<RouteBase> buildAuthRoutes({bool registrationEnabled = true}) => [
     builder: (context, state) => const ForgotPasswordPage(),
   ),
   GoRoute(
+    path: AuthPaths.resetEmailSent,
+    builder: (context, state) => const PasswordResetSentPage(),
+  ),
+  GoRoute(
     path: AuthPaths.verifyEmail,
     builder: (context, state) => const VerifyEmailPage(),
   ),
