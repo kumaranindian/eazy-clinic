@@ -33,6 +33,27 @@ abstract final class ClinicPermission {
   static const String rolesManage = 'roles.manage';
   static const String permissionsView = 'permissions.view';
 
+  // Phase 4: patients (clinic-specific records)
+  static const String patientsView = 'patients.view';
+  static const String patientsCreate = 'patients.create';
+  static const String patientsUpdate = 'patients.update';
+  static const String patientsStatus = 'patients.status';
+  static const String patientsLinkAccount = 'patients.link_account';
+  static const String patientsDuplicates = 'patients.duplicates';
+  static const String historyView = 'history.view';
+  static const String historyManage = 'history.manage';
+  static const String allergiesView = 'allergies.view';
+  static const String allergiesManage = 'allergies.manage';
+  static const String medicationsView = 'medications.view';
+  static const String medicationsManage = 'medications.manage';
+  static const String alertsView = 'alerts.view';
+  static const String alertsManage = 'alerts.manage';
+  static const String consentsView = 'consents.view';
+  static const String consentsManage = 'consents.manage';
+  static const String patientDocumentsView = 'patient_documents.view';
+  static const String patientDocumentsManage = 'patient_documents.manage';
+  static const String patientAuditView = 'patient_audit.view';
+
   static const List<String> all = [
     clinicView,
     clinicUpdate,
@@ -58,6 +79,25 @@ abstract final class ClinicPermission {
     rolesView,
     rolesManage,
     permissionsView,
+    patientsView,
+    patientsCreate,
+    patientsUpdate,
+    patientsStatus,
+    patientsLinkAccount,
+    patientsDuplicates,
+    historyView,
+    historyManage,
+    allergiesView,
+    allergiesManage,
+    medicationsView,
+    medicationsManage,
+    alertsView,
+    alertsManage,
+    consentsView,
+    consentsManage,
+    patientDocumentsView,
+    patientDocumentsManage,
+    patientAuditView,
   ];
 
   static bool isKnown(String key) => all.contains(key);
@@ -71,17 +111,70 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.branchesView,
   };
 
+  /// Permissions that expose clinical information.
+  static const Set<String> _clinical = {
+    ClinicPermission.historyView,
+    ClinicPermission.historyManage,
+    ClinicPermission.allergiesView,
+    ClinicPermission.allergiesManage,
+    ClinicPermission.medicationsView,
+    ClinicPermission.medicationsManage,
+    ClinicPermission.patientDocumentsView,
+    ClinicPermission.patientDocumentsManage,
+  };
+
+  static const Set<String> _patientCare = {
+    ClinicPermission.patientsView,
+    ClinicPermission.patientsCreate,
+    ClinicPermission.patientsUpdate,
+    ClinicPermission.patientsDuplicates,
+    ClinicPermission.historyView,
+    ClinicPermission.allergiesView,
+    ClinicPermission.allergiesManage,
+    ClinicPermission.medicationsView,
+    ClinicPermission.medicationsManage,
+    ClinicPermission.alertsView,
+    ClinicPermission.alertsManage,
+    ClinicPermission.consentsView,
+    ClinicPermission.consentsManage,
+    ClinicPermission.patientDocumentsView,
+    ClinicPermission.patientDocumentsManage,
+  };
+
   static final Map<ClinicRole, Set<String>> _matrix = {
     // The owner holds every permission.
     ClinicRole.clinicOwner: {...ClinicPermission.all},
     // The admin runs the clinic but cannot manage roles themselves.
+    // Administrators run the clinic but do not read clinical information
+    // (history, allergies, medications, documents) by default.
     ClinicRole.clinicAdmin: {
       for (final p in ClinicPermission.all)
-        if (p != ClinicPermission.rolesManage) p,
+        if (p != ClinicPermission.rolesManage && !_clinical.contains(p)) p,
     },
-    ClinicRole.doctor: {..._readBasics, ClinicPermission.doctorsView},
-    ClinicRole.receptionist: {..._readBasics, ClinicPermission.doctorsView},
-    ClinicRole.nurse: {..._readBasics, ClinicPermission.doctorsView},
+    ClinicRole.doctor: {
+      ..._readBasics,
+      ClinicPermission.doctorsView,
+      ..._patientCare,
+      ClinicPermission.historyManage,
+    },
+    ClinicRole.receptionist: {
+      ..._readBasics,
+      ClinicPermission.doctorsView,
+      ClinicPermission.patientsView,
+      ClinicPermission.patientsCreate,
+      ClinicPermission.patientsUpdate,
+      ClinicPermission.patientsDuplicates,
+      ClinicPermission.patientsLinkAccount,
+      ClinicPermission.alertsView,
+      ClinicPermission.alertsManage,
+      ClinicPermission.consentsView,
+      ClinicPermission.consentsManage,
+    },
+    ClinicRole.nurse: {
+      ..._readBasics,
+      ClinicPermission.doctorsView,
+      ..._patientCare,
+    },
     ClinicRole.accountant: {..._readBasics},
     ClinicRole.labTechnician: {..._readBasics},
     ClinicRole.pharmacist: {..._readBasics},

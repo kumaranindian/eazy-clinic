@@ -4,7 +4,8 @@ import '../../../core/errors/api_exception.dart';
 enum SeatKind {
   branches('branches'),
   doctors('doctors'),
-  staff('staff');
+  staff('staff'),
+  patients('patients');
 
   const SeatKind(this.wireName);
   final String wireName;

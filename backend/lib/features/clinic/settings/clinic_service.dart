@@ -63,6 +63,7 @@ class ClinicService {
     'holidays',
     'specialDays',
     'doctorRegistrationRequired',
+    'minorAgeYears',
   };
 
   String _profilePath(TenantContext t) =>
@@ -273,6 +274,8 @@ class ClinicService {
     'holidays': <Object?>[],
     'specialDays': <Object?>[],
     'doctorRegistrationRequired': true,
+    // Age below which a patient is treated as a minor (guardian consent).
+    'minorAgeYears': 18,
   };
 
   Future<Map<String, Object?>> getSettings(TenantContext t) async {
@@ -325,6 +328,12 @@ class ClinicService {
       required: false,
     );
     final regRequired = r.boolean('doctorRegistrationRequired');
+    final minorAge = r.integer(
+      'minorAgeYears',
+      min: 1,
+      max: 25,
+      required: false,
+    );
     final hours = HoursParser(r);
     final weekly = body.containsKey('weeklyHours')
         ? hours.weekly(body['weeklyHours'], 'weeklyHours')
@@ -352,6 +361,7 @@ class ClinicService {
       'appointmentDurationMinutes': ?appt,
       'consultationDurationMinutes': ?consult,
       'doctorRegistrationRequired': ?regRequired,
+      'minorAgeYears': ?minorAge,
       'weeklyHours': ?weekly,
       'holidays': ?holidays,
       'specialDays': ?special,

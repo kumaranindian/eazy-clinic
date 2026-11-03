@@ -15,6 +15,7 @@ import '../../core/validation/request_validator.dart';
 import '../auth/application/auth_context_keys.dart';
 import '../auth/domain/auth_context.dart';
 import '../auth/presentation/auth_routes.dart';
+import '../patients/patient_module.dart';
 import '../platform/audit/audit_service.dart';
 import '../platform/common/paging.dart';
 import '../platform/entitlements/entitlement_service.dart';
@@ -45,6 +46,8 @@ class ClinicModule {
     RateLimiter? writeLimiter,
     RateLimiter? inviteLimiter,
     RateLimiter? acceptLimiter,
+    RateLimiter? identityLimiter,
+    RateLimiter? familyLimiter,
   }) : deps = ClinicDeps(
          store: store,
          audit: AuditService(store, clock: clock),
@@ -55,6 +58,12 @@ class ClinicModule {
        writes =
            writeLimiter ??
            RateLimiter(maxRequests: 120, window: const Duration(minutes: 1)),
+       identityLimits =
+           identityLimiter ??
+           RateLimiter(maxRequests: 10, window: const Duration(hours: 1)),
+       familyLimits =
+           familyLimiter ??
+           RateLimiter(maxRequests: 60, window: const Duration(hours: 1)),
        accepts =
            acceptLimiter ??
            RateLimiter(maxRequests: 10, window: const Duration(hours: 1)),
@@ -67,6 +76,7 @@ class ClinicModule {
     staff = StaffService(deps, branches);
     invitations = InvitationService(deps, staff, doctors);
     members = MemberService(deps, staff, branches);
+    patients = PatientModule(deps, storage);
   }
 
   final AuthModule auth;
@@ -74,6 +84,9 @@ class ClinicModule {
   final RateLimiter writes;
   final RateLimiter invites;
   final RateLimiter accepts;
+  final RateLimiter identityLimits;
+  final RateLimiter familyLimits;
+  late final PatientModule patients;
   late final ClinicService clinic;
   late final BranchService branches;
   late final DoctorService doctors;
@@ -159,6 +172,13 @@ class ClinicModule {
   // --------------------------------------------------------------- register
 
   void register(Router r) {
+    registerPatientRoutes(
+      this,
+      patients,
+      r,
+      identityLimiter: identityLimits,
+      familyLimiter: familyLimits,
+    );
     // Clinic profile, settings, logo
     r.get(
       '$_v1/clinics/current',
