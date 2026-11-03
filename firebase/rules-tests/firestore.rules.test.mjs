@@ -99,6 +99,60 @@ describe('platform_users', () => {
   });
 });
 
+describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
+  const paths = [
+    'clinic_applications/app_1',
+    'clinic_applications/app_1/internal_notes/n1',
+    'clinic_applications/app_1/history/h1',
+    'tenants/ten_1',
+    'tenants/ten_1/members/alice',
+    'tenant_slugs/green-valley',
+    'tenant_provisioning_jobs/ten_1',
+    'subscription_plans/plan_1',
+    'subscription_plans/plan_1/versions/1',
+    'platform_subscriptions/sub_1',
+    'platform_subscriptions/sub_1/history/h1',
+  ];
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      for (const p of paths) await setDoc(doc(db, p), { applicantUid: 'alice', uid: 'alice', status: 'active' });
+    });
+  });
+
+  it('no client can read any of them, including the owner of the record', async () => {
+    for (const p of paths) {
+      await assertFails(getDoc(doc(alice(), p)));
+      await assertFails(getDoc(doc(anon(), p)));
+    }
+  });
+
+  it('no client can create, change or delete any of them', async () => {
+    for (const p of paths) {
+      await assertFails(setDoc(doc(alice(), p.replace(/[^/]+$/, 'new_doc')), { status: 'approved' }));
+      await assertFails(updateDoc(doc(alice(), p), { status: 'approved' }));
+      await assertFails(deleteDoc(doc(alice(), p)));
+    }
+  });
+
+  it('an applicant cannot approve their own application or create a tenant/membership', async () => {
+    await assertFails(updateDoc(doc(alice(), 'clinic_applications/app_1'), { status: 'approved' }));
+    await assertFails(setDoc(doc(alice(), 'tenants/ten_mine'), { ownerUid: 'alice', status: 'active' }));
+    await assertFails(setDoc(doc(alice(), 'tenants/ten_1/members/alice'), { role: 'clinic_owner', status: 'active' }));
+  });
+
+  it('a client cannot grant itself a subscription or entitlement override', async () => {
+    await assertFails(setDoc(doc(alice(), 'platform_subscriptions/sub_self'), { tenantId: 'ten_1', status: 'active' }));
+    await assertFails(updateDoc(doc(alice(), 'platform_subscriptions/sub_1'), { overrides: { features: { billing: true } } }));
+  });
+
+  it('collection-group queries on members are denied to clients', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'members'), where('uid', '==', 'alice'))));
+  });
+});
+
 describe('other collections stay closed', () => {
   it('audit logs are not readable or writable by clients', async () => {
     await assertFails(getDoc(doc(alice(), 'platform_audit_logs/log1')));

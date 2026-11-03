@@ -547,6 +547,17 @@ class PlatformModule {
     r.get(
       '$_p/audit-logs',
       _secured((Request req) async {
+        final used = [
+          'tenantId',
+          'action',
+          'targetType',
+          'actorUid',
+        ].where((f) => _query(req, f) != null).length;
+        if (used > 1) {
+          throw const ApiException.badRequest(
+            'Use at most one audit filter at a time.',
+          );
+        }
         final page = await audit.list(
           req,
           tenantId: _query(req, 'tenantId'),
