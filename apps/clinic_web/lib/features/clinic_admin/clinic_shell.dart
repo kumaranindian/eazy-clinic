@@ -37,6 +37,12 @@ const _destinations = [
     ClinicPermission.branchesView,
   ),
   _Dest(
+    'Patients',
+    Icons.groups_outlined,
+    '/clinic/patients',
+    ClinicPermission.patientsView,
+  ),
+  _Dest(
     'Doctors',
     Icons.medical_services_outlined,
     '/clinic/doctors',

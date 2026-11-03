@@ -14,6 +14,8 @@ import '../../features/clinic_admin/staff_pages.dart';
 import '../../features/onboarding/presentation/accept_invitation_page.dart';
 import '../../features/onboarding/presentation/apply_page.dart';
 import '../../features/onboarding/presentation/my_applications_pages.dart';
+import '../../features/patients/patient_detail_page.dart';
+import '../../features/patients/patients_pages.dart';
 import '../../features/platform/applications_pages.dart';
 import '../../features/platform/audit_page.dart';
 import '../../features/platform/dashboard_page.dart';
@@ -163,6 +165,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/clinic/staff/:id/edit',
             builder: (context, state) =>
                 StaffFormPage(staffId: state.pathParameters['id']),
+          ),
+          GoRoute(
+            path: '/clinic/patients',
+            builder: (context, state) => const PatientsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/patients/new',
+            builder: (context, state) => const PatientFormPage(),
+          ),
+          GoRoute(
+            path: '/clinic/patients/:id',
+            builder: (context, state) =>
+                PatientDetailPage(patientId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/patients/:id/edit',
+            builder: (context, state) =>
+                PatientFormPage(patientId: state.pathParameters['id']),
           ),
           GoRoute(
             path: '/clinic/invitations',

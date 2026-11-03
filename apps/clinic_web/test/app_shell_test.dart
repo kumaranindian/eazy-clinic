@@ -8,6 +8,7 @@ import 'package:common_models/common_models.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:utilities/utilities.dart';
@@ -22,6 +23,7 @@ Widget buildApp({
   bool signedIn = true,
   AuthSessionDto? session,
   FakeRepo? repo,
+  List<Override> overrides = const [],
 }) {
   final fake = repo ?? FakeRepo();
   return ProviderScope(
@@ -46,6 +48,7 @@ Widget buildApp({
         ),
       ),
       controlPlaneRepositoryProvider.overrideWithValue(fake),
+      ...overrides,
     ],
     child: const EazyClinicApp(),
   );
