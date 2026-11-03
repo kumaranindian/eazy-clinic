@@ -356,8 +356,9 @@ class ClinicService {
       'holidays': ?holidays,
       'specialDays': ?special,
     };
-    if (changes.isEmpty)
+    if (changes.isEmpty) {
       throw const ApiException.badRequest('No settings to update.');
+    }
     final now = _d.now;
     final path = _settingsPath(t);
     await _d.store.transaction((tx) async {
@@ -498,8 +499,9 @@ class ClinicService {
   Future<(Uint8List, String)?> getLogo(TenantContext t) async {
     final profile = await _d.store.get(_profilePath(t));
     final path = (profile?['logo'] as Map?)?['path'] as String?;
-    if (path == null || !path.startsWith('tenants/${t.tenantId}/branding/'))
+    if (path == null || !path.startsWith('tenants/${t.tenantId}/branding/')) {
       return null;
+    }
     return _storage.get(path);
   }
 }

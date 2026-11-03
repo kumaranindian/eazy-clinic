@@ -191,8 +191,9 @@ class StaffService {
   /// 403 unless the caller may manage this person: not themselves, role
   /// authority, and a scoped manager only for people fully inside their scope.
   void manageCheck(TenantContext t, Map<String, Object?> s) {
-    if (s['uid'] == t.uid)
+    if (s['uid'] == t.uid) {
       throw const ApiException.forbidden('You cannot change your own access.');
+    }
     final role = ClinicRole.tryParse('${s['role']}');
     if (role == null || !ClinicRolePolicy.canManageMember(t.role, role)) {
       throw const ApiException.forbidden(
@@ -320,14 +321,16 @@ class StaffService {
       ]);
     }
     final changes = {...profile, ...scope};
-    if (changes.isEmpty)
+    if (changes.isEmpty) {
       throw const ApiException.badRequest('No staff fields to update.');
+    }
     final newEmail = profile['email'] as String?;
     final now = _d.now;
     return _d.store.transaction((tx) async {
       final cur = await tx.get(_d.path(t, collection, id));
-      if (cur == null)
+      if (cur == null) {
         throw const ApiException.notFound('Staff member not found.');
+      }
       final ops = <WriteOp>[];
       if (newEmail != null &&
           emailKey(newEmail) != emailKey('${cur['email']}')) {
@@ -391,8 +394,9 @@ class StaffService {
       int? slot,
     ) async {
       final cur = await tx.get(_d.path(t, collection, id));
-      if (cur == null)
+      if (cur == null) {
         throw const ApiException.notFound('Staff member not found.');
+      }
       final from = '${cur['status']}';
       final allowed = switch (to) {
         'active' => from == 'inactive' || from == 'suspended',
@@ -400,8 +404,9 @@ class StaffService {
         'suspended' => from == 'active',
         _ => false,
       };
-      if (!allowed)
+      if (!allowed) {
         throw ApiException.conflict('A $from staff member cannot become $to.');
+      }
       final uid = cur['uid'] as String?;
       if (to == 'active' && uid == null) {
         throw const ApiException.conflict(
@@ -561,8 +566,9 @@ class StaffService {
           if (role != null && s['role'] != role) return false;
           if (query != null &&
               query.isNotEmpty &&
-              !'${s['fullNameLower']}'.startsWith(query))
+              !'${s['fullNameLower']}'.startsWith(query)) {
             return false;
+          }
           return true;
         }).toList()..sort(
           (a, b) => '${a.data['fullNameLower']}'.compareTo(

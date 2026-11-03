@@ -189,8 +189,9 @@ class MemberService {
   ) async {
     final m = await _d.store.get(_d.path(t, 'members', uid));
     if (m == null) throw const ApiException.notFound('Member not found.');
-    if (uid == t.uid)
+    if (uid == t.uid) {
       throw const ApiException.forbidden('You cannot change your own access.');
+    }
     final role = ClinicRole.tryParse('${m['role']}');
     if (role == null || !ClinicRolePolicy.canManageMember(t.role, role)) {
       throw const ApiException.forbidden(
@@ -200,8 +201,9 @@ class MemberService {
     final all = m['allBranches'] == true;
     final ids = ((m['branchIds'] as List?) ?? const []).cast<String>();
     if (!t.scope.allBranches) {
-      if (all || !ids.any(t.scope.allows))
+      if (all || !ids.any(t.scope.allows)) {
         throw const ApiException.notFound('Member not found.');
+      }
       if (!t.scope.containsAll(ids)) {
         throw const ApiException.forbidden(
           'This member also works outside your branches.',
@@ -231,13 +233,15 @@ class MemberService {
     final newRole = scope['role']! as String;
     final now = _d.now;
     final cur = await _loadManageable(t, uid);
-    if (cur['role'] == newRole)
+    if (cur['role'] == newRole) {
       throw const ApiException.conflict('The member already has this role.');
+    }
     final patched = await _d.store.transaction((tx) async {
       final m = await tx.get(_d.path(t, 'members', uid));
       if (m == null) throw const ApiException.notFound('Member not found.');
-      if (m['role'] == ClinicRole.clinicOwner.wireName)
+      if (m['role'] == ClinicRole.clinicOwner.wireName) {
         throw const ApiException.forbidden();
+      }
       final patch = {'role': newRole, 'updatedAt': now, 'updatedBy': t.uid};
       final staffId = m['staffId'] as String?;
       tx.write([

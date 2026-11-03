@@ -19,7 +19,13 @@ Future<void> main() async {
   final logger = AppLogger(minLevel: config.logLevel);
   final modules = await buildProductionModules(config, logger);
   final server = await shelf_io.serve(
-    buildApp(config, logger, auth: modules.auth, platform: modules.platform),
+    buildApp(
+      config,
+      logger,
+      auth: modules.auth,
+      platform: modules.platform,
+      clinic: modules.clinic,
+    ),
     InternetAddress.anyIPv4,
     config.port,
   );

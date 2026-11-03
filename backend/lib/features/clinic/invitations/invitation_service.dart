@@ -88,12 +88,14 @@ class InvitationService {
       entityId: staffId,
       build: (tx, slot) async {
         final cur = await tx.get(_d.path(t, 'staff', staffId));
-        if (cur == null)
+        if (cur == null) {
           throw const ApiException.notFound('Staff member not found.');
-        if (cur['uid'] != null)
+        }
+        if (cur['uid'] != null) {
           throw const ApiException.conflict(
             'This person already has an account in this clinic.',
           );
+        }
         if (cur['status'] != 'inactive') {
           throw const ApiException.conflict(
             'An invitation already exists. Resend or revoke it instead.',
@@ -165,14 +167,16 @@ class InvitationService {
     return _d.store.transaction((tx) async {
       final doc = await tx.get(_d.path(t, 'doctors', doctorId));
       if (doc == null) throw const ApiException.notFound('Doctor not found.');
-      if (doc['status'] != 'active')
+      if (doc['status'] != 'active') {
         throw const ApiException.conflict(
           'Only an active doctor can be invited.',
         );
-      if (doc['uid'] != null)
+      }
+      if (doc['uid'] != null) {
         throw const ApiException.conflict(
           'This doctor already has a linked account.',
         );
+      }
       if (doc['accountStatus'] == 'invited') {
         throw const ApiException.conflict(
           'An invitation already exists. Resend or revoke it instead.',
@@ -182,10 +186,11 @@ class InvitationService {
       // aim it at a different address, so they cannot capture someone else's
       // account.
       final email = '${doc['email'] ?? ''}'.toLowerCase();
-      if (email.isEmpty)
+      if (email.isEmpty) {
         throw const ApiException.conflict(
           'Add an email address to the doctor profile first.',
         );
+      }
       final assigned = await tx.query(
         DocQuery(
           _d.path(t, DoctorService.assignments),
@@ -196,10 +201,11 @@ class InvitationService {
           limit: 100,
         ),
       );
-      if (assigned.isEmpty)
+      if (assigned.isEmpty) {
         throw const ApiException.conflict(
           'Assign the doctor to at least one branch first.',
         );
+      }
       final inv = <String, Object?>{
         'invitationId': invId,
         'tenantId': t.tenantId,
@@ -432,8 +438,11 @@ class InvitationService {
     String token, {
     String? requestId,
   }) async {
-    if (!token.startsWith('ecinv_') || token.length < 20 || token.length > 120)
+    if (!token.startsWith('ecinv_') ||
+        token.length < 20 ||
+        token.length > 120) {
       throw _invalidInvitation;
+    }
     final hash = hashInvitationToken(token);
     final found = await _d.store.query(
       DocQuery(
@@ -480,8 +489,9 @@ class InvitationService {
           throw const _Denied('identity_mismatch');
         }
         final memberPath = 'tenants/$tenantId/members/$uid';
-        if (await tx.get(memberPath) != null)
+        if (await tx.get(memberPath) != null) {
           throw const _Denied('already_member');
+        }
 
         final kind = inv['kind'] as String;
         final subject = '${inv['subjectId']}';

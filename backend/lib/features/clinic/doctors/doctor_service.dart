@@ -294,8 +294,9 @@ class DoctorService {
   }) async {
     t.require(ClinicPermission.doctorsUpdate);
     final input = _parse(body, partial: true, regRequired: false);
-    if (input.isEmpty)
+    if (input.isEmpty) {
       throw const ApiException.badRequest('No doctor fields to update.');
+    }
     await loadVisible(t, id);
     final newReg = input['registrationNumber'] as String?;
     final now = _d.now;
@@ -306,10 +307,11 @@ class DoctorService {
       if (newReg != null &&
           regKey(newReg) != regKey('${cur['registrationNumber'] ?? ''}')) {
         final taken = await tx.get(_d.path(t, 'doctor_regs', regKey(newReg)));
-        if (taken != null)
+        if (taken != null) {
           throw const ApiException.conflict(
             'A doctor with this registration number already exists.',
           );
+        }
         ops.add(
           CreateOp(_d.path(t, 'doctor_regs', regKey(newReg)), {
             'doctorId': id,
@@ -317,8 +319,9 @@ class DoctorService {
           }),
         );
         final old = cur['registrationNumber'] as String?;
-        if (old != null && old.isNotEmpty)
+        if (old != null && old.isNotEmpty) {
           ops.add(DeleteOp(_d.path(t, 'doctor_regs', regKey(old))));
+        }
       }
       final patch = {...input, 'updatedAt': now, 'updatedBy': t.uid};
       tx.write([
@@ -467,10 +470,12 @@ class DoctorService {
     );
     final from = r.str('effectiveFrom', max: 10, required: false);
     final to = r.str('effectiveTo', max: 10, required: false);
-    if (from != null && !HoursParser.validDate(from))
+    if (from != null && !HoursParser.validDate(from)) {
       r.addIssue('effectiveFrom', 'invalid_date', 'Use YYYY-MM-DD.');
-    if (to != null && !HoursParser.validDate(to))
+    }
+    if (to != null && !HoursParser.validDate(to)) {
       r.addIssue('effectiveTo', 'invalid_date', 'Use YYYY-MM-DD.');
+    }
     if (from != null && to != null && to.compareTo(from) < 0) {
       r.addIssue(
         'effectiveTo',
@@ -482,10 +487,11 @@ class DoctorService {
     t.scope.require(branchId!);
     await _branches.requireActive(t, branchId);
     final doc = await _visibleForAssign(t, doctorId);
-    if (doc['status'] != 'active')
+    if (doc['status'] != 'active') {
       throw const ApiException.conflict(
         'Only an active doctor can be assigned.',
       );
+    }
     final now = _d.now;
     final ops = _assignOps(
       t,
@@ -555,8 +561,9 @@ class DoctorService {
           !a.any((x) => t.scope.allows(x['branchId']! as String))) {
         throw const ApiException.notFound('Doctor not found.');
       }
-      if (unassigned && doc['createdBy'] != t.uid)
+      if (unassigned && doc['createdBy'] != t.uid) {
         throw const ApiException.notFound('Doctor not found.');
+      }
     }
     return doc;
   }
@@ -575,8 +582,9 @@ class DoctorService {
       final key = await tx.get(
         _d.path(t, 'doctor_branch_active', '${doctorId}_$branchId'),
       );
-      if (key == null)
+      if (key == null) {
         throw const ApiException.notFound('Assignment not found.');
+      }
       final aid = key['assignmentId']! as String;
       final doctor = await tx.get(_d.path(t, collection, doctorId));
       final uid = doctor?['uid'] as String?;
@@ -635,8 +643,9 @@ class DoctorService {
     final out = <Map<String, Object?>>[];
     for (final a in rows) {
       final branchId = a.data['branchId']! as String;
-      if (!t.scope.allows(branchId))
+      if (!t.scope.allows(branchId)) {
         continue; // never reveal out-of-scope branches
+      }
       final b = await _branches.find(t, branchId);
       out.add({
         ...jsonSafe(a.data)! as Map<String, Object?>,
@@ -726,8 +735,9 @@ class DoctorService {
       if (specialty != null && d['specialty'] != specialty) continue;
       if (query != null &&
           query.isNotEmpty &&
-          !'${d['fullNameLower']}'.startsWith(query))
+          !'${d['fullNameLower']}'.startsWith(query)) {
         continue;
+      }
       docs.add(StoredDoc(_d.path(t, collection, id), d));
     }
     docs.sort(

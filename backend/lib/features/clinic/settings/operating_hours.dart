@@ -68,12 +68,13 @@ class HoursParser {
       return null;
     }
     if (!open) {
-      if (requireOpen)
+      if (requireOpen) {
         reader.addIssue(
           '$field.open',
           'invalid_value',
           'A special working day must be open.',
         );
+      }
       return {'open': false};
     }
     final from = minutes(raw['from']);
@@ -120,7 +121,7 @@ class HoursParser {
         return null;
       }
       // measure relative to the opening time so overnight breaks work
-      var s = bf < from ? bf + 1440 : bf;
+      final s = bf < from ? bf + 1440 : bf;
       var e = bt < from ? bt + 1440 : bt;
       if (!overnight && bt <= bf) {
         reader.addIssue(

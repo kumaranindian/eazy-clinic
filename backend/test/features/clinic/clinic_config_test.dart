@@ -281,7 +281,7 @@ void main() {
           '1': day(
             '09:00',
             '17:00',
-            List.generate(6, (i) => {'from': '1${i}:00', 'to': '1$i:10'}),
+            List.generate(6, (i) => {'from': '1$i:00', 'to': '1$i:10'}),
           ),
         },
       }); // too many

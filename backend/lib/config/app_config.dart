@@ -14,6 +14,7 @@ class AppConfig {
     required this.firebaseProjectId,
     required this.authCheckRevoked,
     required this.trustForwardedFor,
+    required this.storageBucket,
   });
 
   /// Builds a validated config from [env] (normally `Platform.environment`).
@@ -87,6 +88,18 @@ class AppConfig {
       problems.add('TRUST_FORWARDED_FOR must be "true" or "false".');
     }
 
+    final bucket = env['STORAGE_BUCKET']?.trim();
+    if (bucket != null &&
+        bucket.isNotEmpty &&
+        !RegExp(r'^[a-z0-9][a-z0-9._\-]{2,221}$').hasMatch(bucket)) {
+      problems.add('STORAGE_BUCKET is not a valid bucket name.');
+    }
+    if (environment != null &&
+        environment != AppEnvironment.dev &&
+        (bucket == null || bucket.isEmpty)) {
+      problems.add('STORAGE_BUCKET is required in ${environment.wireName}.');
+    }
+
     if (problems.isNotEmpty) {
       throw ConfigurationException(problems.join(' '));
     }
@@ -101,6 +114,7 @@ class AppConfig {
           : projectId,
       authCheckRevoked: checkRevoked,
       trustForwardedFor: trustRaw == 'true',
+      storageBucket: (bucket == null || bucket.isEmpty) ? null : bucket,
     );
   }
 
@@ -123,6 +137,10 @@ class AppConfig {
   /// Behind a trusted proxy (Cloud Run), use the last `X-Forwarded-For` entry
   /// as the client address for rate limiting.
   final bool trustForwardedFor;
+
+  /// Private Cloud Storage bucket of this environment (clinic logos). When
+  /// absent (dev only) logo endpoints answer 503.
+  final String? storageBucket;
 }
 
 /// Log severity, ordered from most to least verbose.

@@ -18,8 +18,9 @@ class BranchScope {
 
   /// Throws 404 (existence of out-of-scope branches is not revealed).
   void require(String branchId) {
-    if (!allows(branchId))
+    if (!allows(branchId)) {
       throw const ApiException.notFound('Branch not found.');
+    }
   }
 
   /// Whether every id in [ids] is inside this scope.

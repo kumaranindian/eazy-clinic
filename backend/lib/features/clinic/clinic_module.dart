@@ -20,14 +20,14 @@ import '../platform/common/paging.dart';
 import '../platform/entitlements/entitlement_service.dart';
 import 'branches/branch_service.dart';
 import 'common/clinic_deps.dart';
-import 'doctors/doctor_service.dart';
-import 'invitations/invitation_service.dart';
-import 'members/member_service.dart';
-import 'staff/staff_service.dart';
 import 'common/object_storage.dart';
 import 'common/seat_service.dart';
 import 'common/tenant_context.dart';
+import 'doctors/doctor_service.dart';
+import 'invitations/invitation_service.dart';
+import 'members/member_service.dart';
 import 'settings/clinic_service.dart';
+import 'staff/staff_service.dart';
 
 final RegExp _idPattern = RegExp(r'^[A-Za-z0-9_\-]{3,64}$');
 
@@ -221,8 +221,9 @@ class ClinicModule {
       secured((Request req, TenantContext t) async {
         t.require(ClinicPermission.clinicView);
         final logo = await clinic.getLogo(t);
-        if (logo == null)
+        if (logo == null) {
           throw const ApiException.notFound('No logo has been uploaded.');
+        }
         return Response.ok(
           Uint8List.fromList(logo.$1),
           headers: {

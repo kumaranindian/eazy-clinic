@@ -112,6 +112,19 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
     'subscription_plans/plan_1/versions/1',
     'platform_subscriptions/sub_1',
     'platform_subscriptions/sub_1/history/h1',
+    // Phase 3: clinic administration data
+    'tenants/ten_1/clinic_settings/profile',
+    'tenants/ten_1/clinic_settings/operations',
+    'tenants/ten_1/branches/br_1',
+    'tenants/ten_1/branch_codes/MAIN',
+    'tenants/ten_1/doctors/doc_1',
+    'tenants/ten_1/doctor_regs/mh12345',
+    'tenants/ten_1/doctor_branch_assignments/asg_1',
+    'tenants/ten_1/doctor_branch_active/doc_1_br_1',
+    'tenants/ten_1/staff/stf_1',
+    'tenants/ten_1/staff_emails/nina_example_test',
+    'tenants/ten_1/invitations/inv_1',
+    'tenants/ten_1/seats/staff_1',
   ];
 
   beforeEach(async () => {
@@ -145,6 +158,18 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
   it('a client cannot grant itself a subscription or entitlement override', async () => {
     await assertFails(setDoc(doc(alice(), 'platform_subscriptions/sub_self'), { tenantId: 'ten_1', status: 'active' }));
     await assertFails(updateDoc(doc(alice(), 'platform_subscriptions/sub_1'), { overrides: { features: { billing: true } } }));
+  });
+
+  it('clients cannot look up invitations by token hash (collection group) or read any invitation', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'invitations'), where('tokenHash', '==', 'abc'))));
+    await assertFails(getDocs(query(collectionGroup(anon(), 'invitations'), where('tokenHash', '==', 'abc'))));
+  });
+
+  it('a member cannot change their own role, branches or status, or create memberships', async () => {
+    await assertFails(updateDoc(doc(alice(), 'tenants/ten_1/members/alice'), { role: 'clinic_owner' }));
+    await assertFails(updateDoc(doc(alice(), 'tenants/ten_1/members/alice'), { allBranches: true, status: 'active' }));
+    await assertFails(setDoc(doc(alice(), 'tenants/ten_1/members/mallory'), { uid: 'mallory', role: 'clinic_admin', status: 'active' }));
   });
 
   it('collection-group queries on members are denied to clients', async () => {

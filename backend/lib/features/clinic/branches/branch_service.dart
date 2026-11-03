@@ -215,8 +215,9 @@ class BranchService {
     t.require(ClinicPermission.branchesUpdate);
     t.scope.require(id);
     final input = _parse(body, partial: true);
-    if (input.isEmpty)
+    if (input.isEmpty) {
       throw const ApiException.badRequest('No branch fields to update.');
+    }
     if (input.containsKey('code')) {
       throw ApiException.validation([
         _issue('code', 'immutable', 'The branch code cannot be changed.'),
@@ -256,8 +257,9 @@ class BranchService {
     t.scope.require(id);
     final head = await _d.store.get(_d.path(t, collection, id));
     if (head == null) throw const ApiException.notFound('Branch not found.');
-    if (head['status'] == 'active')
+    if (head['status'] == 'active') {
       throw const ApiException.conflict('Branch is already active.');
+    }
     if (head['status'] == 'suspended') {
       throw const ApiException.conflict(
         'A suspended branch can only be reactivated by EazyClinic support.',
@@ -319,10 +321,11 @@ class BranchService {
     return _d.store.transaction((tx) async {
       final cur = await tx.get(_d.path(t, collection, id));
       if (cur == null) throw const ApiException.notFound('Branch not found.');
-      if (cur['status'] != 'active')
+      if (cur['status'] != 'active') {
         throw const ApiException.conflict(
           'Only an active branch can be deactivated.',
         );
+      }
       final active = await tx.query(
         DocQuery(
           _d.path(t, collection),
@@ -375,8 +378,9 @@ class BranchService {
   Future<Map<String, Object?>> requireActive(TenantContext t, String id) async {
     final b = await find(t, id);
     if (b == null) throw const ApiException.notFound('Branch not found.');
-    if (b['status'] != 'active')
+    if (b['status'] != 'active') {
       throw const ApiException.conflict('The branch is not active.');
+    }
     return b;
   }
 
@@ -451,12 +455,13 @@ class BranchService {
         final doc = await _d.store.get(
           _d.path(t, 'doctors', a.data['doctorId']! as String),
         );
-        if (doc != null)
+        if (doc != null) {
           doctors.add({
             'doctorId': doc['doctorId'],
             'fullName': doc['fullName'],
             'specialty': doc['specialty'],
           });
+        }
       }
     }
     final staff = <Map<String, Object?>>[];

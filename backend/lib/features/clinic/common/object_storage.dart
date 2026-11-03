@@ -59,6 +59,21 @@ class GcsObjectStorage implements ObjectStorage {
   }
 }
 
+/// Used when no bucket is configured (dev): fails clearly instead of pretending.
+class UnconfiguredObjectStorage implements ObjectStorage {
+  const UnconfiguredObjectStorage();
+
+  Never _fail() =>
+      throw const StoreException('Object storage is not configured.');
+
+  @override
+  Future<void> put(String path, Uint8List bytes, String contentType) async =>
+      _fail();
+
+  @override
+  Future<(Uint8List, String)?> get(String path) async => _fail();
+}
+
 /// Detects PNG / JPEG / WebP from the bytes themselves (the declared content
 /// type is never trusted). Returns the canonical type or `null`.
 String? sniffImageType(Uint8List b) {
