@@ -67,15 +67,23 @@ The detailed module list is in [CLAUDE.md](CLAUDE.md), section 6.
 
 ## Repository Structure
 
-Current:
-
 ```
 eazy-clinic/
-├── CLAUDE.md   # Development rules and architecture requirements
-└── README.md
+├── CLAUDE.md, README.md
+├── apps/
+│   ├── clinic_web/      # EazyClinic – Clinic Management (Flutter Web)
+│   ├── doctor_mobile/   # EazyClinic Doctor (Flutter Web + Android)
+│   └── patient_mobile/  # EazyClinic Patient (Flutter Android)
+├── backend/             # Dart + Shelf REST API (/api/v1)
+├── packages/            # common_models, api_contracts, validation, utilities, design_system
+├── assets/              # brand (original logo preserved), fonts, icons
+├── firebase/            # deny-all rules and index definitions (nothing deployed)
+├── environments/        # dev / staging / production templates (placeholders only)
+├── docs/                # architecture, database, api, security, design, development, testing, deployment
+└── scripts/             # check_all.sh, run_backend.sh, sync_brand_assets.sh
 ```
 
-The application and backend structure will be defined during Phase 0 and documented in `docs/`.
+Details: [docs/architecture/REPOSITORY_STRUCTURE.md](docs/architecture/REPOSITORY_STRUCTURE.md).
 
 ## Development Phases
 
@@ -102,13 +110,21 @@ Three isolated environments, each with its own Firebase configuration:
 
 ## Getting Started
 
-There is no runnable code yet. Once Phase 0 and Phase 1 are complete, setup instructions (Flutter and Dart SDK versions, Firebase environment configuration, running the backend and apps) will be added here.
+Prerequisites: Flutter 3.32+ (Dart 3.8+), Android SDK for the Android apps, Chrome for web.
 
-For now, read [CLAUDE.md](CLAUDE.md) for the project's development rules.
+```bash
+scripts/check_all.sh          # format, analyze and test every project
+scripts/run_backend.sh dev    # backend on :8080 → GET /health
+```
+
+Running the apps and environment configuration: [docs/development/DEVELOPMENT_SETUP.md](docs/development/DEVELOPMENT_SETUP.md).
+Documentation index: [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md) · [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md).
 
 ## Development Status
 
-**Project initialization.** The repository contains documentation only. No phases have been implemented.
+**Phase 0 (foundation) implemented, awaiting review.** Available: monorepo, three Flutter app shells, Shelf backend with `GET /health`, shared packages,
+the EazyClinic design system, and the architecture/database/API/security documentation.
+**No business functionality exists yet** (no authentication, clinics, patients, appointments, consultations, billing or Firebase integration). See [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md).
 
 ## License and Ownership
 

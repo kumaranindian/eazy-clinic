@@ -1,0 +1,100 @@
+# RBAC Permission Matrix
+
+Status: **Documented default policy.** Not implemented. Defaults below are the platform's starting
+point; **Clinic Owners can adjust permissions within platform-defined bounds** (CLAUDE.md §5). Enforcement is
+backend-only; the apps merely read the resolved permission list to adapt the UI.
+
+Legend: ✔ allowed · ◐ limited (see note) · ✖ denied · ⚙ off by default, owner can enable. "Own" = only records the user is
+directly involved in. All ◐ and ✔ on patient data additionally require tenant + branch scope, and are audited.
+
+## 1. Permission model
+
+- Permission = `<resource>.<action>` string from one catalogue (shared, `common_models`, added in Phase 3).
+- Role = named set of permissions (`roles/{id}` in the tenant, seeded from platform defaults, `system: true` roles cannot be deleted).
+- Member = role + per-member overrides (`permissionOverrides.allow/deny`) + branch scope.
+- Bounds: certain permissions can never be granted to certain roles (e.g. `consultation.finalize` and `prescription.issue` only to roles linked to a verified doctor profile; `tenant.delete`/`billing.plan` only Owner).
+
+## 2. Platform roles
+
+| Permission | Super Admin | Platform Support Admin |
+|---|---|---|
+| Platform dashboard | ✔ | ✔ |
+| Approve / suspend tenants | ✔ | ✖ |
+| Manage subscription plans | ✔ | ✖ |
+| View tenant & subscription status | ✔ | ✔ |
+| Manage platform users | ✔ | ✖ |
+| View platform audit logs | ✔ | ◐ (own actions + support cases) |
+| Read tenant clinical data | ✖ (break-glass only, audited, time-boxed, approved) | ✖ |
+
+## 3. Clinic roles: default matrix
+
+| Permission | Owner | Admin | Doctor | Reception | Nurse | Accountant | Lab Tech | Pharmacist |
+|---|---|---|---|---|---|---|---|---|
+| **Clinic setup** (profile, hours, policies) | ✔ | ✔ | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Branch manage | ✔ | ✔ | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Subscription / plan view & change | ✔ | ◐ view | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Role & permission configuration | ✔ | ◐ (cannot grant above own level) | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Staff invite / activate / deactivate | ✔ | ✔ | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Doctor profile manage | ✔ | ✔ | ◐ own non-critical fields | ✖ | ✖ | ✖ | ✖ | ✖ |
+| **Patient registration** | ✔ | ✔ | ✔ | ✔ | ✔ | ◐ (billing identity only) | ✖ | ✖ |
+| Patient search / demographics read | ✔ | ✔ | ✔ | ✔ | ✔ | ◐ (name, UHID, contact) | ◐ (patients with lab orders) | ◐ (patients with prescriptions) |
+| Patient demographics edit | ✔ | ✔ | ✔ | ✔ | ◐ | ✖ | ✖ | ✖ |
+| **Medical history read** | ◐ ⚙ | ◐ ⚙ | ✔ authorised (treating relationship) | ◐ restricted (allergies/alerts only) | ✔ (branch, active visit) | ✖ | ◐ (relevant to orders) | ◐ (allergies) |
+| Medical history edit | ✖ | ✖ | ✔ | ✖ | ◐ (allergies, vitals) | ✖ | ✖ | ✖ |
+| Vitals record | ✖ | ✖ | ✔ | ✖ | ✔ | ✖ | ✖ | ✖ |
+| **Appointments** create/reschedule/cancel | ✔ | ✔ | ✔ own | ✔ | ◐ view | ✖ | ✖ | ✖ |
+| Availability & slot configuration | ✔ | ✔ | ✔ own | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Queue manage (token, call, skip) | ✔ | ✔ | ✔ own queue | ✔ | ✔ | ✖ | ✖ | ✖ |
+| **Consultation** create/edit draft | ✖ | ✖ | ✔ | ✖ | ◐ (vitals section) | ✖ | ✖ | ✖ |
+| Consultation finalize / amend | ✖ | ✖ | ✔ (author; amend with reason) | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Consultation read (finalized) | ◐ ⚙ | ◐ ⚙ | ✔ authorised | ✖ | ◐ branch/active | ✖ | ✖ | ✖ |
+| Diagnosis | ✖ | ✖ | ✔ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| **Prescription** create/issue | ✖ | ✖ | ✔ (issuing doctor authorises) | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Prescription view / print issued | ◐ | ◐ | ✔ | ✔ (print) | ◐ | ✖ | ✖ | ✔ |
+| Medicine catalogue manage | ✔ | ✔ | ◐ propose | ✖ | ✖ | ✖ | ✖ | ✔ |
+| Clinical templates manage | ✔ | ✔ | ◐ own variants ⚙ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| **Lab** order | ✖ | ✖ | ✔ | ✖ | ◐ ⚙ | ✖ | ✖ | ✖ |
+| Lab result entry / report upload | ✖ | ✖ | ✖ | ✖ | ◐ ⚙ | ✖ | ✔ | ✖ |
+| Lab result review | ✖ | ✖ | ✔ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| **Invoice** create / finalize | ✔ | ✔ | ⚙ | ✔ | ✖ | ✔ | ✖ | ⚙ |
+| Invoice void / credit note | ✔ | ✔ (approval) | ✖ | ✖ | ✖ | ✔ (approval) | ✖ | ✖ |
+| **Payment collect** (cash/UPI/card/online) | ✔ | ✔ | ⚙ | ✔ | ✖ | ✔ | ✖ | ⚙ |
+| Refund initiate / approve | ✔ approve | ✔ approve | ✖ | ◐ initiate | ✖ | ◐ initiate (approval required) | ✖ | ✖ |
+| Expense manage | ✔ | ✔ | ✖ | ✖ | ✖ | ✔ | ✖ | ✖ |
+| **Financial reports** | ✔ | ✔ | ◐ own earnings ⚙ | ✖ | ✖ | ✔ | ✖ | ✖ |
+| Clinical / operational reports | ✔ | ✔ | ◐ own | ◐ operational | ✖ | ✖ | ✖ | ✖ |
+| Documents upload | ✔ | ✔ | ✔ | ✔ | ✔ | ✖ | ✔ (reports) | ✖ |
+| Documents view (clinical) | ◐ ⚙ | ◐ ⚙ | ✔ authorised | ✖ | ◐ | ✖ | ◐ (reports) | ✖ |
+| Follow-ups manage | ✔ | ✔ | ✔ | ✔ | ◐ | ✖ | ✖ | ✖ |
+| Notification templates/settings | ✔ | ✔ | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Audit log view | ✔ | ◐ (non-clinical) | ◐ own actions | ✖ | ✖ | ◐ (financial) | ✖ | ✖ |
+| Data export (patients, finance) | ✔ (approval trail) | ◐ | ✖ | ✖ | ✖ | ◐ (finance) | ✖ | ✖ |
+
+Notes:
+- "Authorised" for doctors = the doctor is the treating doctor on an appointment/consultation for that patient, or holds an explicit, audited grant (e.g. referral within the same tenant).
+- Owner/Admin clinical read is ⚙ (off by default) because administration does not need clinical content; when enabled it is audited like any clinical access.
+- Reception sees only safety-relevant alerts (e.g. allergy flag) to schedule safely, not notes or diagnoses.
+
+## 4. Patient-side roles
+
+| Permission | Patient (adult, own account) | Authorized caregiver / guardian |
+|---|---|---|
+| View own profile; edit contact details | ✔ | ◐ for dependent, per `scope` |
+| Link to a clinic record (with clinic authorization + consent) | ✔ | ◐ for dependent |
+| Discover clinics/doctors | ✔ | ✔ |
+| Book / cancel / reschedule appointments | ✔ | ◐ per scope |
+| Queue status | ✔ | ◐ per scope |
+| View prescriptions, lab reports, history **of clinics they are linked to** | ✔ | ◐ per scope + consent |
+| Manage consents (grant/revoke) | ✔ | ◐ for dependent (guardian of minor) |
+| Manage family relationships | ✔ | ✖ (cannot grant further access) |
+| See other clinics' data | ✖ | ✖ |
+
+Dependent-minor rules (age thresholds, transition to own account at majority) are decided in Phase 4 with legal input.
+
+## 5. Implementation requirements (Phase 3)
+
+1. One permission catalogue; backend policy helper `can(ctx, permission, {resource})`.
+2. Table-driven unit tests generated from this matrix: for each role × permission assert allow/deny.
+3. UI reads `GET /members/me` → permission list; hides actions but never relies on it.
+4. Changing a member's role/permissions writes an audit entry and revokes that user's refresh tokens.
+5. This matrix and the code must not diverge: updating one requires updating the other in the same change.
