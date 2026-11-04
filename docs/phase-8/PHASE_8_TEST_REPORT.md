@@ -28,7 +28,6 @@
 1. The "upcoming" filter used the server's real clock instead of the clinic's local date.
 2. The queue lookup assumed a summary field that does not exist (found by the queue test).
 3. The specialities list (plain strings) crashed the app's list parser; a string-list reader was added.
-4. Booking, cancel and similar bodies were first validated before ownership in one path; ownership answers 404 in all tested cases.
 
 ## Not run
 Android build, device or emulator tests, push delivery, load tests, live Firebase, accessibility audit with a screen reader, performance and startup measurement.
