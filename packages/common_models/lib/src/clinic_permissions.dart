@@ -98,6 +98,21 @@ abstract final class ClinicPermission {
   static const String financeReportsExport = 'finance.reports.export';
   static const String serviceCatalogueManage = 'service_catalogue.manage';
 
+  // Phase 9: laboratory
+  static const String labTestsView = 'lab.tests.view';
+  static const String labTestsManage = 'lab.tests.manage';
+  static const String labOrdersView = 'lab.orders.view';
+  static const String labOrdersManage = 'lab.orders.manage';
+  static const String labSamplesManage = 'lab.samples.manage';
+  static const String labResultsEnter = 'lab.results.enter';
+  static const String labResultsView = 'lab.results.view';
+  static const String labResultsVerify = 'lab.results.verify';
+  static const String labReportsPublish = 'lab.reports.publish';
+  static const String labReportsView = 'lab.reports.view';
+  static const String labExternalManage = 'lab.external.manage';
+  static const String labDashboardView = 'lab.dashboard.view';
+  static const String labAuditView = 'lab.audit.view';
+
   // Phase 6: clinical workspace
   static const String consultationsView = 'consultations.view';
   static const String consultationsViewAll = 'consultations.view_all';
@@ -218,6 +233,19 @@ abstract final class ClinicPermission {
     financeReportsView,
     financeReportsExport,
     serviceCatalogueManage,
+    labTestsView,
+    labTestsManage,
+    labOrdersView,
+    labOrdersManage,
+    labSamplesManage,
+    labResultsEnter,
+    labResultsView,
+    labResultsVerify,
+    labReportsPublish,
+    labReportsView,
+    labExternalManage,
+    labDashboardView,
+    labAuditView,
   ];
 
   static bool isKnown(String key) => all.contains(key);
@@ -253,6 +281,12 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.followupsManage,
     ClinicPermission.investigationsRequest,
     ClinicPermission.clinicalAuditView,
+    ClinicPermission.labResultsEnter,
+    ClinicPermission.labResultsView,
+    ClinicPermission.labResultsVerify,
+    ClinicPermission.labReportsPublish,
+    ClinicPermission.labReportsView,
+    ClinicPermission.labAuditView,
   };
 
   /// Actions that belong to the treating clinician.
@@ -306,6 +340,26 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.financeReportsExport,
   };
 
+  /// Laboratory (Phase 9). Results and reports are clinical: administrators
+  /// manage the catalogue, orders and external labs but never read results.
+  static const Set<String> _labDesk = {
+    ClinicPermission.labTestsView,
+    ClinicPermission.labOrdersView,
+    ClinicPermission.labOrdersManage,
+    ClinicPermission.labSamplesManage,
+    ClinicPermission.labDashboardView,
+  };
+
+  static const Set<String> _labTech = {
+    ..._labDesk,
+    ClinicPermission.labResultsEnter,
+    ClinicPermission.labResultsView,
+    ClinicPermission.labResultsVerify,
+    ClinicPermission.labReportsPublish,
+    ClinicPermission.labReportsView,
+    ClinicPermission.labExternalManage,
+  };
+
   static final Map<ClinicRole, Set<String>> _matrix = {
     // The owner holds every permission.
     ClinicRole.clinicOwner: {...ClinicPermission.all},
@@ -346,6 +400,13 @@ abstract final class ClinicRolePolicy {
       ClinicPermission.followupsView,
       ClinicPermission.followupsManage,
       ClinicPermission.investigationsRequest,
+      // designated clinician: may verify and publish, and read reports
+      ClinicPermission.labTestsView,
+      ClinicPermission.labOrdersView,
+      ClinicPermission.labResultsView,
+      ClinicPermission.labResultsVerify,
+      ClinicPermission.labReportsPublish,
+      ClinicPermission.labReportsView,
     },
     ClinicRole.receptionist: {
       ..._readBasics,
@@ -384,10 +445,13 @@ abstract final class ClinicRolePolicy {
       ClinicPermission.vitalsView,
       ClinicPermission.vitalsRecord,
       ClinicPermission.followupsView,
+      ClinicPermission.labTestsView,
+      ClinicPermission.labOrdersView,
+      ClinicPermission.labSamplesManage,
     },
     // Accountants see money, not the patient directory (Phase 4 decision).
     ClinicRole.accountant: {..._readBasics, ..._accounts},
-    ClinicRole.labTechnician: {..._readBasics},
+    ClinicRole.labTechnician: {..._readBasics, ..._labTech},
     ClinicRole.pharmacist: {..._readBasics},
   };
 
