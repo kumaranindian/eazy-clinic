@@ -78,4 +78,30 @@ void main() {
     expect(entry['path'], '/health');
     expect(entry['status'], 200);
   });
+
+  test(
+    'GET /ready is 503 without a data store and carries no detail',
+    () async {
+      final app = buildTestApp();
+      final response = await app.handler(
+        Request('GET', Uri.parse('http://localhost/ready')),
+      );
+      expect(response.statusCode, 503);
+      final body = await response.readAsString();
+      expect(body.contains('firebase'), isFalse);
+      expect(body.contains('project'), isFalse);
+    },
+  );
+
+  test('server errors are logged as errors, with no body or query', () async {
+    final app = buildTestApp();
+    final response = await app.handler(
+      Request('GET', Uri.parse('http://localhost/ready?phone=9876543210')),
+    );
+    expect(response.statusCode, 503);
+    final line = app.logs.lastWhere((l) => l.contains('"request"'));
+    final json = jsonDecode(line) as Map;
+    expect(json['severity'], 'ERROR');
+    expect(line.contains('9876543210'), isFalse);
+  });
 }
