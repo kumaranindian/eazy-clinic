@@ -129,3 +129,6 @@ Patient routes live under `/patient/...`, are authenticated but not tenant-scope
 
 ## Phase 9 conventions
 Laboratory routes live under `/laboratory/...` (plus `/consultations/{id}/lab-orders`). Manual order creation requires `Idempotency-Key`; verify and publish are idempotent and report `idempotentReplay: true` on a repeat. Report files are returned only by authenticated `download` routes with `Cache-Control: private, no-store`; no route returns a storage path or a public URL. Endpoint list: `docs/phase-9/API_SPECIFICATION.md`.
+
+## Phase 10 conventions
+Notification routes: staff `/notifications...`, administration `/admin/notification-...`, patient `/patient/notifications...`. A notification carries a resource type and id, never data; the target route authorizes again. Reports are `GET /reports/{kind}` with `from`, `to`, `branchId`, `doctorId` and return summary, table, definitions, `generatedAt` and `truncated`. Exports are `POST /reports/exports` then an authenticated `download`; no route returns a storage path or public link. Endpoint list: `docs/phase-10/API_SPECIFICATION.md`.

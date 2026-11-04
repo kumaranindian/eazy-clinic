@@ -148,3 +148,6 @@ Top-level (backend-only): `patient_notifications` (inbox, one deterministic id p
 
 ## Phase 9 collections
 `lab_tests`, `lab_test_codes`, `external_laboratories`, `lab_orders`, `lab_order_numbers`, `lab_order_keys`, `lab_samples`, `lab_sample_numbers`, `lab_sample_ids`, `lab_results`, `lab_reports`, `lab_report_numbers`, `lab_idempotency`, `counters` (lab order, sample, report), `lab_audit_logs` under `tenants/{t}/`. `investigation_requests` gains `testId`, `code`, `labOrderId`, `labOrderNumber`, `processing: laboratory`. Details: `docs/phase-9/DATABASE_SCHEMA.md`.
+
+## Phase 10 collections
+Tenant: `notification_events`, `notification_deliveries`, `notifications` (staff inbox), `notification_templates`, `notification_template_versions`, `notification_preferences`, `notification_settings`, `notification_channel_configs`, `notification_audit_logs`, `report_exports`, `report_audit_logs`. Top-level (backend-only): `notification_devices`. `patient_notifications` gains `archived`. Details: `docs/phase-10/DATABASE_SCHEMA.md`.

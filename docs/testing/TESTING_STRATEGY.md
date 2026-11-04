@@ -99,3 +99,6 @@ Portal tests: `backend/test/features/portal` (discovery and appointments, record
 
 ## Phase 9
 Laboratory tests: `backend/test/features/laboratory` (flag logic and PDF unit tests; HTTP-level lifecycle, samples, results, verification, amendment, doctor requests, external reports, isolation, audit and dashboard, including a concurrent identifier race), `backend/test/features/portal/portal_lab_test.dart`, `test/integration/lab_flow_emulator_test.dart`, rules tests for the new collections, Clinic Web `test/lab_test.dart`, doctor `workspace_test.dart` and patient `portal_test.dart` additions. Counts: `docs/phase-9/TESTING.md`.
+
+## Phase 10
+Notification and report tests: `backend/test/features/notifications` (pipeline, push, preferences, templates, reminders, administration, event integration), `backend/test/features/reports`, `backend/test/features/portal/portal_lab_test.dart`, `test/integration/notification_flow_emulator_test.dart`, rules tests for the new collections, Clinic Web `test/communications_test.dart`, and inbox tests in the doctor and patient apps. Counts: `docs/phase-10/TESTING.md`.

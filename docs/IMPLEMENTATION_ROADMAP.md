@@ -42,3 +42,6 @@ Implemented (see `docs/phase-8/`): patient portal API, patient app screens, doct
 
 ## Phase 9: Laboratory management (branch `feature/phase-9-laboratory`)
 Implemented (see `docs/phase-9/`): catalogue, orders, samples, results, verification, amendment, report publication, external reports, dashboard, audit, and screens in Clinic Web, Doctor Workspace and the patient app. Critical-value call-back, lab billing, barcodes, PDF layout and non-laboratory documents are deferred. Awaiting approval before Phase 10 (reports and notifications).
+
+## Phase 10: Notifications and operational reports (branch `feature/phase-10-reports-notifications`)
+Implemented (see `docs/phase-10/`): notification pipeline, templates, preferences, device tokens, reminders, administration, in-app centres, operational reports, dashboard and exports. Live FCM, external channels, an external scheduler, charts and several event types are deferred. Awaiting approval before Phase 11 (production readiness).

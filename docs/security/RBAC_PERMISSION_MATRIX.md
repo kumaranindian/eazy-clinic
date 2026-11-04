@@ -195,3 +195,12 @@ Full matrix and rules: `docs/phase-7/FINANCIAL_RBAC.md`. Owner and admin hold al
 | `lab.audit.view` | ✔ | | | | | |
 
 Results, reports and the audit trail belong to the clinical permission set, so the administrator does not hold them (as in Phase 6). Verification additionally requires a different person from the one who entered the result. Source of truth: `ClinicPermission` and `ClinicRolePolicy` in `packages/common_models`.
+
+## Phase 10 permissions
+| Permission | Owner | Admin | Others |
+|---|---|---|---|
+| `reports.view` | ✔ | ✔ | every clinic role (the data of each section still needs that module's own permission; doctors see only their own work) |
+| `reports.export` | ✔ | ✔ | |
+| `notifications.manage` (templates, deliveries, retry, channels, settings, health) | ✔ | ✔ | |
+
+Own notification inbox, preferences and devices need no permission beyond membership. Report sections require: appointments `appointments.view`, queues `queue.view`, patients `patients.view` (not doctors), consultations `consultations.view` (own) or `view_all`, laboratory `lab.dashboard.view`, billing `finance.reports.view`.

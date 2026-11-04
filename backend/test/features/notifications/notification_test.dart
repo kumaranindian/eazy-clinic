@@ -765,6 +765,29 @@ void main() {
       },
     );
 
+    test('a language without a template falls back to English', () async {
+      await h.okData(
+        h.call(
+          'PUT',
+          '/admin/notification-settings',
+          uid: 'admin',
+          body: {'locale': 'hi'},
+        ),
+      );
+      await emitFor(
+        type: 'appointment_reminder',
+        key: 'loc1',
+        variables: {
+          'clinicName': 'C',
+          'doctorName': 'D',
+          'date': '2026-07-01',
+          'time': '09:00',
+        },
+      );
+      await run();
+      expect(deliveries('in_app').single['body'], contains('2026-07-01'));
+    });
+
     test('values cannot inject markup or placeholders', () {
       expect(
         renderTemplate(

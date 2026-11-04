@@ -197,3 +197,19 @@ Test counts: `docs/phase-8/PHASE_8_TEST_REPORT.md`.
 | Critical-value workflow, lab billing, barcodes, other documents | **Deferred** | TD-74, TD-78, TD-79, TD-68 |
 
 Test counts: `docs/phase-9/TESTING.md`.
+
+## Phase 10: Notifications and operational reports (branch `feature/phase-10-reports-notifications`, not pushed)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Event outbox, recipients, templates, deliveries, retries, pause, manual retry, health | Implemented, tested incl. races and lease recovery | `docs/phase-10/` |
+| In-app notification centres (Clinic Web, Doctor Workspace, patient app) | Implemented, widget-tested | |
+| Preferences, essential vs promotional rules | Implemented, tested | `EVENTS_AND_TEMPLATES.md` |
+| Appointment and follow-up reminders (clinic-configurable, suppressed when stale) | Implemented, tested; 60 s in-process worker (TD-85) | `ARCHITECTURE.md` |
+| FCM push | **Sender and token APIs only; not live, no app registers tokens** (TD-83) | `DELIVERY_AND_CHANNELS.md` |
+| Email, SMS, WhatsApp | **Adapter interface only; no provider** (TD-84) | |
+| Six operational reports and dashboard | Implemented, tested; on-demand with scan cap, no charts (TD-87) | `REPORTING_DEFINITIONS.md` |
+| CSV / PDF exports with secure download and audit | Implemented, tested; synchronous (TD-88) | |
+| Not notified: staff bookings, failed payments, new lab orders, security events | **Deferred** (TD-89) | |
+
+Test counts: `docs/phase-10/TESTING.md`.

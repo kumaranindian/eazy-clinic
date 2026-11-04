@@ -61,7 +61,7 @@ void main() {
       expect(s['rescheduledAway'], 1);
       expect(s['noShowRate'], closeTo(1 / 3, 0.001));
       expect(s['cancellationRate'], 0.25);
-      final rows = (r["rows"] as List).cast<Map<String, Object?>>();
+      final rows = (r['rows'] as List).cast<Map<String, Object?>>();
       expect(rows.map((x) => x['date']), [tuesday, wednesday]);
       expect(rows.first['total'], 3);
       expect(rows.first['rescheduled'], 1);

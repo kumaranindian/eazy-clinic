@@ -119,5 +119,14 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 071 | Reports are PDF bytes from an in-repo writer, versioned, in private storage, served only through authenticated endpoints | No dependency, no public link | Implemented (TD-73, TD-80) |
 | 072 | External reports are labelled external and counted as clinic-reviewed only after a second person verifies | No false verification claim | Implemented (TD-76) |
 | 073 | Order, sample and report numbers use counters plus uniqueness keys; sample identifiers are unique per clinic | Concurrency-safe numbering | Implemented |
+| 074 | One `NotificationHub` (event outbox, recipients, templates, deliveries, adapters); existing modules reach it through `PortalNotifier` and the scheduling hook | One notification system, no duplicated logic | Implemented (TD-86) |
+| 075 | An event's type is its notification category; ids are derived from dedupe keys | Idempotent replay | Implemented |
+| 076 | Recipients come from clinic records only; checked again at dispatch | No client-chosen recipients | Implemented (TD-89) |
+| 077 | Provider acceptance is `sent`; only the in-app inbox is `delivered`; unconfigured channels say `configuration_required` | No false delivery claims | Implemented (TD-83, TD-84, TD-91) |
+| 078 | Templates: versioned, variable allow-list without clinical data, single-pass rendering, HTML escaping | Safe, reproducible messages | Implemented (TD-90) |
+| 079 | Essential messages always reach the inbox; promotional ones need explicit opt-in | Consent | Implemented |
+| 080 | Reminders are derived by a worker scan with window-unique dedupe keys and re-checked before sending; the worker is an in-process timer | No new scheduler dependency | Implemented (TD-85) |
+| 081 | Reports are computed on demand from persisted records with documented formulas, scan caps and clinic-local dates | Honest, simple, bounded | Implemented (TD-87) |
+| 082 | Exports are generated server-side within limits, stored privately, requester-only, time-limited, audited, CSV-safe | Secure downloads | Implemented (TD-88) |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).
