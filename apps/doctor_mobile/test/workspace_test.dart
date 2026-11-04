@@ -275,6 +275,31 @@ void main() {
     );
     expect(field.enabled, isFalse);
     expect(find.text('Amend'), findsOneWidget);
+    expect(find.text('Share summary with patient'), findsOneWidget);
+  });
+
+  testWidgets('sharing a finalized summary asks first and posts the release', (
+    tester,
+  ) async {
+    final repo = _repo(status: 'finalized');
+    await _open(tester, repo, '/consultations/con_1');
+    await tester.tap(find.byKey(const Key('release-summary')));
+    await tester.pumpAndSettle();
+    expect(find.text('Share this summary with the patient?'), findsOneWidget);
+    expect(repo.calls.where((c) => c.$2.endsWith('/release')), isEmpty);
+    await tester.tap(find.widgetWithText(TextButton, 'Share'));
+    await tester.pumpAndSettle();
+    expect(
+      repo.calls.where(
+        (c) => c.$1 == 'POST' && c.$2 == '/consultations/con_1/release',
+      ),
+      hasLength(1),
+    );
+  });
+
+  testWidgets('a draft consultation cannot be shared', (tester) async {
+    await _open(tester, _repo(), '/consultations/con_1');
+    expect(find.byKey(const Key('release-summary')), findsNothing);
   });
 
   testWidgets(
