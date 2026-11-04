@@ -33,3 +33,6 @@ Follow CLAUDE.md §16 (inspect → plan → design → implement → test → do
 
 ## Phase 6: Doctor workspace and clinical operations (branch `feature/phase-0-foundation`)
 Implemented (see `docs/phase-6/`): doctor workspace, consultation lifecycle with amendments, diagnosis, vitals, prescriptions, templates, follow-ups, investigation-request boundary. Awaiting approval before Phase 7 (billing and payments).
+
+## Phase 7: Billing, payments, refunds and expenses (branch `feature/phase-7-implementation`)
+Implemented (see `docs/phase-7/`): service catalogue and tax rules, invoices with server-side paise arithmetic, payment collection and allocation, advance credit ledger, receipts, refunds, expenses, finance dashboard and reports, Clinic Web screens. Online payments (Razorpay), PDF output and patient-facing billing are deferred. Awaiting approval before Phase 8 (patient Android application).

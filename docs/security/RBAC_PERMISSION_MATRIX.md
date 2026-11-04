@@ -173,3 +173,6 @@ Accountants, lab technicians and pharmacists have no scheduling access.
 | clinical_audit.view | ✔ | | | | |
 
 *The owner holds every permission, but clinical authoring additionally requires the `doctor` role with a linked `doctorId` (ADR 048), so an owner reads but never authors. Admin deliberately has no clinical read/write permission. Source of truth: `ClinicRolePolicy`.
+
+## Phase 7 financial permissions
+Full matrix and rules: `docs/phase-7/FINANCIAL_RBAC.md`. Owner and admin hold all 24 billing permissions; the accountant holds billing, payment, refund request/process, expenses (not approval) and finance reports; the receptionist bills and collects but cannot discount, adjust, cancel, approve or see finance; clinical and support roles hold none. The accountant still has no `patients.view`.

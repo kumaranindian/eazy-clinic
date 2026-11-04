@@ -72,6 +72,32 @@ abstract final class ClinicPermission {
   static const String queueConsult = 'queue.consult';
   static const String queuePriority = 'queue.priority';
 
+  // Phase 7: billing, payments, refunds, expenses, finance reports
+  static const String billingView = 'billing.view';
+  static const String billingCreate = 'billing.create';
+  static const String billingEditDraft = 'billing.edit_draft';
+  static const String billingFinalize = 'billing.finalize';
+  static const String billingCancel = 'billing.cancel';
+  static const String billingApplyDiscount = 'billing.apply_discount';
+  static const String billingAdjust = 'billing.adjust';
+  static const String billingSettingsManage = 'billing.settings.manage';
+  static const String paymentView = 'payment.view';
+  static const String paymentCollect = 'payment.collect';
+  static const String paymentAllocate = 'payment.allocate';
+  static const String paymentRecordAdvance = 'payment.record_advance';
+  static const String refundRequest = 'refund.request';
+  static const String refundApprove = 'refund.approve';
+  static const String refundProcess = 'refund.process';
+  static const String expenseView = 'expense.view';
+  static const String expenseCreate = 'expense.create';
+  static const String expenseEdit = 'expense.edit';
+  static const String expenseApprove = 'expense.approve';
+  static const String expenseReject = 'expense.reject';
+  static const String expensePay = 'expense.pay';
+  static const String financeReportsView = 'finance.reports.view';
+  static const String financeReportsExport = 'finance.reports.export';
+  static const String serviceCatalogueManage = 'service_catalogue.manage';
+
   // Phase 6: clinical workspace
   static const String consultationsView = 'consultations.view';
   static const String consultationsViewAll = 'consultations.view_all';
@@ -168,6 +194,30 @@ abstract final class ClinicPermission {
     followupsManage,
     investigationsRequest,
     clinicalAuditView,
+    billingView,
+    billingCreate,
+    billingEditDraft,
+    billingFinalize,
+    billingCancel,
+    billingApplyDiscount,
+    billingAdjust,
+    billingSettingsManage,
+    paymentView,
+    paymentCollect,
+    paymentAllocate,
+    paymentRecordAdvance,
+    refundRequest,
+    refundApprove,
+    refundProcess,
+    expenseView,
+    expenseCreate,
+    expenseEdit,
+    expenseApprove,
+    expenseReject,
+    expensePay,
+    financeReportsView,
+    financeReportsExport,
+    serviceCatalogueManage,
   ];
 
   static bool isKnown(String key) => all.contains(key);
@@ -227,6 +277,33 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.consentsManage,
     ClinicPermission.patientDocumentsView,
     ClinicPermission.patientDocumentsManage,
+  };
+
+  /// Money handling roles (Phase 7).
+  static const Set<String> _billingDesk = {
+    ClinicPermission.billingView,
+    ClinicPermission.billingCreate,
+    ClinicPermission.billingEditDraft,
+    ClinicPermission.billingFinalize,
+    ClinicPermission.paymentView,
+    ClinicPermission.paymentCollect,
+    ClinicPermission.paymentAllocate,
+    ClinicPermission.paymentRecordAdvance,
+    ClinicPermission.refundRequest,
+  };
+
+  static const Set<String> _accounts = {
+    ..._billingDesk,
+    ClinicPermission.billingCancel,
+    ClinicPermission.billingApplyDiscount,
+    ClinicPermission.billingAdjust,
+    ClinicPermission.refundProcess,
+    ClinicPermission.expenseView,
+    ClinicPermission.expenseCreate,
+    ClinicPermission.expenseEdit,
+    ClinicPermission.expensePay,
+    ClinicPermission.financeReportsView,
+    ClinicPermission.financeReportsExport,
   };
 
   static final Map<ClinicRole, Set<String>> _matrix = {
@@ -292,6 +369,7 @@ abstract final class ClinicRolePolicy {
       ClinicPermission.queueView,
       ClinicPermission.queueOperate,
       ClinicPermission.followupsView,
+      ..._billingDesk,
     },
     ClinicRole.nurse: {
       ..._readBasics,
@@ -307,7 +385,8 @@ abstract final class ClinicRolePolicy {
       ClinicPermission.vitalsRecord,
       ClinicPermission.followupsView,
     },
-    ClinicRole.accountant: {..._readBasics},
+    // Accountants see money, not the patient directory (Phase 4 decision).
+    ClinicRole.accountant: {..._readBasics, ..._accounts},
     ClinicRole.labTechnician: {..._readBasics},
     ClinicRole.pharmacist: {..._readBasics},
   };

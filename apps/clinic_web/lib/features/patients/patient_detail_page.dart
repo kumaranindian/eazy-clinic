@@ -117,6 +117,12 @@ class _Header extends ConsumerWidget {
           '${patient['mrn']} · ${patient['dateOfBirth']} · ${Fmt.humanize(patient['gender'])}',
       actions: [
         statusChip(status),
+        if (can(ref, ClinicPermission.billingView))
+          EcSecondaryButton(
+            label: 'Billing',
+            compact: true,
+            onPressed: () => context.go('/clinic/billing/patients/$id'),
+          ),
         if (editable && can(ref, ClinicPermission.patientsUpdate))
           EcSecondaryButton(
             label: 'Edit',

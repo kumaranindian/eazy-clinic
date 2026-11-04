@@ -111,3 +111,6 @@ Reservation documents as the double-booking guard, idempotent booking, backend-o
 
 ## Phase 6 additions
 Doctor-self authorship, 404 for other doctors' records, owner-only `view_all`, consent check before a consultation, immutable finalized records with preserved amendments, separate prescription authorization, append-only vitals, empty catalogues and no AI, audit without clinical text. See `docs/phase-6/SECURITY_REVIEW.md`.
+
+## Phase 7 additions
+Server-only calculation in integer paise; immutable finalized money records with credit/debit notes, refunds and ledger entries as the only corrections; transactional, idempotent, audited money paths with counter-and-key numbering; refunds that hold their amount and cannot be self-approved; discount, expense and approval limits per role; clinic-wide records need all-branch access; no client Firestore access to any billing collection; no secrets in clients and no gateway configured; CSV export is permission-gated, audited and formula-safe. See `docs/phase-7/FINANCIAL_RBAC.md`, `FINANCIAL_ARCHITECTURE.md` and `PHASE_7_TEST_REPORT.md`.

@@ -90,3 +90,6 @@ Scheduling and concurrency tests: `backend/test/features/scheduling` (in-memory 
 
 ## Phase 6
 Clinical tests: `backend/test/features/clinical` (consultation, records), `test/integration/clinical_flow_emulator_test.dart`, rules tests, Doctor app `test/workspace_test.dart` with a fake `ClinicalRepository`. Counts: `docs/phase-6/TEST_REPORT.md`.
+
+## Phase 7
+Money tests: `backend/test/features/billing` (arithmetic, invoices, payments and credit, refunds, expenses, reports; HTTP-level with `Future.wait` races), `test/integration/billing_flow_emulator_test.dart`, rules tests, `packages/common_models/test/clinic_permissions_test.dart`, Clinic Web `test/finance_test.dart`. Counts: `docs/phase-7/PHASE_7_TEST_REPORT.md`.

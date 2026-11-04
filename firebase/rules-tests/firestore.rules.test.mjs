@@ -56,6 +56,25 @@ const patientPaths = [
   'tenants/t1/investigation_requests/inv1',
   'tenants/t1/clinical_audit_logs/ca1',
   'tenants/t1/counters/prescription_number',
+  'tenants/t1/service_catalogue/svc1',
+  'tenants/t1/service_price_history/sph1',
+  'tenants/t1/tax_rules/tx1',
+  'tenants/t1/billing_settings/main',
+  'tenants/t1/invoices/inv1',
+  'tenants/t1/invoice_numbers/INV-000001',
+  'tenants/t1/invoice_adjustments/adj1',
+  'tenants/t1/invoice_sources/appointment_apt1',
+  'tenants/t1/payments/pay1',
+  'tenants/t1/payment_allocations/al1',
+  'tenants/t1/receipts/rct1',
+  'tenants/t1/receipt_numbers/RCT-000001',
+  'tenants/t1/patient_credit_ledger/le1',
+  'tenants/t1/patient_credit_balances/p1',
+  'tenants/t1/refunds/rf1',
+  'tenants/t1/expenses/exp1',
+  'tenants/t1/expense_categories/ec1',
+  'tenants/t1/billing_idempotency/hash1',
+  'tenants/t1/financial_audit_logs/fa1',
 ];
 
 before(async () => {
@@ -267,6 +286,21 @@ describe('patient, scheduling and clinical data is backend-only (Phases 4-6)', (
     await assertFails(updateDoc(doc(alice(), 'tenants/t1/prescriptions/rx1'), { status: 'finalized' }));
     await assertFails(deleteDoc(doc(alice(), 'tenants/t1/clinical_audit_logs/ca1')));
     await assertFails(setDoc(doc(alice(), 'tenants/t1/consultation_versions/con1_r1'), { content: {} }));
+  });
+
+  it('no client can read or change invoices, payments, refunds, credit, expenses or financial audit records', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'invoices'), where('patientId', '==', 'p1'))));
+    await assertFails(getDocs(query(collectionGroup(alice(), 'payments'), where('patientId', '==', 'p1'))));
+    await assertFails(getDocs(query(collectionGroup(anon(), 'refunds'), where('paymentId', '==', 'pay1'))));
+    await assertFails(getDocs(query(collectionGroup(alice(), 'expenses'), where('status', '==', 'paid'))));
+    await assertFails(getDocs(query(collectionGroup(alice(), 'patient_credit_ledger'), where('patientId', '==', 'p1'))));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/invoices/inv1'), { status: 'paid', outstanding: 0 }));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/payments/pay1'), { amount: 1 }));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/patient_credit_balances/p1'), { balance: 999999 }));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/refunds/rf2'), { status: 'completed', amount: 1 }));
+    await assertFails(deleteDoc(doc(alice(), 'tenants/t1/financial_audit_logs/fa1')));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/receipt_numbers/RCT-000002'), { receiptId: 'x' }));
   });
 
   it('link codes cannot be looked up by hash from a client (collection group)', async () => {

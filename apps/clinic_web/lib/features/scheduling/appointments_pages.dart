@@ -992,6 +992,20 @@ class AppointmentDetailPage extends ConsumerWidget {
                   '${a['reference']} · ${a['localDate']} ${a['startTime']}-${a['endTime']}',
               actions: [
                 apptStatus(status),
+                if (status != 'cancelled' &&
+                    status != 'no_show' &&
+                    can(ref, ClinicPermission.billingCreate))
+                  EcSecondaryButton(
+                    label: 'Create invoice',
+                    compact: true,
+                    onPressed: () => context.go(
+                      '/clinic/billing/invoices/new?appointmentId=${a['appointmentId']}'
+                      '&patientId=${a['patientId']}'
+                      '&patientName=${Uri.encodeQueryComponent('${a['patientName']}')}'
+                      '&patientMrn=${a['patientMrn'] ?? ''}'
+                      '&branchId=${a['branchId']}',
+                    ),
+                  ),
                 if (status == 'pending' &&
                     can(ref, ClinicPermission.appointmentsManage))
                   EcPrimaryButton(

@@ -11,6 +11,10 @@ import '../../features/clinic_admin/doctors_pages.dart';
 import '../../features/clinic_admin/overview_pages.dart';
 import '../../features/clinic_admin/settings_page.dart';
 import '../../features/clinic_admin/staff_pages.dart';
+import '../../features/finance/finance_pages.dart';
+import '../../features/finance/invoices_pages.dart';
+import '../../features/finance/payments_pages.dart';
+import '../../features/finance/refunds_expenses_pages.dart';
 import '../../features/onboarding/presentation/accept_invitation_page.dart';
 import '../../features/onboarding/presentation/apply_page.dart';
 import '../../features/onboarding/presentation/my_applications_pages.dart';
@@ -220,6 +224,77 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/clinic/appointment-types',
             builder: (context, state) => const AppointmentTypesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/finance',
+            builder: (context, state) => const FinanceDashboardPage(),
+          ),
+          GoRoute(
+            path: '/clinic/finance/reports',
+            builder: (context, state) => const FinanceReportsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/billing/services',
+            builder: (context, state) => const ServicesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/billing/tax-rules',
+            builder: (context, state) => const TaxRulesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/billing/invoices',
+            builder: (context, state) => const InvoicesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/billing/invoices/new',
+            builder: (context, state) =>
+                NewInvoicePage(initial: state.uri.queryParameters),
+          ),
+          GoRoute(
+            path: '/clinic/billing/invoices/:id',
+            builder: (context, state) =>
+                InvoiceDetailPage(invoiceId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/billing/payments',
+            builder: (context, state) => const PaymentsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/billing/payments/:id',
+            builder: (context, state) =>
+                PaymentDetailPage(paymentId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/billing/receipts/:id',
+            builder: (context, state) =>
+                ReceiptPage(receiptId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/billing/patients/:id',
+            builder: (context, state) =>
+                PatientBillingPage(patientId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/billing/refunds',
+            builder: (context, state) => const RefundsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/billing/refunds/:id',
+            builder: (context, state) =>
+                RefundDetailPage(refundId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/expenses',
+            builder: (context, state) => const ExpensesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/expenses/categories',
+            builder: (context, state) => const ExpenseCategoriesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/expenses/:id',
+            builder: (context, state) =>
+                ExpenseDetailPage(expenseId: state.pathParameters['id']!),
           ),
           GoRoute(
             path: '/clinic/invitations',

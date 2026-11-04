@@ -139,3 +139,6 @@ Global: `patient_accounts`, `patient_account_uids`, `patient_clinic_links`, `fam
 
 ## Phase 6 collections
 `consultations`, `consultation_appointments`, `consultation_versions`, `consultation_amendments`, `diagnoses`, `prescriptions`, `prescription_numbers`, `counters`, `vitals`, `investigation_requests`, `followups`, `clinical_templates`, `diagnosis_catalogue`, `medicine_catalogue`, `clinical_audit_logs` under `tenants/{t}/`. Details: `docs/phase-6/FIRESTORE_SCHEMA.md`.
+
+## Phase 7 collections
+`billing_settings`, `tax_rules`, `service_catalogue`, `service_price_history`, `invoices`, `invoice_numbers`, `invoice_sources`, `invoice_adjustments`, `payments`, `payment_allocations`, `receipts`, `receipt_numbers`, `patient_credit_ledger`, `patient_credit_balances`, `refunds`, `expense_categories`, `expenses`, `credit_note_numbers`, `debit_note_numbers`, `counters` (invoice, receipt, credit note, debit note), `billing_idempotency`, `financial_audit_logs` under `tenants/{t}/`. Details: `docs/phase-7/FINANCIAL_DATA_SCHEMA.md`.

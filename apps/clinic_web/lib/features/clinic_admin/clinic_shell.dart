@@ -67,6 +67,48 @@ const _destinations = [
     ClinicPermission.appointmentTypesView,
   ),
   _Dest(
+    'Finance',
+    Icons.account_balance_wallet_outlined,
+    '/clinic/finance',
+    ClinicPermission.financeReportsView,
+  ),
+  _Dest(
+    'Invoices',
+    Icons.receipt_long_outlined,
+    '/clinic/billing/invoices',
+    ClinicPermission.billingView,
+  ),
+  _Dest(
+    'Payments',
+    Icons.payments_outlined,
+    '/clinic/billing/payments',
+    ClinicPermission.paymentView,
+  ),
+  _Dest(
+    'Refunds',
+    Icons.undo,
+    '/clinic/billing/refunds',
+    ClinicPermission.paymentView,
+  ),
+  _Dest(
+    'Expenses',
+    Icons.request_quote_outlined,
+    '/clinic/expenses',
+    ClinicPermission.expenseView,
+  ),
+  _Dest(
+    'Finance reports',
+    Icons.assessment_outlined,
+    '/clinic/finance/reports',
+    ClinicPermission.financeReportsView,
+  ),
+  _Dest(
+    'Services & charges',
+    Icons.sell_outlined,
+    '/clinic/billing/services',
+    ClinicPermission.billingView,
+  ),
+  _Dest(
     'Doctors',
     Icons.medical_services_outlined,
     '/clinic/doctors',
