@@ -42,6 +42,10 @@ class ControlPlaneRepository {
 
   Future<Uint8List> logoBytes() => _api.getBytes('/clinics/current/logo');
 
+  /// A finished report export, through the authenticated API.
+  Future<Uint8List> exportBytes(String exportId) =>
+      _api.getBytes('/reports/exports/$exportId/download');
+
   /// A laboratory report file, streamed through the authenticated API.
   Future<Uint8List> reportBytes(String reportId) =>
       _api.getBytes('/laboratory/reports/$reportId/download');

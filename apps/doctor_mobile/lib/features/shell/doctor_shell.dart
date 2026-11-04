@@ -20,6 +20,13 @@ class DoctorShell extends StatelessWidget {
     ),
     ('/followups', EcNavDestination(label: 'Follow-ups', icon: Icons.update)),
     (
+      '/notifications',
+      EcNavDestination(
+        label: 'Notifications',
+        icon: Icons.notifications_outlined,
+      ),
+    ),
+    (
       '/account',
       EcNavDestination(label: 'Account', icon: Icons.account_circle_outlined),
     ),

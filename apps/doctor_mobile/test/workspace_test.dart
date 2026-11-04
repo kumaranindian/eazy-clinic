@@ -51,140 +51,154 @@ Json _consultation({String status = 'draft', int version = 3}) => {
   'followups': <Object?>[],
 };
 
-FakeClinicalRepository _repo({String status = 'draft'}) =>
-    FakeClinicalRepository((m, p, b) {
-      if (m == 'GET') {
-        return switch (p) {
-          '/doctor/dashboard' => {
-            'counts': {'scheduled': 4, 'waiting': 2},
-            'upcoming': <Object?>[],
-            'queues': <Object?>[],
-            'recentConsultations': <Object?>[],
-          },
-          '/doctor/queue' => [
+FakeClinicalRepository _repo({
+  String status = 'draft',
+}) => FakeClinicalRepository((m, p, b) {
+  if (m == 'GET') {
+    return switch (p) {
+      '/doctor/dashboard' => {
+        'counts': {'scheduled': 4, 'waiting': 2},
+        'upcoming': <Object?>[],
+        'queues': <Object?>[],
+        'recentConsultations': <Object?>[],
+      },
+      '/doctor/queue' => [
+        {
+          'queueId': 'q1',
+          'version': 1,
+          'branchName': 'Main',
+          'waiting': 1,
+          'currentToken': null,
+          'entries': [
             {
-              'queueId': 'q1',
-              'version': 1,
-              'branchName': 'Main',
-              'waiting': 1,
-              'currentToken': null,
-              'entries': [
-                {
-                  'entryId': 'e1',
-                  'displayToken': 'A-001',
-                  'patientName': 'Asha Rao',
-                  'patientId': 'p1',
-                  'status': 'waiting',
-                  'source': 'scheduled',
+              'entryId': 'e1',
+              'displayToken': 'A-001',
+              'patientName': 'Asha Rao',
+              'patientId': 'p1',
+              'status': 'waiting',
+              'source': 'scheduled',
+            },
+          ],
+        },
+      ],
+      '/patients' => [
+        {
+          'patientId': 'p1',
+          'fullName': 'Asha Rao',
+          'mrn': 'MRN-1',
+          'gender': 'female',
+        },
+      ],
+      '/clinical/patients/p1/overview' => {
+        'patient': {
+          'patientId': 'p1',
+          'fullName': 'Asha Rao',
+          'mrn': 'MRN-1',
+          'age': 34,
+          'gender': 'female',
+          'branchId': 'b1',
+        },
+        'alerts': <Object?>[],
+        'allergies': [
+          {'allergen': 'Penicillin', 'severity': 'severe', 'reaction': 'Rash'},
+        ],
+        'medications': null,
+        'medicalHistory': <Object?>[],
+      },
+      '/clinical/patients/p1/history' => {
+        'consultations': <Object?>[],
+        'laboratory': {'available': false},
+      },
+      '/clinical/patients/p1/vitals' => <Object?>[],
+      '/consultations/con_1' => _consultation(status: status),
+      '/consultations/con_1/lab-orders' => [
+        {
+          'orderId': 'lo_1',
+          'orderNumber': 'LAB-000001',
+          'status': 'published',
+          'priority': 'urgent',
+          'tests': ['Haemoglobin'],
+          'createdAt': '2026-06-01T05:00:00.000Z',
+        },
+        {
+          'orderId': 'lo_2',
+          'orderNumber': 'LAB-000002',
+          'status': 'processing',
+          'priority': 'routine',
+          'tests': ['Glucose'],
+          'createdAt': '2026-06-01T05:00:00.000Z',
+        },
+      ],
+      '/laboratory/orders/lo_1/results' => {
+        'orderId': 'lo_1',
+        'status': 'published',
+        'results': [
+          {
+            'itemId': 'it1',
+            'testName': 'Haemoglobin',
+            'observations': [
+              {
+                'code': 'HGB',
+                'name': 'Haemoglobin',
+                'value': 6,
+                'unit': 'g/dL',
+                'flag': 'critical_low',
+                'range': {
+                  'low': 12,
+                  'high': 15,
+                  'unit': 'g/dL',
+                  'source': 'Clinic SOP',
                 },
-              ],
-            },
-          ],
-          '/patients' => [
-            {
-              'patientId': 'p1',
-              'fullName': 'Asha Rao',
-              'mrn': 'MRN-1',
-              'gender': 'female',
-            },
-          ],
-          '/clinical/patients/p1/overview' => {
-            'patient': {
-              'patientId': 'p1',
-              'fullName': 'Asha Rao',
-              'mrn': 'MRN-1',
-              'age': 34,
-              'gender': 'female',
-              'branchId': 'b1',
-            },
-            'alerts': <Object?>[],
-            'allergies': [
-              {
-                'allergen': 'Penicillin',
-                'severity': 'severe',
-                'reaction': 'Rash',
-              },
-            ],
-            'medications': null,
-            'medicalHistory': <Object?>[],
-          },
-          '/clinical/patients/p1/history' => {
-            'consultations': <Object?>[],
-            'laboratory': {'available': false},
-          },
-          '/clinical/patients/p1/vitals' => <Object?>[],
-          '/consultations/con_1' => _consultation(status: status),
-          '/consultations/con_1/lab-orders' => [
-            {
-              'orderId': 'lo_1',
-              'orderNumber': 'LAB-000001',
-              'status': 'published',
-              'priority': 'urgent',
-              'tests': ['Haemoglobin'],
-              'createdAt': '2026-06-01T05:00:00.000Z',
-            },
-            {
-              'orderId': 'lo_2',
-              'orderNumber': 'LAB-000002',
-              'status': 'processing',
-              'priority': 'routine',
-              'tests': ['Glucose'],
-              'createdAt': '2026-06-01T05:00:00.000Z',
-            },
-          ],
-          '/laboratory/orders/lo_1/results' => {
-            'orderId': 'lo_1',
-            'status': 'published',
-            'results': [
-              {
-                'itemId': 'it1',
-                'testName': 'Haemoglobin',
-                'observations': [
-                  {
-                    'code': 'HGB',
-                    'name': 'Haemoglobin',
-                    'value': 6,
-                    'unit': 'g/dL',
-                    'flag': 'critical_low',
-                    'range': {
-                      'low': 12,
-                      'high': 15,
-                      'unit': 'g/dL',
-                      'source': 'Clinic SOP',
-                    },
-                  },
-                ],
               },
             ],
           },
-          '/laboratory/tests' => [
-            {'testId': 'lt_1', 'code': 'HB', 'name': 'Haemoglobin'},
-          ],
-          '/prescriptions/rx1' => {
-            'prescriptionId': 'rx1',
-            'consultationId': 'con_1',
-            'status': status == 'draft' ? 'draft' : 'finalized',
-            'number': status == 'draft' ? null : 'RX-000001',
-            'version': 1,
-            'rev': 2,
-            'medicines': [
-              {
-                'name': 'Paracetamol',
-                'dosage': '1 tablet',
-                'frequency': 'twice daily',
-                'durationValue': 3,
-                'durationUnit': 'days',
-              },
-            ],
-            'versions': <Object?>[],
-            'clinicName': 'Test Clinic',
-            'disclaimer': 'Issued by the treating doctor.',
+        ],
+      },
+      '/laboratory/tests' => [
+        {'testId': 'lt_1', 'code': 'HB', 'name': 'Haemoglobin'},
+      ],
+      '/notifications/unread-count' => {'unread': 1, 'capped': false},
+      '/notifications' => [
+        {
+          'notificationId': 'n1',
+          'title': 'A report is ready',
+          'body': 'Open the app.',
+          'read': false,
+          'createdAt': '2026-06-01T05:00:00Z',
+          'resourceType': 'lab_report',
+        },
+      ],
+      '/notifications/preferences' => {
+        'pushEnabled': true,
+        'channels': <String, Object?>{},
+        'categories': {'report_available': true, 'clinic_announcement': false},
+        'essentialCategories': ['report_available'],
+      },
+      '/prescriptions/rx1' => {
+        'prescriptionId': 'rx1',
+        'consultationId': 'con_1',
+        'status': status == 'draft' ? 'draft' : 'finalized',
+        'number': status == 'draft' ? null : 'RX-000001',
+        'version': 1,
+        'rev': 2,
+        'medicines': [
+          {
+            'name': 'Paracetamol',
+            'dosage': '1 tablet',
+            'frequency': 'twice daily',
+            'durationValue': 3,
+            'durationUnit': 'days',
           },
-          _ => throw StateError('unexpected GET $p'),
-        };
-      }
-      return const <String, Object?>{};
-    });
+        ],
+        'versions': <Object?>[],
+        'clinicName': 'Test Clinic',
+        'disclaimer': 'Issued by the treating doctor.',
+      },
+      _ => throw StateError('unexpected GET $p'),
+    };
+  }
+  return const <String, Object?>{};
+});
 
 Future<void> _open(
   WidgetTester tester,
@@ -331,6 +345,41 @@ void main() {
     final test = ((post.$3!['tests'] as List).single as Map);
     expect(test['testId'], 'lt_1');
     expect(test['indication'], 'Pallor and fatigue');
+  });
+
+  testWidgets('the notification centre lists, marks and dismisses', (
+    tester,
+  ) async {
+    final repo = _repo();
+    await _open(tester, repo, '/notifications');
+    expect(find.text('A report is ready'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('unread-count'))).data,
+      '1 unread',
+    );
+    await tester.tap(find.byKey(const Key('mark-all-read')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('archive-n1')));
+    await tester.pumpAndSettle();
+    final posts = repo.calls
+        .where((c) => c.$1 == 'POST')
+        .map((c) => c.$2)
+        .toList();
+    expect(posts, ['/notifications/read-all', '/notifications/n1/archive']);
+  });
+
+  testWidgets('preferences send only the choice made', (tester) async {
+    final repo = _repo();
+    await _open(tester, repo, '/notifications/settings');
+    await tester.tap(find.byKey(const Key('pref-push')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('pref-cat-clinic_announcement')));
+    await tester.pumpAndSettle();
+    final patches = repo.calls.where((c) => c.$1 == 'PATCH').toList();
+    expect(patches[0].$3, {'pushEnabled': false});
+    expect(patches[1].$3, {
+      'categories': {'clinic_announcement': true},
+    });
   });
 
   testWidgets('finalizing asks for confirmation first', (tester) async {

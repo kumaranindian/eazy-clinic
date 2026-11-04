@@ -392,6 +392,45 @@ void main() {
     });
   });
 
+  group('patient inbox', () {
+    test(
+      'read-all and archive work on the caller\'s own entries only',
+      () async {
+        await emitFor(key: 'a1');
+        await emitFor(key: 'a2');
+        await run();
+        var inbox = await p.get('/patient/notifications');
+        expect(inbox['unread'], 2);
+        final id =
+            ((inbox['items']! as List).first as Map)['notificationId']!
+                as String;
+        await p.createAccount('ravi');
+        expect(
+          await p.status(
+            'POST',
+            '/patient/notifications/$id/archive',
+            uid: 'ravi',
+          ),
+          404,
+        );
+        expect(
+          await p.status('POST', '/patient/notifications/$id/archive'),
+          200,
+        );
+        inbox = await p.get('/patient/notifications');
+        expect((inbox['items']! as List), hasLength(1));
+        expect(inbox['unread'], 1);
+        await h.actOk('asha', '/patient/notifications/read-all');
+        expect((await p.get('/patient/notifications'))['unread'], 0);
+        // ravi's read-all touches nothing of asha's
+        await emitFor(key: 'a3');
+        await run();
+        await h.actOk('ravi', '/patient/notifications/read-all');
+        expect((await p.get('/patient/notifications'))['unread'], 1);
+      },
+    );
+  });
+
   group('staff inbox and devices', () {
     Future<String> notifyDoctor([String key = 'd1']) async {
       await h.clinic.portal.notifier.notifyDoctor(

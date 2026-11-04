@@ -105,22 +105,62 @@ class PortalNotificationService {
     );
     final items = [
       for (final r in rows)
-        PortalSupport.pick(r.data, [
-          'notificationId',
-          'category',
-          'title',
-          'body',
-          'clinicId',
-          'resourceType',
-          'resourceId',
-          'read',
-          'createdAt',
-        ]),
+        if (r.data['archived'] != true)
+          PortalSupport.pick(r.data, [
+            'notificationId',
+            'category',
+            'title',
+            'body',
+            'clinicId',
+            'resourceType',
+            'resourceId',
+            'read',
+            'createdAt',
+          ]),
     ];
     return {
       'items': items,
       'unread': items.where((i) => i['read'] != true).length,
     };
+  }
+
+  /// Marks every unread entry of the caller as read (up to 200 at a time).
+  Future<Map<String, Object?>> markAllRead(AuthContext ctx) async {
+    final me = await _s.accounts.requireAccount(ctx);
+    final rows = await _s.store.query(
+      DocQuery(
+        'patient_notifications',
+        filters: [
+          QueryFilter('accountId', FilterOp.eq, me['accountId']),
+          const QueryFilter('read', FilterOp.eq, false),
+        ],
+        limit: 200,
+      ),
+    );
+    if (rows.isNotEmpty) {
+      await _s.store.commit([
+        for (final r in rows)
+          UpdateOp(r.path, {'read': true, 'readAt': _s.d.now}),
+      ]);
+    }
+    return {'marked': rows.length, 'more': rows.length >= 200};
+  }
+
+  /// Removes an entry from the inbox (kept for the audit trail, not shown).
+  Future<Map<String, Object?>> archive(AuthContext ctx, String id) async {
+    final me = await _s.accounts.requireAccount(ctx);
+    final n = await _s.store.get('patient_notifications/$id');
+    if (n == null || n['accountId'] != me['accountId']) {
+      throw const ApiException.notFound('Notification not found.');
+    }
+    await _s.store.commit([
+      UpdateOp('patient_notifications/$id', {
+        'archived': true,
+        'read': true,
+        'archivedAt': _s.d.now,
+      }),
+    ]);
+    return {'notificationId': id, 'archived': true};
   }
 
   Future<Map<String, Object?>> markRead(AuthContext ctx, String id) async {

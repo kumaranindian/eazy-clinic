@@ -973,6 +973,35 @@ void main() {
       expect(find.text('Medical records'), findsOneWidget);
     });
 
+    testWidgets('mark all read and dismiss send their actions', (t) async {
+      final s = await _open(t, (m, p, b) {
+        if (p == '/patient/notifications') {
+          return {
+            'items': [
+              {
+                'notificationId': 'n_1',
+                'category': 'report_available',
+                'title': 'Report ready',
+                'body': 'Open the app.',
+                'read': false,
+                'createdAt': '2026-06-01T10:00:00Z',
+              },
+            ],
+            'unread': 1,
+          };
+        }
+        return _base(m, p);
+      }, '/notifications');
+      await t.tap(find.byKey(const Key('mark-all-read')));
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(const Key('dismiss-n_1')));
+      await t.pumpAndSettle();
+      expect(s.repo.sent('POST').map((c) => c.$2), [
+        '/patient/notifications/read-all',
+        '/patient/notifications/n_1/archive',
+      ]);
+    });
+
     testWidgets('settings save only the choice made', (t) async {
       final s = await _open(t, (m, p, b) {
         if (p == '/patient/notifications/preferences') {
