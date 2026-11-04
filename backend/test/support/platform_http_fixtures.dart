@@ -227,6 +227,7 @@ extension ClinicFlows on PlatformHarness {
     int? maxDoctors = 5,
     int? maxStaff = 5,
     bool multipleBranches = true,
+    bool billing = true,
   }) async {
     if (!store.docs.containsKey('platform_users/$ownerUid')) user(ownerUid);
     final planRes = await call(
@@ -245,6 +246,7 @@ extension ClinicFlows on PlatformHarness {
           'appointments': true,
           'patient_management': true,
           'doctor_workspace': true,
+          'billing': billing,
           'multiple_branches': multipleBranches,
         },
       ),
