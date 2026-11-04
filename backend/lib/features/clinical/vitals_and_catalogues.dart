@@ -275,7 +275,7 @@ class VitalsService {
       'notes': notes,
       'measuredAt': measuredAt,
       'recordedBy': t.uid,
-      'recordedByRole': t.role.wireName,
+      'recordedByRole': t.actorLabel,
       'recordedAt': now,
     }..removeWhere((k, v) => v == null);
     await _s.d.store.commit([

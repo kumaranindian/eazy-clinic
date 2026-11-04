@@ -662,12 +662,64 @@ class _ConsultationState extends ConsumerState<ConsultationPage> {
                   ],
                 )
               else
-                sized(
-                  EcSecondaryButton(
-                    label: 'Amend',
-                    icon: Icons.edit_note,
-                    onPressed: () => setState(() => _amending = true),
-                  ),
+                Wrap(
+                  spacing: EcSpacing.md,
+                  runSpacing: EcSpacing.md,
+                  children: [
+                    sized(
+                      EcSecondaryButton(
+                        label: 'Amend',
+                        icon: Icons.edit_note,
+                        onPressed: () => setState(() => _amending = true),
+                      ),
+                    ),
+                    sized(
+                      EcSecondaryButton(
+                        key: const Key('release-summary'),
+                        label: c['releasedToPatient'] == true
+                            ? 'Stop sharing with patient'
+                            : 'Share summary with patient',
+                        icon: c['releasedToPatient'] == true
+                            ? Icons.visibility_off_outlined
+                            : Icons.share_outlined,
+                        onPressed: () async {
+                          final share = c['releasedToPatient'] != true;
+                          final sure = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text(
+                                share
+                                    ? 'Share this summary with the patient?'
+                                    : 'Stop sharing this summary?',
+                              ),
+                              content: Text(
+                                share
+                                    ? 'The patient sees the diagnoses, advice and follow-up in their app. Your examination and assessment notes are never shared.'
+                                    : 'The patient will no longer see this summary in their app.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: Text(share ? 'Share' : 'Stop sharing'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (sure != true || !context.mounted) return;
+                          await _post(
+                            '/consultations/${widget.consultationId}/${share ? 'release' : 'unrelease'}',
+                            share ? 'Summary shared.' : 'Sharing stopped.',
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               const SizedBox(height: EcSpacing.lg),
               if (status == 'amended')

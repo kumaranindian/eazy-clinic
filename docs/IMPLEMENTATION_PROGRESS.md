@@ -161,3 +161,22 @@ Test counts: `docs/phase-6/TEST_REPORT.md`.
 | Charge-generation policy, patient billing views, PDF, live Firebase | **Deferred / unverified** | TD-57…TD-64 |
 
 Test counts: `docs/phase-7/PHASE_7_TEST_REPORT.md`.
+
+## Phase 8: Patient Android application (branch `feature/phase-8-patient-app`, not pushed)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Authentication, account setup | Implemented (Phase 1 flow + account creation) | `PATIENT_AUTHENTICATION.md` |
+| Profile (view, low-risk edits, completion, deletion request) | Implemented; identity changes and photo deferred (TD-66) | `PATIENT_PROFILE_AND_IDENTITY.md` |
+| Clinic and doctor discovery, linking with a clinic code | Implemented, tested | `CLINIC_DISCOVERY_AND_LINKING.md` |
+| Booking, appointments, cancel, reschedule, check-in | Implemented, tested incl. races | `PATIENT_APPOINTMENT_WORKFLOW.md` |
+| Queue status | Implemented, polling; no other patients exposed | `PATIENT_QUEUE_WORKFLOW.md` |
+| Overview, released summaries, prescriptions | Implemented, tested | `PATIENT_MEDICAL_RECORDS.md` |
+| Documents, lab reports | **Not available** (TD-68) | |
+| Family and dependents | Implemented on Phase 4 relationships | `PATIENT_FAMILY_AND_DEPENDENTS.md` |
+| Bills, payments, receipts, refunds | Implemented read-only; no online payment, no PDF | `PATIENT_BILLING.md` |
+| Notifications inbox, devices, preferences | Implemented; **push delivery not wired** (TD-67) | `PATIENT_NOTIFICATION_WORKFLOW.md` |
+| Consent and privacy | Implemented per purpose with versions | `PATIENT_PRIVACY_AND_SECURITY.md` |
+| Android build | **Not built here (no SDK)**; hardening in the manifest unverified (TD-70) | `PATIENT_ANDROID_RELEASE_CHECKLIST.md` |
+
+Test counts: `docs/phase-8/PHASE_8_TEST_REPORT.md`.

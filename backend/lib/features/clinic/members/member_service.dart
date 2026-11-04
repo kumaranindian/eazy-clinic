@@ -104,7 +104,7 @@ class MemberService {
     }
     return {
       'tenantId': t.tenantId,
-      'role': t.role.wireName,
+      'role': t.actorLabel,
       'permissions': t.permissions.toList()..sort(),
       'allBranches': t.scope.allBranches,
       'branchIds': t.scope.branchIds.toList(),

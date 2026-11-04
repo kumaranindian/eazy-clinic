@@ -75,6 +75,10 @@ const patientPaths = [
   'tenants/t1/expense_categories/ec1',
   'tenants/t1/billing_idempotency/hash1',
   'tenants/t1/financial_audit_logs/fa1',
+  'patient_notifications/n1',
+  'patient_devices/dev1',
+  'patient_notification_preferences/pa1',
+  'account_deletion_requests/pa1',
 ];
 
 before(async () => {
@@ -301,6 +305,17 @@ describe('patient, scheduling and clinical data is backend-only (Phases 4-6)', (
     await assertFails(setDoc(doc(alice(), 'tenants/t1/refunds/rf2'), { status: 'completed', amount: 1 }));
     await assertFails(deleteDoc(doc(alice(), 'tenants/t1/financial_audit_logs/fa1')));
     await assertFails(setDoc(doc(alice(), 'tenants/t1/receipt_numbers/RCT-000002'), { receiptId: 'x' }));
+  });
+
+  it('no client can read or write patient notifications, device tokens, preferences or deletion requests', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'patient_notifications'), where('accountId', '==', 'pa1'))));
+    await assertFails(getDoc(doc(alice(), 'patient_devices/dev1')));
+    await assertFails(setDoc(doc(alice(), 'patient_devices/dev2'), { uid: 'alice', token: 'x', active: true }));
+    await assertFails(updateDoc(doc(alice(), 'patient_notifications/n1'), { read: true }));
+    await assertFails(setDoc(doc(alice(), 'patient_notification_preferences/pa1'), { pushEnabled: false }));
+    await assertFails(setDoc(doc(alice(), 'account_deletion_requests/pa1'), { status: 'approved' }));
+    await assertFails(getDoc(doc(anon(), 'patient_notifications/n1')));
   });
 
   it('link codes cannot be looked up by hash from a client (collection group)', async () => {

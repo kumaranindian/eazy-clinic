@@ -10,6 +10,7 @@ import '../clinic/common/clinic_deps.dart';
 import '../clinic/common/tenant_context.dart';
 import '../patients/patient_support.dart';
 import '../platform/common/body_reader.dart';
+import '../portal/portal_notifier.dart';
 import '../scheduling/scheduling_support.dart';
 import '../scheduling/time_support.dart';
 
@@ -22,6 +23,9 @@ class ClinicalSupport {
   final ClinicDeps d;
   final PatientSupport patients;
   final SchedulingSupport sched;
+
+  /// Set by the clinic module so clinical events can reach the patient app.
+  PortalNotifier? notifier;
 
   String path(TenantContext t, String collection, [String? id]) =>
       d.path(t, collection, id);
@@ -105,7 +109,7 @@ class ClinicalSupport {
     'resourceType': resourceType,
     'resourceId': resourceId,
     'actorUid': t.uid,
-    'actorRole': t.role.wireName,
+    'actorRole': t.actorLabel,
     'reason': reason,
     'requestId': requestId,
     'before': before,

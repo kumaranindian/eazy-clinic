@@ -106,5 +106,10 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 058 | A refund holds its amount while requested, approved, processing, failed or completed; completion alone moves money; refunds do not re-open an invoice debt; self-approval is off unless policy allows | No double refund; retained failures | Implemented |
 | 059 | Overdue is derived at read time; reports aggregate on demand with a scan cap and a truncated flag; collections are never presented as profit | Simplicity until scale needs counters | Implemented (TD-61, TD-63) |
 | 060 | Invoice, receipt, credit and debit note numbers come from counters with uniqueness keys written in the same transaction | Concurrency-safe numbering | Implemented |
+| 061 | The patient app uses a thin `/patient/...` layer over the existing services; patients act through `PatientActingContext` (fixed permissions, audit label `patient`) only after account, relationship-scope and clinic-link checks | No second identity or appointment engine | Implemented |
+| 062 | Every patient response is an allow-listed projection; consultation summaries need an explicit doctor release (`releasedToPatient`); drafts, notes, alerts and staff data never leave the clinic | Medical privacy | Implemented |
+| 063 | Patient-app bookings start `pending` and are confirmed by the clinic; the app never sets a status; policy is checked by the backend | No false success | Implemented (TD-65) |
+| 064 | One notification interface (`PortalNotifier`) with an in-app inbox, device registry and preferences; push delivery and reminders are Phase 10 | One notification system | Implemented (TD-67) |
+| 065 | The app stores no clinical data on disk and queues no offline writes | No unencrypted local records | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

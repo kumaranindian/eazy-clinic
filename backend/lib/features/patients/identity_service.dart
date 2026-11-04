@@ -160,7 +160,7 @@ class PatientIdentityService {
       tenantId: t.tenantId,
       patientId: patientId,
       actorUid: t.uid,
-      actorRole: t.role.wireName,
+      actorRole: t.actorLabel,
       reason: reason!,
       requestId: requestId,
       scope: t,

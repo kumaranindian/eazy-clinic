@@ -93,3 +93,6 @@ Clinical tests: `backend/test/features/clinical` (consultation, records), `test/
 
 ## Phase 7
 Money tests: `backend/test/features/billing` (arithmetic, invoices, payments and credit, refunds, expenses, reports; HTTP-level with `Future.wait` races), `test/integration/billing_flow_emulator_test.dart`, rules tests, `packages/common_models/test/clinic_permissions_test.dart`, Clinic Web `test/finance_test.dart`. Counts: `docs/phase-7/PHASE_7_TEST_REPORT.md`.
+
+## Phase 8
+Portal tests: `backend/test/features/portal` (discovery and appointments, records and billing, notifications/profile/consent/family/security) on the in-memory store with racing requests; rules tests for the new collections; patient app `test/portal_test.dart` with a fake repository; doctor app release-button tests. Counts: `docs/phase-8/PHASE_8_TEST_REPORT.md`.
