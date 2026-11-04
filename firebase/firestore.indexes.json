@@ -2133,6 +2133,298 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "archived",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "archived",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "read",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notification_deliveries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nextAttemptAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notification_deliveries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notification_deliveries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notification_deliveries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "channel",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notification_deliveries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notification_deliveries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "report_exports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "requestedBy",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "requestedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "queue_entries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "queueDate",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "queue_entries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "doctorId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "queueDate",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "patients",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "patients",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "consultations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "consultationAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "consultations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "doctorId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "consultationAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "lab_orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "lab_orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "publishedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "lab_samples",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rejectedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "payments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "receivedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "refunds",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "branchId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "completedAt",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [

@@ -237,6 +237,7 @@ extension ClinicFlows on PlatformHarness {
     bool billing = true,
     bool patientApp = true,
     bool laboratory = true,
+    bool reports = true,
   }) async {
     if (!store.docs.containsKey('platform_users/$ownerUid')) user(ownerUid);
     final planRes = await call(
@@ -257,6 +258,7 @@ extension ClinicFlows on PlatformHarness {
           'doctor_workspace': true,
           'billing': billing,
           'laboratory': laboratory,
+          'reports': reports,
           'patient_mobile_app': patientApp,
           'multiple_branches': multipleBranches,
         },

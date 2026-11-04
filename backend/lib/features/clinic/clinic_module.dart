@@ -27,6 +27,9 @@ import '../platform/audit/audit_service.dart';
 import '../platform/common/paging.dart';
 import '../platform/entitlements/entitlement_service.dart';
 import '../portal/portal_module.dart';
+import '../reports/export_service.dart';
+import '../reports/report_module.dart';
+import '../reports/report_service.dart';
 import '../scheduling/scheduling_module.dart';
 import 'branches/branch_service.dart';
 import 'common/clinic_deps.dart';
@@ -103,6 +106,8 @@ class ClinicModule {
     hub = NotificationHub(deps, fcm: fcm, providers: messageProviders);
     portal.notifier.hub = hub;
     notifications = NotificationService(deps, hub, fcm, messageProviders);
+    reports = ReportService(deps, scheduling.support);
+    exports = ExportService(deps, reports, storage);
     clinical.support.notifier = portal.notifier;
     billing.support.notifier = portal.notifier;
   }
@@ -121,6 +126,8 @@ class ClinicModule {
   late final LabModule lab;
   late final NotificationHub hub;
   late final NotificationService notifications;
+  late final ReportService reports;
+  late final ExportService exports;
   late final PortalModule portal;
   late final ClinicService clinic;
   late final BranchService branches;
@@ -212,6 +219,7 @@ class ClinicModule {
     registerBillingRoutes(this, billing, r);
     registerLabRoutes(this, lab, r);
     registerNotificationRoutes(this, notifications, r);
+    registerReportRoutes(this, reports, exports, r);
     registerPortalRoutes(this, portal, r);
     registerPatientRoutes(
       this,
