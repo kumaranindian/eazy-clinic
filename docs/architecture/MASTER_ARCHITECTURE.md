@@ -99,5 +99,12 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 051 | Catalogues ship empty; codes need a code system; templates only pre-fill; no AI or suggestions | No fabricated clinical data | Implemented (TD-50, TD-53) |
 | 052 | Laboratory boundary: investigation requests with `processing: not_available`; results wait for Phase 9 | Do not imply a lab workflow | Implemented |
 | 053 | Clinical audit in `clinical_audit_logs` without clinical text; reads are audited | CLAUDE.md §16 | Implemented |
+| 054 | Money is integer minor units with half-up rounding; remainders go to the largest part; only the server calculates | No floating point, deterministic totals | Implemented |
+| 055 | Invoice lines are a bounded embedded array (≤ 50) with a price/tax snapshot; finalized invoices are immutable and corrected by credit/debit notes (credit ≤ outstanding) | Atomic snapshot; auditable corrections | Implemented |
+| 056 | Payments are recorded offline by staff; online payments exist only as a gateway interface; money-moving requests need an Idempotency-Key with a body fingerprint | No simulated success; safe retries | Implemented (TD-58) |
+| 057 | Patient credit is an append-only ledger; per-source remaining is derived from it; the balance document is a derived cache written in the same transaction | Auditable, no direct balance writes | Implemented |
+| 058 | A refund holds its amount while requested, approved, processing, failed or completed; completion alone moves money; refunds do not re-open an invoice debt; self-approval is off unless policy allows | No double refund; retained failures | Implemented |
+| 059 | Overdue is derived at read time; reports aggregate on demand with a scan cap and a truncated flag; collections are never presented as profit | Simplicity until scale needs counters | Implemented (TD-61, TD-63) |
+| 060 | Invoice, receipt, credit and debit note numbers come from counters with uniqueness keys written in the same transaction | Concurrency-safe numbering | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

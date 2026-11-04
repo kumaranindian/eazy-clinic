@@ -120,3 +120,6 @@ Booking endpoints require an `Idempotency-Key` header; replays return 200 with `
 
 ## Phase 6 conventions
 Clinical writes use `expectedVersion` / `expectedRev` (409 on mismatch). Lifecycle changes have dedicated action endpoints (`start`, `finalize`, `amend`); finalize actions are idempotent and replay with `idempotentReplay: true`. Another doctor's record answers 404. Endpoint list: `docs/phase-6/API_REFERENCE.md`.
+
+## Phase 7 conventions
+Amounts are integers in minor units with an explicit `currency`. Payment, advance, credit-application, credit-adjustment and refund-request routes require `Idempotency-Key`; replays return the original resource with `idempotentReplay: true`, the same key with another body is 409. Lifecycle changes use action endpoints (`finalize`, `cancel`, `approve`, `reject`, `complete`, `submit`, `pay`); no endpoint accepts a status, total, balance, receiver or tenant. Reports accept `from`, `to`, filters and `format=csv`. Endpoint list: `docs/phase-7/FINANCIAL_API_REFERENCE.md`.

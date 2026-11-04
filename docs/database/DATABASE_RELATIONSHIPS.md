@@ -90,3 +90,6 @@ platform_users            tenants ──► subscription_plans (via platform_sub
 
 ## Phase 6 relationships
 `consultation` N—1 `patient`, `doctor`, `branch`; 0..1—1 `appointment` (uniqueness key); 1—N `diagnoses`, `prescriptions`, `followups`, `investigation_requests`, `consultation_versions`, `consultation_amendments`; `prescription.supersedesId` → previous version, `rootId` → first version; `followup.appointmentId` → Phase 5 appointment; `vitals` N—1 `patient` (optional `consultationId`).
+
+## Phase 7 relationships
+`invoice` N—1 `patient`, `branch`; 0..1—1 `appointment` or `consultation` (uniqueness key `invoice_sources`); 1—N `invoice_adjustments`; `payment` 1—N `payment_allocations` N—1 `invoice`; `payment` 1—1 `receipt`; `payment` 0..1—1 credit source `cr_<paymentId>` in `patient_credit_ledger`; ledger "out" entries reference their source by `creditId`; `refund` N—1 `payment` (and optionally `invoice`); `expense` N—1 `expense_category` and optionally `branch`.

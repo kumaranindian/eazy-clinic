@@ -142,3 +142,22 @@ Test counts: `docs/phase-5/TEST_REPORT.md`.
 | Live Firebase, Android build, billing, patient app, notifications, lab results, PDF | **Deferred / unverified** | TD-49…TD-56 |
 
 Test counts: `docs/phase-6/TEST_REPORT.md`.
+
+## Phase 7: Billing, payments, refunds, expenses and finance reports (branch `feature/phase-7-implementation`, not pushed)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Service catalogue, tax rules, price history, billing settings | Implemented, tested | `docs/phase-7/SERVICE_CATALOGUE.md` |
+| Invoices (draft, discounts, taxes, finalize, cancel, credit/debit notes) | Implemented, tested | `INVOICE_WORKFLOW.md`, `billing_math_test.dart` |
+| Payment collection, partial/multiple payments, allocation, idempotency, numbering | Implemented, tested incl. races | `PAYMENT_COLLECTION.md` |
+| Advance payments and patient credit ledger | Implemented, tested | `PATIENT_CREDIT_LEDGER.md` |
+| Receipts | Implemented (data + screen); **no PDF** (TD-57) | |
+| Refunds (request, approve, reject, complete, retry) | Implemented, tested | `REFUND_WORKFLOW.md` |
+| Expenses and categories with approval policy | Implemented, tested; no evidence upload (TD-60) | `EXPENSE_MANAGEMENT.md` |
+| Finance dashboard and 6 reports, CSV API | Implemented, tested; on-demand aggregation (TD-61) | `FINANCIAL_REPORTS.md` |
+| Clinic Web finance screens | Implemented, widget-tested | `apps/clinic_web/lib/features/finance/` |
+| Payment gateway (Razorpay) | **Interface only, not configured** (TD-58) | `gateway.dart` |
+| Firestore rules/indexes | Rules tested; 22 indexes undeployed (TD-61) | `FINANCIAL_DATA_SCHEMA.md` |
+| Charge-generation policy, patient billing views, PDF, live Firebase | **Deferred / unverified** | TD-57…TD-64 |
+
+Test counts: `docs/phase-7/PHASE_7_TEST_REPORT.md`.
