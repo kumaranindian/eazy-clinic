@@ -7,12 +7,14 @@ import '../../core/security/rate_limiter.dart';
 import '../auth/domain/auth_context.dart';
 import '../clinic/clinic_module.dart';
 import '../clinic/common/clinic_deps.dart';
+import '../clinic/common/object_storage.dart';
 import '../patients/patient_module.dart';
 import '../scheduling/scheduling_module.dart';
 import 'portal_account.dart';
 import 'portal_appointments.dart';
 import 'portal_billing.dart';
 import 'portal_discovery.dart';
+import 'portal_lab.dart';
 import 'portal_notifier.dart';
 import 'portal_records.dart';
 import 'portal_support.dart';
@@ -25,8 +27,12 @@ import 'portal_support.dart';
 /// verified relationship, existing clinic link), then reuses the shared
 /// services and returns allow-listed projections.
 class PortalModule {
-  PortalModule(ClinicDeps deps, PatientModule patients, SchedulingModule sched)
-    : support = PortalSupport(
+  PortalModule(
+    ClinicDeps deps,
+    PatientModule patients,
+    SchedulingModule sched,
+    ObjectStorage storage,
+  ) : support = PortalSupport(
         deps,
         patients.accounts,
         patients.support,
@@ -41,6 +47,7 @@ class PortalModule {
       notifier,
     );
     records = PortalRecordsService(support);
+    lab = PortalLabService(support, storage);
     billing = PortalBillingService(support);
     notifications = PortalNotificationService(support);
     account = PortalAccountService(support, patients.consents);
@@ -51,6 +58,7 @@ class PortalModule {
   late final PortalDiscoveryService discovery;
   late final PortalAppointmentService appointments;
   late final PortalRecordsService records;
+  late final PortalLabService lab;
   late final PortalBillingService billing;
   late final PortalNotificationService notifications;
   late final PortalAccountService account;
@@ -311,7 +319,54 @@ void registerPortalRoutes(ClinicModule m, PortalModule p, Router r) {
   );
   r.get(
     '$_v1/patient/reports',
-    secured((req, c) async => ok(req, p.records.documents())),
+    secured(
+      (req, c) async => ok(
+        req,
+        await p.lab.list(
+          c,
+          accountId: q(req, 'accountId'),
+          clinicId: q(req, 'clinicId'),
+        ),
+      ),
+    ),
+  );
+  r.get(
+    '$_v1/patient/lab-reports',
+    secured(
+      (req, c) async => ok(
+        req,
+        await p.lab.list(
+          c,
+          accountId: q(req, 'accountId'),
+          clinicId: q(req, 'clinicId'),
+        ),
+      ),
+    ),
+  );
+  r.get(
+    '$_v1/patient/clinics/<cid>/lab-reports/<rid>',
+    secured(
+      (req, c) async => ok(
+        req,
+        await p.lab.detail(
+          c,
+          pid(req, 'cid'),
+          pid(req, 'rid'),
+          accountId: q(req, 'accountId'),
+        ),
+      ),
+    ),
+  );
+  r.get(
+    '$_v1/patient/clinics/<cid>/lab-reports/<rid>/download',
+    secured(
+      (req, c) => p.lab.download(
+        c,
+        pid(req, 'cid'),
+        pid(req, 'rid'),
+        accountId: q(req, 'accountId'),
+      ),
+    ),
   );
 
   // ------------------------------------------------------------- billing

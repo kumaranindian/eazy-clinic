@@ -92,7 +92,7 @@ class ClinicModule {
       clinical.support,
       storage,
     );
-    portal = PortalModule(deps, patients, scheduling);
+    portal = PortalModule(deps, patients, scheduling, storage);
     lab.support.notifier = portal.notifier;
     clinical.support.notifier = portal.notifier;
     billing.support.notifier = portal.notifier;

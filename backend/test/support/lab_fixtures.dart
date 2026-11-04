@@ -9,6 +9,12 @@ import 'scheduling_fixtures.dart';
 class LabClinic {
   LabClinic(this.h) : c = Clinic(h);
 
+  /// Laboratory flows on a clinic that is already set up.
+  LabClinic.on(this.h, this.c) {
+    h.member('labtech', tid, 'lab_technician');
+    h.member('labtech2', tid, 'lab_technician');
+  }
+
   final PlatformHarness h;
   final Clinic c;
   int _k = 0;
