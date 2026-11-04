@@ -126,3 +126,6 @@ Amounts are integers in minor units with an explicit `currency`. Payment, advanc
 
 ## Phase 8 conventions
 Patient routes live under `/patient/...`, are authenticated but not tenant-scoped (the clinic comes from the path and is matched to the caller's links). `accountId` selects a family member and is always re-authorized (404 otherwise). Booking and other money-or-slot-moving requests use `Idempotency-Key`. Responses are allow-listed projections. Endpoint list: `docs/phase-8/PATIENT_API_INTEGRATION.md`.
+
+## Phase 9 conventions
+Laboratory routes live under `/laboratory/...` (plus `/consultations/{id}/lab-orders`). Manual order creation requires `Idempotency-Key`; verify and publish are idempotent and report `idempotentReplay: true` on a repeat. Report files are returned only by authenticated `download` routes with `Cache-Control: private, no-store`; no route returns a storage path or a public URL. Endpoint list: `docs/phase-9/API_SPECIFICATION.md`.

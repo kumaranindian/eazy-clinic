@@ -180,3 +180,20 @@ Test counts: `docs/phase-7/PHASE_7_TEST_REPORT.md`.
 | Android build | **Not built here (no SDK)**; hardening in the manifest unverified (TD-70) | `PATIENT_ANDROID_RELEASE_CHECKLIST.md` |
 
 Test counts: `docs/phase-8/PHASE_8_TEST_REPORT.md`.
+
+## Phase 9: Laboratory management (branch `feature/phase-9-laboratory`, not pushed)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Test catalogue, categories, clinic-configured ranges with source | Implemented, tested; UI creates single-parameter tests only (TD-72) | `docs/phase-9/` |
+| Doctor requests linked to Phase 6 investigation requests | Implemented, tested | `WORKFLOWS.md` |
+| Order lifecycle, samples with identity check, recollection | Implemented, tested incl. races | `ARCHITECTURE.md` |
+| Structured results, server-computed flags | Implemented, tested | `lab_evaluation.dart` |
+| Verification (separation of duty), return, amendment with versions | Implemented, tested | `SECURITY.md` |
+| Report PDF, private storage, versions, authenticated download | Implemented, tested; plain text layout (TD-73); GCS unverified live (TD-80) | |
+| External laboratory reports | Implemented, tested; no malware scan (TD-76) | |
+| Lab dashboard, audit trail | Implemented, tested | `API_SPECIFICATION.md` |
+| Clinic Web, Doctor Workspace, Patient app | Implemented, widget-tested; patient app shows structured results, no PDF viewer | |
+| Critical-value workflow, lab billing, barcodes, other documents | **Deferred** | TD-74, TD-78, TD-79, TD-68 |
+
+Test counts: `docs/phase-9/TESTING.md`.

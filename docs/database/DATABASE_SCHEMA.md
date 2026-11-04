@@ -145,3 +145,6 @@ Global: `patient_accounts`, `patient_account_uids`, `patient_clinic_links`, `fam
 
 ## Phase 8 collections
 Top-level (backend-only): `patient_notifications` (inbox, one deterministic id per event), `patient_devices` (FCM tokens per user and device; token never returned), `patient_notification_preferences/{accountId}`, `account_deletion_requests/{accountId}`. Tenant collections gain fields only: `consultations.releasedToPatient|releasedAt|releasedBy`. Existing `patient_accounts`, `patient_clinic_links` and `family_relationships` are reused.
+
+## Phase 9 collections
+`lab_tests`, `lab_test_codes`, `external_laboratories`, `lab_orders`, `lab_order_numbers`, `lab_order_keys`, `lab_samples`, `lab_sample_numbers`, `lab_sample_ids`, `lab_results`, `lab_reports`, `lab_report_numbers`, `lab_idempotency`, `counters` (lab order, sample, report), `lab_audit_logs` under `tenants/{t}/`. `investigation_requests` gains `testId`, `code`, `labOrderId`, `labOrderNumber`, `processing: laboratory`. Details: `docs/phase-9/DATABASE_SCHEMA.md`.
