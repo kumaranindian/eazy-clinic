@@ -72,7 +72,6 @@ abstract final class ClinicPermission {
   static const String queueConsult = 'queue.consult';
   static const String queuePriority = 'queue.priority';
 
-
   // Phase 7: billing, payments, refunds, expenses, finance reports
   static const String billingView = 'billing.view';
   static const String billingCreate = 'billing.create';
@@ -279,7 +278,6 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.patientDocumentsView,
     ClinicPermission.patientDocumentsManage,
   };
-
 
   /// Money handling roles (Phase 7).
   static const Set<String> _billingDesk = {

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../shared/ui_helpers.dart';
 
-enum FieldKind { text, multiline, date, choice }
+enum FieldKind { text, multiline, date, choice, money }
 
 /// One input of a record dialog.
 class FieldSpec {
@@ -29,6 +29,7 @@ class FieldSpec {
 }
 
 final RegExp _isoDate = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+final RegExp _money = RegExp(r'^\d{1,9}(\.\d{1,2})?$');
 
 /// Generic form dialog; returns the non-empty values or null when cancelled.
 Future<Map<String, Object?>?> showRecordDialog(
@@ -134,7 +135,11 @@ class _RecordDialogState extends State<_RecordDialog> {
                               label: f.label,
                               items: f.options,
                               value: _choice[f.key],
-                              itemLabel: Fmt.humanize,
+                              // wire values (snake_case) are made readable; free labels stay as given
+                              itemLabel: (v) =>
+                                  RegExp(r'^[a-z0-9_]+$').hasMatch(v)
+                                  ? Fmt.humanize(v)
+                                  : v,
                               validator: (v) => f.required && v == null
                                   ? '${f.label} is required.'
                                   : null,
@@ -144,6 +149,8 @@ class _RecordDialogState extends State<_RecordDialog> {
                           : EcTextField(
                               label: f.kind == FieldKind.date
                                   ? '${f.label} (YYYY-MM-DD)'
+                                  : f.kind == FieldKind.money
+                                  ? '${f.label} (₹)'
                                   : f.label,
                               controller: _c[f.key],
                               maxLength: f.maxLength,
@@ -158,6 +165,12 @@ class _RecordDialogState extends State<_RecordDialog> {
                                 if (f.kind == FieldKind.date &&
                                     !_isoDate.hasMatch(t)) {
                                   return 'Use the format YYYY-MM-DD.';
+                                }
+                                if (f.kind == FieldKind.money &&
+                                    (!_money.hasMatch(t.replaceAll(',', '')) ||
+                                        double.parse(t.replaceAll(',', '')) <=
+                                            0)) {
+                                  return 'Enter an amount like 1250.50.';
                                 }
                                 return null;
                               },
