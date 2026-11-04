@@ -114,3 +114,9 @@ Strict request bodies (unknown/sensitive fields → 422), out-of-scope resources
 
 ## Phase 4 conventions
 Patient sub-resources are addressed under `/patients/{id}`; a resource id belonging to another patient or tenant answers 404. Consent conflicts and duplicate-review requirements answer 409 with an issue code. Patient-account routes use the authenticated account, never an id from the request. Endpoint list: `docs/phase-4/API_REFERENCE.md`.
+
+## Phase 5 conventions
+Booking endpoints require an `Idempotency-Key` header; replays return 200 with `idempotentReplay: true`. Conflicts (slot taken, invalid transition, queue busy) answer 409; schedule violations 422; out-of-scope resources 404. Dates are local `YYYY-MM-DD` in the branch time zone; instants are UTC ISO-8601. Endpoint list: `docs/phase-5/API_REFERENCE.md`.
+
+## Phase 6 conventions
+Clinical writes use `expectedVersion` / `expectedRev` (409 on mismatch). Lifecycle changes have dedicated action endpoints (`start`, `finalize`, `amend`); finalize actions are idempotent and replay with `idempotentReplay: true`. Another doctor's record answers 404. Endpoint list: `docs/phase-6/API_REFERENCE.md`.

@@ -80,8 +80,11 @@ class ApiClient {
     Map<String, String>? headers,
   }) => _send('GET', path, query: query, headers: headers);
 
-  Future<ApiResult> post(String path, {Object? body}) =>
-      _send('POST', path, body: body);
+  Future<ApiResult> post(
+    String path, {
+    Object? body,
+    Map<String, String>? headers,
+  }) => _send('POST', path, body: body, headers: headers);
 
   Future<ApiResult> patch(String path, {Object? body}) =>
       _send('PATCH', path, body: body);

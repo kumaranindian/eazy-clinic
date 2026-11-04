@@ -3,12 +3,15 @@ import 'package:app_core/app_core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:doctor_mobile/app.dart';
 import 'package:doctor_mobile/core/config/client_config_provider.dart';
+import 'package:doctor_mobile/core/routing/app_router.dart';
+import 'package:doctor_mobile/features/workspace/data/clinical_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:utilities/utilities.dart';
 
 import 'support/fake_auth.dart';
+import 'support/fake_clinical.dart';
 
 Widget _app(
   String env,
@@ -34,6 +37,16 @@ Widget _app(
               ),
         ),
       ),
+      clinicalRepositoryProvider.overrideWithValue(
+        FakeClinicalRepository(
+          (m, p, b) => {
+            'counts': <String, Object?>{},
+            'upcoming': <Object?>[],
+            'queues': <Object?>[],
+            'recentConsultations': <Object?>[],
+          },
+        ),
+      ),
       appAudienceProvider.overrideWithValue(AppAudience.doctor),
       authUiConfigProvider.overrideWithValue(
         const AuthUiConfig(
@@ -45,6 +58,14 @@ Widget _app(
     ],
     child: const EazyClinicApp(),
   );
+}
+
+/// The account page (the former home screen) now lives behind the shell.
+Future<void> _account(WidgetTester tester) async {
+  ProviderScope.containerOf(
+    tester.element(find.byType(EazyClinicApp)),
+  ).read(appRouterProvider).go('/account');
+  await tester.pumpAndSettle();
 }
 
 void _bigScreen(WidgetTester tester) {
@@ -70,7 +91,8 @@ void main() {
       _app('dev', 'http://localhost:8080', signedIn: true),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(EcBrandLogo), findsOneWidget);
+    await _account(tester);
+    expect(find.byType(EcBrandLogo), findsWidgets);
     expect(find.text('Signed in as Test User'), findsOneWidget);
     expect(find.text('Environment: dev'), findsOneWidget);
   });
@@ -81,6 +103,7 @@ void main() {
       _app('dev', 'http://localhost:8080', signedIn: true),
     );
     await tester.pumpAndSettle();
+    await _account(tester);
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
     expect(find.text('Signed in as Test User'), findsNothing);
@@ -93,6 +116,7 @@ void main() {
       _app('dev', 'http://localhost:8080', signedIn: true),
     );
     await tester.pumpAndSettle();
+    await _account(tester);
     await tester.tap(find.text('Open design system'));
     // The gallery contains looping progress indicators, so pumpAndSettle would
     // never finish; advance time explicitly instead.
@@ -107,6 +131,7 @@ void main() {
       _app('production', 'https://api.example.com', signedIn: true),
     );
     await tester.pumpAndSettle();
+    await _account(tester);
     expect(find.text('Environment: production'), findsOneWidget);
     expect(find.text('Open design system'), findsNothing);
   });

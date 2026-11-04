@@ -10,7 +10,7 @@ adds the Phase 0 inventory result and the prerequisites per phase.
 | 2 | Multi-tenant and clinic setup | Tenants, clinic registration + approval, branches, clinic settings, subscription foundation | Not started |
 | 3 | Clinic setup, branches, doctors, staff, RBAC | Clinic profile/hours, branches, doctors + assignments, staff, invitations, centralized RBAC, branch-scoped access | **Implemented locally** (live Firebase, invitation delivery, custom roles, owner transfer deferred/unverified) |
 | 4 | Patient management | Patient registry, patient accounts, linking, family, history, consent, documents | **Implemented locally** (vitals, merge, patient app, live Firebase deferred/unverified) |
-| 5 | Appointments and queue | Availability, slots, booking, reschedule, cancel, tokens, queue | Not started |
+| 5 | Appointments and queue | Availability, slots, booking, reschedule, cancel, tokens, queue | **Implemented locally** (notifications, push queue, DST zones, live Firebase deferred/unverified) |
 | 6 | Clinical operations | Consultation lifecycle, diagnosis, templates, prescriptions, follow-ups | Not started |
 | 7 | Billing and payments | Invoices, payments, Razorpay, receipts, refunds, expenses | Not started |
 | 8 | Patient Android app | Onboarding, auth, discovery, booking, history, queue, Rx, reports, notifications | Not started |
@@ -30,3 +30,6 @@ adds the Phase 0 inventory result and the prerequisites per phase.
 ## Cross-cutting rules per phase
 
 Follow CLAUDE.md §16 (inspect → plan → design → implement → test → document → report). A phase is complete only when the end-to-end workflow works and is tested.
+
+## Phase 6: Doctor workspace and clinical operations (branch `feature/phase-0-foundation`)
+Implemented (see `docs/phase-6/`): doctor workspace, consultation lifecycle with amendments, diagnosis, vitals, prescriptions, templates, follow-ups, investigation-request boundary. Awaiting approval before Phase 7 (billing and payments).

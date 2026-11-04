@@ -133,3 +133,9 @@ Branches, branch codes, doctors, doctor_branch_assignments, staff, members (role
 
 ## Phase 4 additions
 Global: `patient_accounts`, `patient_account_uids`, `patient_clinic_links`, `family_relationships`. Tenant: `patients`, `patient_mrns`, `counters`, `patient_consents`, `patient_history_entries`, `patient_allergies`, `patient_medications`, `patient_alerts`, `patient_emergency_contacts`, `patient_documents`, `patient_link_codes`, `patient_identity_links`, `patient_duplicate_reviews`, `patient_record_revisions`, `patient_audit_logs`. Details: `docs/phase-4/FIRESTORE_SCHEMA.md`.
+
+## Phase 5 additions
+`doctor_availability`, `availability_revisions`, `doctor_schedule_exceptions`, `appointment_types`, `appointment_type_names`, `appointments`, `appointment_references`, `appointment_idempotency`, `appointment_slot_reservations`, `queues`, `queue_entries`, `queue_tokens`, `appointment_audit_logs` under `tenants/{t}/`. Details: `docs/phase-5/FIRESTORE_SCHEMA.md`.
+
+## Phase 6 collections
+`consultations`, `consultation_appointments`, `consultation_versions`, `consultation_amendments`, `diagnoses`, `prescriptions`, `prescription_numbers`, `counters`, `vitals`, `investigation_requests`, `followups`, `clinical_templates`, `diagnosis_catalogue`, `medicine_catalogue`, `clinical_audit_logs` under `tenants/{t}/`. Details: `docs/phase-6/FIRESTORE_SCHEMA.md`.

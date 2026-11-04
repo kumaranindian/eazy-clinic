@@ -1,0 +1,5 @@
+# Vitals and Patient Clinical View
+
+Vitals (`POST/GET /clinical/patients/{id}/vitals`): doctor and nurse may record, append-only (a correction is a new record with `correctsVitalsId`). Values are validated against plausible ranges; heights, weights, temperature and glucose are accepted as `{value, unit}` (cm/in, kg/lb, C/F, mg/dL|mmol/L), stored in canonical units with the original kept. BMI is calculated only when height and weight are present and flagged `bmiCalculated: true`; it is never a diagnosis. `measuredAt` may not be in the future or older than 7 days.
+
+Overview (`GET /clinical/patients/{id}/overview`): patient summary, emergency contacts, active alerts, allergies, medications, medical history, documents list (names only). Each section is `null` when the role lacks the Phase 4 permission. History (`…/history`) lists the doctor's own previous consultations (all for `view_all`), finalized prescriptions, follow-ups, and `laboratory: {available: false}`. Both reads are audited (clinical and patient audit).
