@@ -1,7 +1,9 @@
 import 'package:api_contracts/api_contracts.dart';
+import 'package:common_models/common_models.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+import '../../core/errors/api_exception.dart';
 import '../../core/responses/responses.dart';
 import '../clinic/clinic_module.dart';
 import '../clinic/common/clinic_deps.dart';
@@ -85,15 +87,19 @@ void registerBillingRoutes(ClinicModule m, BillingModule b, Router r) {
   r.get(
     '$_v1/billing/gateway',
     m.secured(
-      g0(
-        (req, t) async => ok(req, {
+      g0((req, t) async {
+        if (!t.can(ClinicPermission.billingView) &&
+            !t.can(ClinicPermission.paymentView)) {
+          throw const ApiException.forbidden();
+        }
+        return ok(req, {
           'configured': b.gateway.configured,
           'methods': await b.support.allowedMethods(t),
           'note': b.gateway.configured
               ? null
               : 'Online payments are not available. Payments are recorded by staff.',
-        }),
-      ),
+        });
+      }),
     ),
   );
 

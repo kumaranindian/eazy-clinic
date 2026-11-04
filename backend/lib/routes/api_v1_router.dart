@@ -25,7 +25,16 @@ Router buildRouter({
     notFoundHandler: (Request request) =>
         failure(request, ApiErrorCode.notFound, 'Resource not found.'),
   );
-  registerHealthRoutes(router);
+  registerHealthRoutes(
+    router,
+    // not ready until a data store is configured and answers
+    storeCheck: clinic == null
+        ? () async => false
+        : () async {
+            await clinic.deps.store.get('_health/ping');
+            return true;
+          },
+  );
   if (auth != null) {
     router.mount('$apiV1Prefix/auth/', auth.router.call);
   } else {
