@@ -111,5 +111,13 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 063 | Patient-app bookings start `pending` and are confirmed by the clinic; the app never sets a status; policy is checked by the backend | No false success | Implemented (TD-65) |
 | 064 | One notification interface (`PortalNotifier`) with an in-app inbox, device registry and preferences; push delivery and reminders are Phase 10 | One notification system | Implemented (TD-67) |
 | 065 | The app stores no clinical data on disk and queues no offline writes | No unencrypted local records | Implemented |
+| 066 | A lab order embeds bounded snapshots of its test definitions; later catalogue edits never alter an existing order or its flags | Reproducible reports | Implemented |
+| 067 | A doctor's catalogue request creates a lab order and a linked Phase 6 `investigation_requests` record; the free-text endpoint stays | One request store, no duplicates | Implemented |
+| 068 | Reference ranges are clinic configuration with mandatory source and unit; no range or a different unit yields `not_assessed` / `unit_mismatch` | No invented medical values | Implemented |
+| 069 | The order lifecycle is a transition table; each move writes history and audit in one transaction | Auditable, race-safe | Implemented |
+| 070 | The verifier must differ from the person who entered or amended the result | Laboratory quality practice | Implemented (TD-75) |
+| 071 | Reports are PDF bytes from an in-repo writer, versioned, in private storage, served only through authenticated endpoints | No dependency, no public link | Implemented (TD-73, TD-80) |
+| 072 | External reports are labelled external and counted as clinic-reviewed only after a second person verifies | No false verification claim | Implemented (TD-76) |
+| 073 | Order, sample and report numbers use counters plus uniqueness keys; sample identifiers are unique per clinic | Concurrency-safe numbering | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

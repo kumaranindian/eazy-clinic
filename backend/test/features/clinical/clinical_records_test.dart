@@ -1556,7 +1556,7 @@ void main() {
     );
 
     test(
-      'history lists the doctor\'s own consultations, prescriptions and follow-ups; laboratory is not available',
+      'history lists the doctor\'s own consultations, prescriptions and follow-ups; laboratory lists only published reports',
       () async {
         final cid = await k.readyConsultation();
         final rx = (await k.newRx(cid))['prescriptionId']! as String;
@@ -1585,7 +1585,8 @@ void main() {
         );
         expect((r['prescriptions']! as List).single['number'], 'RX-000001');
         expect((r['followups']! as List), hasLength(1));
-        expect((r['laboratory']! as Map)['available'], false);
+        expect((r['laboratory']! as Map)['available'], true);
+        expect((r['laboratory']! as Map)['reports'], isEmpty);
         // another doctor's draft is not shown to this doctor; the owner sees both
         expect(
           cons.map((c) => c['consultationId']),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/clinical_repository.dart';
+import 'lab_section.dart';
 import 'providers.dart';
 import 'ui_kit.dart';
 
@@ -490,70 +491,13 @@ class _ConsultationState extends ConsumerState<ConsultationPage> {
                   ],
                 ),
               ),
-              Section(
-                title: 'Investigation requests',
-                trailing: open
-                    ? sized(
-                        EcSecondaryButton(
-                          label: 'Request investigation',
-                          icon: Icons.biotech_outlined,
-                          onPressed: () async {
-                            final v = await showFormDialog(
-                              context,
-                              title: 'Request investigation',
-                              note:
-                                  'Recorded as a request only. Laboratory processing is not available yet.',
-                              fields: const [
-                                FieldSpec('testName', 'Test', required: true),
-                                FieldSpec(
-                                  'indication',
-                                  'Indication',
-                                  required: true,
-                                  maxLength: 300,
-                                ),
-                                FieldSpec(
-                                  'priority',
-                                  'Priority',
-                                  kind: FieldKind.choice,
-                                  options: ['routine', 'urgent', 'stat'],
-                                ),
-                              ],
-                            );
-                            if (v == null || !context.mounted) return;
-                            await runAction(
-                              context,
-                              action: () => ref
-                                  .read(clinicalRepositoryProvider)
-                                  .send(
-                                    'POST',
-                                    '/consultations/${widget.consultationId}/investigations',
-                                    v,
-                                  ),
-                              success: 'Investigation requested.',
-                              after: () => refreshAll(ref),
-                            );
-                          },
-                        ),
-                        300,
-                      )
-                    : null,
-                child: Column(
-                  children: [
-                    if (inv.isEmpty)
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('None requested.'),
-                      ),
-                    for (final i in inv)
-                      ListTile(
-                        dense: true,
-                        title: Text('${i['testName']}'),
-                        subtitle: Text(
-                          '${humanize(i['priority'])} · results not available yet',
-                        ),
-                      ),
-                  ],
-                ),
+              LabOrdersSection(
+                consultationId: widget.consultationId,
+                open: open,
+                legacy: [
+                  for (final i in inv)
+                    if (i['labOrderId'] == null) i,
+                ],
               ),
               Section(
                 title: 'Follow-up',

@@ -145,12 +145,15 @@ void main() {
       },
     );
 
-    test('documents and reports are honestly unavailable', () async {
-      final d = await p.get('/patient/documents');
-      expect(d['available'], false);
-      expect(d['documents'], isEmpty);
-      expect((await p.get('/patient/reports'))['available'], false);
-    });
+    test(
+      'documents are honestly unavailable; reports list lab reports',
+      () async {
+        final d = await p.get('/patient/documents');
+        expect(d['available'], false);
+        expect(d['documents'], isEmpty);
+        expect(await p.list('/patient/reports'), isEmpty);
+      },
+    );
   });
 
   group('consultation summaries', () {

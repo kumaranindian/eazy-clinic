@@ -50,15 +50,32 @@ abstract final class Fmt {
   static String limit(Object? v) => v == null ? 'Unlimited' : '$v';
 
   static EcStatusTone tone(Object? status) => switch ('$status') {
-    'active' || 'approved' || 'completed' || 'full' => EcStatusTone.success,
+    'active' ||
+    'approved' ||
+    'completed' ||
+    'full' ||
+    'verified' ||
+    'published' ||
+    'collected' => EcStatusTone.success,
     'trial' ||
     'submitted' ||
     'under_review' ||
     'provisioning' ||
-    'pending' => EcStatusTone.info,
+    'pending' ||
+    'accepted' ||
+    'sample_pending' ||
+    'sample_collected' ||
+    'processing' ||
+    'result_entered' ||
+    'verification_pending' ||
+    'draft' ||
+    'uploaded' => EcStatusTone.info,
     'past_due' ||
     'additional_information_required' ||
     'read_only' ||
+    'recollection_required' ||
+    'superseded' ||
+    'returned' ||
     'inactive' => EcStatusTone.warning,
     'suspended' ||
     'rejected' ||

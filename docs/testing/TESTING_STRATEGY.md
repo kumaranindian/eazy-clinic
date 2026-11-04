@@ -96,3 +96,6 @@ Money tests: `backend/test/features/billing` (arithmetic, invoices, payments and
 
 ## Phase 8
 Portal tests: `backend/test/features/portal` (discovery and appointments, records and billing, notifications/profile/consent/family/security) on the in-memory store with racing requests; rules tests for the new collections; patient app `test/portal_test.dart` with a fake repository; doctor app release-button tests. Counts: `docs/phase-8/PHASE_8_TEST_REPORT.md`.
+
+## Phase 9
+Laboratory tests: `backend/test/features/laboratory` (flag logic and PDF unit tests; HTTP-level lifecycle, samples, results, verification, amendment, doctor requests, external reports, isolation, audit and dashboard, including a concurrent identifier race), `backend/test/features/portal/portal_lab_test.dart`, `test/integration/lab_flow_emulator_test.dart`, rules tests for the new collections, Clinic Web `test/lab_test.dart`, doctor `workspace_test.dart` and patient `portal_test.dart` additions. Counts: `docs/phase-9/TESTING.md`.

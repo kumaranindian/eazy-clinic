@@ -39,3 +39,6 @@ Implemented (see `docs/phase-7/`): service catalogue and tax rules, invoices wit
 
 ## Phase 8: Patient Android application (branch `feature/phase-8-patient-app`)
 Implemented (see `docs/phase-8/`): patient portal API, patient app screens, doctor-side summary release. Push delivery, documents and reports, online payment, PDF and release signing are deferred. Awaiting approval before Phase 9 (laboratory and documents).
+
+## Phase 9: Laboratory management (branch `feature/phase-9-laboratory`)
+Implemented (see `docs/phase-9/`): catalogue, orders, samples, results, verification, amendment, report publication, external reports, dashboard, audit, and screens in Clinic Web, Doctor Workspace and the patient app. Critical-value call-back, lab billing, barcodes, PDF layout and non-laboratory documents are deferred. Awaiting approval before Phase 10 (reports and notifications).

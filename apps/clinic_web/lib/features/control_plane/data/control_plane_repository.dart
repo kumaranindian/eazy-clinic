@@ -42,6 +42,10 @@ class ControlPlaneRepository {
 
   Future<Uint8List> logoBytes() => _api.getBytes('/clinics/current/logo');
 
+  /// A laboratory report file, streamed through the authenticated API.
+  Future<Uint8List> reportBytes(String reportId) =>
+      _api.getBytes('/laboratory/reports/$reportId/download');
+
   // Applicant ------------------------------------------------------------
   Future<Json> submitApplication(Json body) async =>
       (await _api.post('/clinic-applications', body: body)).map;

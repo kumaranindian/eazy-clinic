@@ -176,3 +176,22 @@ Accountants, lab technicians and pharmacists have no scheduling access.
 
 ## Phase 7 financial permissions
 Full matrix and rules: `docs/phase-7/FINANCIAL_RBAC.md`. Owner and admin hold all 24 billing permissions; the accountant holds billing, payment, refund request/process, expenses (not approval) and finance reports; the receptionist bills and collects but cannot discount, adjust, cancel, approve or see finance; clinical and support roles hold none. The accountant still has no `patients.view`.
+
+## Phase 9 laboratory permissions
+| Permission | Owner | Admin | Doctor | Nurse | Lab technician | Receptionist / Accountant |
+|---|---|---|---|---|---|---|
+| `lab.tests.view` | ✔ | ✔ | ✔ | ✔ | ✔ | |
+| `lab.tests.manage` | ✔ | ✔ | | | | |
+| `lab.orders.view` | ✔ | ✔ | ✔ (own orders) | ✔ | ✔ | |
+| `lab.orders.manage` | ✔ | ✔ | | | ✔ | |
+| `lab.samples.manage` | ✔ | ✔ | | ✔ | ✔ | |
+| `lab.results.enter` | ✔ | | | | ✔ | |
+| `lab.results.view` | ✔ | | ✔ (verified only) | | ✔ | |
+| `lab.results.verify` | ✔ | | ✔ | | ✔ | |
+| `lab.reports.publish` | ✔ | | ✔ | | ✔ | |
+| `lab.reports.view` | ✔ | | ✔ (own, published) | | ✔ | |
+| `lab.external.manage` | ✔ | ✔ | | | ✔ | |
+| `lab.dashboard.view` | ✔ | ✔ | | | ✔ | |
+| `lab.audit.view` | ✔ | | | | | |
+
+Results, reports and the audit trail belong to the clinical permission set, so the administrator does not hold them (as in Phase 6). Verification additionally requires a different person from the one who entered the result. Source of truth: `ClinicPermission` and `ClinicRolePolicy` in `packages/common_models`.

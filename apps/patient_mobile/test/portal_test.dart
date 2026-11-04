@@ -618,6 +618,52 @@ void main() {
           },
         ];
       }
+      if (p == '/patient/lab-reports' ||
+          p.startsWith('/patient/lab-reports?')) {
+        return [
+          {
+            'clinicId': 'ten_1',
+            'clinicName': 'Green Valley Clinic',
+            'reportId': 'lr_1',
+            'reportNumber': 'RPT-000001',
+            'version': 1,
+            'external': false,
+            'publishedAt': '2026-06-02T10:00:00Z',
+            'tests': ['Haemoglobin'],
+          },
+          {
+            'clinicId': 'ten_1',
+            'clinicName': 'Green Valley Clinic',
+            'reportId': 'lr_2',
+            'reportNumber': 'RPT-000002',
+            'version': 1,
+            'external': true,
+            'verifiedByClinic': false,
+            'publishedAt': '2026-06-03T10:00:00Z',
+            'tests': ['Send-out marker'],
+          },
+        ];
+      }
+      if (p.startsWith('/patient/clinics/ten_1/lab-reports/lr_1')) {
+        return {
+          'reportId': 'lr_1',
+          'tests': [
+            {
+              'name': 'Haemoglobin',
+              'observations': [
+                {
+                  'name': 'Haemoglobin',
+                  'value': 10.2,
+                  'unit': 'g/dL',
+                  'flag': 'low',
+                  'range': {'low': 12, 'high': 15, 'unit': 'g/dL'},
+                },
+              ],
+            },
+          ],
+          'disclaimer': 'Discuss your results with your doctor.',
+        };
+      }
       if (p.startsWith('/patient/documents')) {
         return {
           'available': false,
@@ -778,6 +824,22 @@ void main() {
         expect(find.text('Pay now'), findsNothing);
       },
     );
+
+    testWidgets('lab reports list published reports and open the results', (
+      t,
+    ) async {
+      await _open(t, records, '/records?tab=reports');
+      expect(find.textContaining('RPT-000001'), findsOneWidget);
+      expect(find.textContaining('Haemoglobin'), findsOneWidget);
+      // an outside laboratory's report is labelled as such
+      expect(find.textContaining('outside laboratory'), findsOneWidget);
+      await t.tap(find.byKey(const Key('open-report-lr_1')));
+      await t.pumpAndSettle();
+      expect(find.textContaining('Haemoglobin: 10.2 g/dL'), findsOneWidget);
+      expect(find.byKey(const Key('flag-Haemoglobin')), findsOneWidget);
+      expect(find.text('Low'), findsOneWidget);
+      expect(find.textContaining('Discuss your results'), findsOneWidget);
+    });
 
     testWidgets('documents are honestly unavailable', (t) async {
       await _open(t, records, '/records?tab=documents');

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/portal_repository.dart';
 import 'common_widgets.dart';
+import 'lab_reports.dart';
 import 'providers.dart';
 import 'ui_kit.dart';
 
@@ -13,6 +14,7 @@ const _tabs = <(String, String)>[
   ('visits', 'Visits'),
   ('prescriptions', 'Prescriptions'),
   ('bills', 'Bills'),
+  ('reports', 'Lab reports'),
   ('documents', 'Documents'),
 ];
 
@@ -61,6 +63,7 @@ class _RecordsState extends ConsumerState<RecordsPage> {
           'visits' => _Visits(params: p),
           'prescriptions' => _Prescriptions(params: p),
           'bills' => _Bills(params: p),
+          'reports' => LabReports(params: p),
           'documents' => const _Documents(),
           _ => _Overview(params: p),
         },
