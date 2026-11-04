@@ -36,3 +36,6 @@ Implemented (see `docs/phase-6/`): doctor workspace, consultation lifecycle with
 
 ## Phase 7: Billing, payments, refunds and expenses (branch `feature/phase-7-implementation`)
 Implemented (see `docs/phase-7/`): service catalogue and tax rules, invoices with server-side paise arithmetic, payment collection and allocation, advance credit ledger, receipts, refunds, expenses, finance dashboard and reports, Clinic Web screens. Online payments (Razorpay), PDF output and patient-facing billing are deferred. Awaiting approval before Phase 8 (patient Android application).
+
+## Phase 8: Patient Android application (branch `feature/phase-8-patient-app`)
+Implemented (see `docs/phase-8/`): patient portal API, patient app screens, doctor-side summary release. Push delivery, documents and reports, online payment, PDF and release signing are deferred. Awaiting approval before Phase 9 (laboratory and documents).

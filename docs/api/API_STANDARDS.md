@@ -123,3 +123,6 @@ Clinical writes use `expectedVersion` / `expectedRev` (409 on mismatch). Lifecyc
 
 ## Phase 7 conventions
 Amounts are integers in minor units with an explicit `currency`. Payment, advance, credit-application, credit-adjustment and refund-request routes require `Idempotency-Key`; replays return the original resource with `idempotentReplay: true`, the same key with another body is 409. Lifecycle changes use action endpoints (`finalize`, `cancel`, `approve`, `reject`, `complete`, `submit`, `pay`); no endpoint accepts a status, total, balance, receiver or tenant. Reports accept `from`, `to`, filters and `format=csv`. Endpoint list: `docs/phase-7/FINANCIAL_API_REFERENCE.md`.
+
+## Phase 8 conventions
+Patient routes live under `/patient/...`, are authenticated but not tenant-scoped (the clinic comes from the path and is matched to the caller's links). `accountId` selects a family member and is always re-authorized (404 otherwise). Booking and other money-or-slot-moving requests use `Idempotency-Key`. Responses are allow-listed projections. Endpoint list: `docs/phase-8/PATIENT_API_INTEGRATION.md`.

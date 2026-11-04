@@ -1,5 +1,4 @@
 import 'clinical_fixtures.dart';
-import 'patient_fixtures.dart';
 import 'platform_http_fixtures.dart';
 import 'scheduling_fixtures.dart';
 

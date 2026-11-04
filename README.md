@@ -122,10 +122,15 @@ Documentation index: [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMA
 
 ## Development Status
 
-**Phase 2 (SaaS platform and multi-tenant management) implemented, awaiting review** on top of Phases 0–1: clinic applications, idempotent tenant provisioning, tenant lifecycle, subscription plans/lifecycle, entitlements, platform dashboard and audit (backend + Clinic Web). Details: [docs/phase-2/](docs/phase-2/PHASE_2_IMPLEMENTATION.md). No payments yet.
+Phases 0–7 are merged to `develop`; **Phase 8 (patient Android application) is implemented on `feature/phase-8-patient-app`, awaiting review.**
 
-**Phase 1 (authentication and security foundation) implemented** on top of Phase 0. Available: Firebase email/password sign-in, registration (no roles granted), password reset, logout and session restoration in all three apps (shared `packages/app_core`); backend ID-token verification, account-status gating, `/api/v1/auth/*`, rate limiting and security-event logging; documentation in [docs/authentication/](docs/authentication/AUTHENTICATION_ARCHITECTURE.md).
-**Not yet verified against a live Firebase project** and **no business functionality exists yet** (no clinics, tenants, patients, appointments, consultations or billing). See [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md).
+- Foundation, authentication, SaaS platform and tenants, clinic setup, doctors and staff (Phases 0–3).
+- Patients, identity linking, family and consent (Phase 4); appointments, availability and queue (Phase 5).
+- Doctor workspace, consultations, prescriptions and follow-ups (Phase 6).
+- Billing, payments, refunds, expenses and finance reports (Phase 7).
+- Patient application: discovery, linking, booking, queue status, released summaries, prescriptions, bills, family, notifications, consent (Phase 8).
+
+Not yet verified against a live Firebase project. Not built: online payments, push delivery, documents and laboratory reports, invoice PDFs, an Android release build (see each phase's `docs/phase-N/` known limitations and [docs/TECHNICAL_DEBT.md](docs/TECHNICAL_DEBT.md)). Progress: [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md).
 
 ## License and Ownership
 

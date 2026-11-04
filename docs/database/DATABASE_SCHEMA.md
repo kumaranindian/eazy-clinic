@@ -142,3 +142,6 @@ Global: `patient_accounts`, `patient_account_uids`, `patient_clinic_links`, `fam
 
 ## Phase 7 collections
 `billing_settings`, `tax_rules`, `service_catalogue`, `service_price_history`, `invoices`, `invoice_numbers`, `invoice_sources`, `invoice_adjustments`, `payments`, `payment_allocations`, `receipts`, `receipt_numbers`, `patient_credit_ledger`, `patient_credit_balances`, `refunds`, `expense_categories`, `expenses`, `credit_note_numbers`, `debit_note_numbers`, `counters` (invoice, receipt, credit note, debit note), `billing_idempotency`, `financial_audit_logs` under `tenants/{t}/`. Details: `docs/phase-7/FINANCIAL_DATA_SCHEMA.md`.
+
+## Phase 8 collections
+Top-level (backend-only): `patient_notifications` (inbox, one deterministic id per event), `patient_devices` (FCM tokens per user and device; token never returned), `patient_notification_preferences/{accountId}`, `account_deletion_requests/{accountId}`. Tenant collections gain fields only: `consultations.releasedToPatient|releasedAt|releasedBy`. Existing `patient_accounts`, `patient_clinic_links` and `family_relationships` are reused.
