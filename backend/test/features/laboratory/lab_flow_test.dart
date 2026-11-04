@@ -38,6 +38,17 @@ void main() {
       );
     });
 
+    test('search matches the start of a name', () async {
+      await k.test(code: 'GLU', name: 'Glucose fasting');
+      final res = await h.call('GET', '/laboratory/tests?q=gluc', uid: 'nurse');
+      final rows =
+          (jsonDecode(await res.readAsString()) as Map)['data'] as List;
+      expect(rows.length, 1);
+      expect((rows.first as Map)['code'], 'GLU');
+      final none = await h.call('GET', '/laboratory/tests?q=zzz', uid: 'nurse');
+      expect((jsonDecode(await none.readAsString()) as Map)['data'], isEmpty);
+    });
+
     test('ranges need a source and sensible limits', () async {
       final body = k.testBody(code: 'BAD', name: 'Bad range');
       final p = (body['parameters']! as List).first as Map;

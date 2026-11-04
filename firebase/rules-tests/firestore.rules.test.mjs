@@ -75,6 +75,19 @@ const patientPaths = [
   'tenants/t1/expense_categories/ec1',
   'tenants/t1/billing_idempotency/hash1',
   'tenants/t1/financial_audit_logs/fa1',
+  'tenants/t1/lab_tests/lt1',
+  'tenants/t1/lab_test_codes/hb',
+  'tenants/t1/external_laboratories/el1',
+  'tenants/t1/lab_orders/lo1',
+  'tenants/t1/lab_order_numbers/LAB-000001',
+  'tenants/t1/lab_order_keys/c1_lt1',
+  'tenants/t1/lab_samples/ls1',
+  'tenants/t1/lab_sample_ids/SMP-1',
+  'tenants/t1/lab_results/lo1__it1',
+  'tenants/t1/lab_reports/lr1',
+  'tenants/t1/lab_report_numbers/RPT-000001',
+  'tenants/t1/lab_idempotency/hash1',
+  'tenants/t1/lab_audit_logs/la1',
   'patient_notifications/n1',
   'patient_devices/dev1',
   'patient_notification_preferences/pa1',
@@ -305,6 +318,19 @@ describe('patient, scheduling and clinical data is backend-only (Phases 4-6)', (
     await assertFails(setDoc(doc(alice(), 'tenants/t1/refunds/rf2'), { status: 'completed', amount: 1 }));
     await assertFails(deleteDoc(doc(alice(), 'tenants/t1/financial_audit_logs/fa1')));
     await assertFails(setDoc(doc(alice(), 'tenants/t1/receipt_numbers/RCT-000002'), { receiptId: 'x' }));
+  });
+
+  it('no client can read or change laboratory catalogue, orders, samples, results, reports or audit records', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'lab_orders'), where('patientId', '==', 'p1'))));
+    await assertFails(getDocs(query(collectionGroup(alice(), 'lab_results'), where('patientId', '==', 'p1'))));
+    await assertFails(getDocs(query(collectionGroup(anon(), 'lab_reports'), where('patientId', '==', 'p1'))));
+    await assertFails(getDoc(doc(alice(), 'tenants/t1/lab_reports/lr1')));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/lab_orders/lo1'), { status: 'published' }));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/lab_results/lo1__it1'), { status: 'verified' }));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/lab_tests/lt2'), { name: 'x' }));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/lab_report_numbers/RPT-000002'), { ownerId: 'x' }));
+    await assertFails(deleteDoc(doc(alice(), 'tenants/t1/lab_audit_logs/la1')));
   });
 
   it('no client can read or write patient notifications, device tokens, preferences or deletion requests', async () => {
