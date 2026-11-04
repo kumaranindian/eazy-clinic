@@ -214,8 +214,9 @@ void main() {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         accepted.add('$method $path -> ${res.statusCode}');
       }
-      if (res.statusCode >= 500)
+      if (res.statusCode >= 500) {
         accepted.add('$method $path -> ${res.statusCode} (server error)');
+      }
     }
     expect(accepted, isEmpty, reason: accepted.join('\n'));
   });
