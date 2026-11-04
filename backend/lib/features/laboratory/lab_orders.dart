@@ -1251,10 +1251,16 @@ abstract final class PortalLike {
           'createdAt',
           'reportId',
           'external',
+          'patientId',
+          'patientName',
+          'patientMrn',
+          'branchName',
+          'doctorName',
+          'source',
         ])
         ..['tests'] = [
           for (final i in (o['items'] as List? ?? const []))
-            {'name': (i as Map)['name'], 'code': i['code']},
+            '${(i as Map)['name']}',
         ];
 }
 

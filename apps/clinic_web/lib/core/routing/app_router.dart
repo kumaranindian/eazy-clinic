@@ -15,6 +15,7 @@ import '../../features/finance/finance_pages.dart';
 import '../../features/finance/invoices_pages.dart';
 import '../../features/finance/payments_pages.dart';
 import '../../features/finance/refunds_expenses_pages.dart';
+import '../../features/laboratory/lab_pages.dart';
 import '../../features/onboarding/presentation/accept_invitation_page.dart';
 import '../../features/onboarding/presentation/apply_page.dart';
 import '../../features/onboarding/presentation/my_applications_pages.dart';
@@ -224,6 +225,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/clinic/appointment-types',
             builder: (context, state) => const AppointmentTypesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/laboratory',
+            builder: (context, state) => const LabDashboardPage(),
+          ),
+          GoRoute(
+            path: '/clinic/laboratory/orders',
+            builder: (context, state) => const LabOrdersPage(),
+          ),
+          GoRoute(
+            path: '/clinic/laboratory/orders/:id',
+            builder: (context, state) =>
+                LabOrderDetailPage(orderId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/clinic/laboratory/tests',
+            builder: (context, state) => const LabTestsPage(),
+          ),
+          GoRoute(
+            path: '/clinic/laboratory/external',
+            builder: (context, state) => const LabExternalLabsPage(),
           ),
           GoRoute(
             path: '/clinic/finance',

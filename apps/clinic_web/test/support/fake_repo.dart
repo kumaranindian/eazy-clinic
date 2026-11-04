@@ -68,6 +68,10 @@ class FakeRepo implements ControlPlaneRepository {
   Future<Uint8List> logoBytes() => _call<Uint8List>('logoBytes', [], {});
 
   @override
+  Future<Uint8List> reportBytes(String reportId) =>
+      _call<Uint8List>('reportBytes', [reportId], {});
+
+  @override
   Future<Json> submitApplication(Json body) =>
       _call<Json>('submitApplication', [body], {});
 

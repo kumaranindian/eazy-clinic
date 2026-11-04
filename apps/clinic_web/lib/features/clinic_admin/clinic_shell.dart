@@ -67,6 +67,30 @@ const _destinations = [
     ClinicPermission.appointmentTypesView,
   ),
   _Dest(
+    'Laboratory',
+    Icons.biotech_outlined,
+    '/clinic/laboratory',
+    ClinicPermission.labDashboardView,
+  ),
+  _Dest(
+    'Lab orders',
+    Icons.science_outlined,
+    '/clinic/laboratory/orders',
+    ClinicPermission.labOrdersView,
+  ),
+  _Dest(
+    'Lab tests',
+    Icons.fact_check_outlined,
+    '/clinic/laboratory/tests',
+    ClinicPermission.labTestsView,
+  ),
+  _Dest(
+    'External labs',
+    Icons.local_shipping_outlined,
+    '/clinic/laboratory/external',
+    ClinicPermission.labExternalManage,
+  ),
+  _Dest(
     'Finance',
     Icons.account_balance_wallet_outlined,
     '/clinic/finance',
