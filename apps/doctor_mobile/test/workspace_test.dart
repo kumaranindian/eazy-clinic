@@ -114,6 +114,52 @@ FakeClinicalRepository _repo({String status = 'draft'}) =>
           },
           '/clinical/patients/p1/vitals' => <Object?>[],
           '/consultations/con_1' => _consultation(status: status),
+          '/consultations/con_1/lab-orders' => [
+            {
+              'orderId': 'lo_1',
+              'orderNumber': 'LAB-000001',
+              'status': 'published',
+              'priority': 'urgent',
+              'tests': ['Haemoglobin'],
+              'createdAt': '2026-06-01T05:00:00.000Z',
+            },
+            {
+              'orderId': 'lo_2',
+              'orderNumber': 'LAB-000002',
+              'status': 'processing',
+              'priority': 'routine',
+              'tests': ['Glucose'],
+              'createdAt': '2026-06-01T05:00:00.000Z',
+            },
+          ],
+          '/laboratory/orders/lo_1/results' => {
+            'orderId': 'lo_1',
+            'status': 'published',
+            'results': [
+              {
+                'itemId': 'it1',
+                'testName': 'Haemoglobin',
+                'observations': [
+                  {
+                    'code': 'HGB',
+                    'name': 'Haemoglobin',
+                    'value': 6,
+                    'unit': 'g/dL',
+                    'flag': 'critical_low',
+                    'range': {
+                      'low': 12,
+                      'high': 15,
+                      'unit': 'g/dL',
+                      'source': 'Clinic SOP',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          '/laboratory/tests' => [
+            {'testId': 'lt_1', 'code': 'HB', 'name': 'Haemoglobin'},
+          ],
           '/prescriptions/rx1' => {
             'prescriptionId': 'rx1',
             'consultationId': 'con_1',
@@ -242,6 +288,49 @@ void main() {
       'name': 'fever',
       'duration': '2 days',
     });
+  });
+
+  testWidgets('laboratory orders show status, and only ready results', (
+    tester,
+  ) async {
+    final repo = _repo();
+    await _open(tester, repo, '/consultations/con_1');
+    expect(find.textContaining('LAB-000001'), findsOneWidget);
+    expect(find.textContaining('LAB-000002'), findsOneWidget);
+    // the order still in processing shows no values, only a waiting note
+    expect(find.textContaining('Results appear here'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('lab-order-lo_1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Haemoglobin: 6 g/dL'), findsOneWidget);
+    expect(find.byKey(const Key('lab-flag-HGB')), findsOneWidget);
+    expect(find.text('Critical low'), findsOneWidget);
+    expect(find.textContaining('Clinic SOP'), findsOneWidget);
+    expect(
+      repo.calls.any((c) => c.$2 == '/laboratory/orders/lo_2/results'),
+      isFalse,
+    );
+  });
+
+  testWidgets('a lab order is placed from the catalogue', (tester) async {
+    final repo = _repo();
+    await _open(tester, repo, '/consultations/con_1');
+    await tester.tap(find.byKey(const Key('order-lab-tests')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('HB · Haemoglobin').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Clinical indication'),
+      'Pallor and fatigue',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    final post = repo.calls.lastWhere((c) => c.$1 == 'POST');
+    expect(post.$2, '/consultations/con_1/lab-orders');
+    final test = ((post.$3!['tests'] as List).single as Map);
+    expect(test['testId'], 'lt_1');
+    expect(test['indication'], 'Pallor and fatigue');
   });
 
   testWidgets('finalizing asks for confirmation first', (tester) async {
