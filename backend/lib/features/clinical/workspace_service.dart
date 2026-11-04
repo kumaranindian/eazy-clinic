@@ -360,6 +360,20 @@ class WorkspaceService {
     final fu = await _s.d.store.query(
       DocQuery(_s.path(t, 'followups'), filters: mine(), limit: 50),
     );
+    // verified, published reports of this doctor's own orders only
+    final labAvailable = t.entitlements.features[FeatureKey.laboratory] == true;
+    final labReports = labAvailable
+        ? await _s.d.store.query(
+            DocQuery(
+              _s.path(t, 'lab_reports'),
+              filters: [
+                ...mine(),
+                const QueryFilter('status', FilterOp.eq, 'published'),
+              ],
+              limit: 50,
+            ),
+          )
+        : const <StoredDoc>[];
     await _s.d.store.commit([
       _s.audit(
         t,
@@ -392,11 +406,30 @@ class WorkspaceService {
               },
         ],
         'followups': [for (final f in fu) ClinicalSupport.present(f.data)],
-        // Phase 9 (laboratory) is not implemented: nothing is shown as a result
-        'laboratory': {
-          'available': false,
-          'note': 'Laboratory results arrive with the laboratory module.',
-        },
+        'laboratory': labAvailable
+            ? {
+                'available': true,
+                'reports': [
+                  for (final r in labReports)
+                    if (r.data['current'] == true &&
+                        t.scope.allows('${r.data['branchId']}'))
+                      {
+                        'reportId': r.data['reportId'],
+                        'reportNumber': r.data['reportNumber'],
+                        'orderNumber': r.data['orderNumber'],
+                        'version': r.data['version'],
+                        'external': r.data['external'],
+                        'label': r.data['label'],
+                        'publishedAt': ClinicalSupport.present({
+                          'x': r.data['publishedAt'],
+                        })['x'],
+                      },
+                ],
+              }
+            : {
+                'available': false,
+                'note': 'The laboratory is not part of this clinic\'s plan.',
+              },
       },
       page.meta,
     );

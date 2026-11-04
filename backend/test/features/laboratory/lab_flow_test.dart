@@ -666,6 +666,82 @@ void main() {
       );
     });
 
+    test(
+      'the doctor sees the order, then only verified results and reports',
+      () async {
+        cid =
+            (await h.okData(
+                  h.call(
+                    'POST',
+                    '/consultations',
+                    uid: 'docuser',
+                    body: {
+                      'patientId': k.patient,
+                      'branchId': k.br,
+                      'chiefComplaint': {'reason': 'Tiredness'},
+                    },
+                  ),
+                  status: 201,
+                ))['consultationId']!
+                as String;
+        await h.actOk('docuser', '/consultations/$cid/start');
+        final o = await k.post('docuser', '/consultations/$cid/lab-orders', {
+          'tests': [
+            {'testId': testId},
+          ],
+        }, 201);
+        final id = o['orderId']! as String;
+        await k.post('labtech', '/laboratory/orders/$id/accept', {});
+        final s = await k.post(
+          'nurse',
+          '/laboratory/orders/$id/samples',
+          {},
+          201,
+        );
+        await k.post('nurse', '/laboratory/samples/${s['sampleId']}/collect', {
+          'identifier': 'DOC-0001',
+          'confirmedMrn': await k.mrn(),
+        });
+        await k.enter(id, itemOf(o), 9.5);
+        await k.post('labtech', '/laboratory/orders/$id/submit-verification');
+        // unverified values are invisible to the doctor
+        var res = await h.get('docuser', '/laboratory/orders/$id/results');
+        expect(res['results'], isEmpty);
+        var hist = await h.get(
+          'docuser',
+          '/clinical/patients/${k.patient}/history',
+        );
+        expect(((hist['laboratory']! as Map)['reports']! as List), isEmpty);
+        await k.post('labtech2', '/laboratory/orders/$id/verify');
+        res = await h.get('docuser', '/laboratory/orders/$id/results');
+        final obs =
+            (((res['results']! as List).first as Map)['observations']! as List)
+                    .first
+                as Map;
+        expect(obs['flag'], 'low');
+        expect(
+          ((res['results']! as List).first as Map).containsKey(
+            'internalComment',
+          ),
+          isFalse,
+        );
+        expect(
+          ((res['results']! as List).first as Map).containsKey('enteredBy'),
+          isFalse,
+        );
+        final pub = await k.post('labtech2', '/laboratory/orders/$id/publish');
+        hist = await h.get(
+          'docuser',
+          '/clinical/patients/${k.patient}/history',
+        );
+        final reps = (hist['laboratory']! as Map)['reports']! as List;
+        expect(reps.single['reportId'], pub['reportId']);
+        // the finalized consultation is never touched by lab activity
+        final con = await h.get('docuser', '/consultations/$cid');
+        expect(con['status'], 'in_progress');
+      },
+    );
+
     test('doctors see only their own orders and verified results', () async {
       final mine = await k.verified(testId);
       // an order raised by the front desk for the same patient is not theirs
