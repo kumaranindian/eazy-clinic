@@ -67,11 +67,13 @@ class AppointmentService {
 
   // ------------------------------------------------------------------ utils
 
-  String _sourceOf(TenantContext t) => switch (t.role) {
-    ClinicRole.clinicOwner || ClinicRole.clinicAdmin => 'clinic_admin',
-    ClinicRole.doctor => 'doctor',
-    _ => 'reception',
-  };
+  String _sourceOf(TenantContext t) => t is PatientActingContext
+      ? 'patient_app'
+      : switch (t.role) {
+          ClinicRole.clinicOwner || ClinicRole.clinicAdmin => 'clinic_admin',
+          ClinicRole.doctor => 'doctor',
+          _ => 'reception',
+        };
 
   Object? _canon(Object? v) {
     if (v is Map) {

@@ -21,6 +21,7 @@ import '../patients/patient_module.dart';
 import '../platform/audit/audit_service.dart';
 import '../platform/common/paging.dart';
 import '../platform/entitlements/entitlement_service.dart';
+import '../portal/portal_module.dart';
 import '../scheduling/scheduling_module.dart';
 import 'branches/branch_service.dart';
 import 'common/clinic_deps.dart';
@@ -83,6 +84,9 @@ class ClinicModule {
     scheduling = SchedulingModule(deps, patients.support);
     clinical = ClinicalModule(deps, patients.support, scheduling);
     billing = BillingModule(deps, patients.support, scheduling.support);
+    portal = PortalModule(deps, patients, scheduling);
+    clinical.support.notifier = portal.notifier;
+    billing.support.notifier = portal.notifier;
   }
 
   final AuthModule auth;
@@ -96,6 +100,7 @@ class ClinicModule {
   late final SchedulingModule scheduling;
   late final ClinicalModule clinical;
   late final BillingModule billing;
+  late final PortalModule portal;
   late final ClinicService clinic;
   late final BranchService branches;
   late final DoctorService doctors;
@@ -184,6 +189,7 @@ class ClinicModule {
     registerSchedulingRoutes(this, scheduling, r);
     registerClinicalRoutes(this, clinical, r);
     registerBillingRoutes(this, billing, r);
+    registerPortalRoutes(this, portal, r);
     registerPatientRoutes(
       this,
       patients,

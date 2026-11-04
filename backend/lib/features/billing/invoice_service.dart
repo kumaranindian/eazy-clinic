@@ -349,7 +349,7 @@ class InvoiceService {
     t.require(ClinicPermission.billingApplyDiscount);
     final s = await _s.settings(t);
     final limits = (s['discountLimitsBps'] as Map?) ?? const {};
-    final limit = (limits[t.role.wireName] as int?) ?? 0;
+    final limit = (limits[t.actorLabel] as int?) ?? 0;
     final subtotal = totals['subtotal']! as int;
     final bps = subtotal == 0
         ? 0

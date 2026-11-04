@@ -56,7 +56,7 @@ class RefundService {
       {
         'status': status,
         'by': t.uid,
-        'role': t.role.wireName,
+        'role': t.actorLabel,
         'at': _s.d.now,
         'note': note,
       }..removeWhere((k, v) => v == null);
@@ -175,7 +175,7 @@ class RefundService {
         'status': 'requested',
         'attempts': 0,
         'requestedBy': t.uid,
-        'requestedByRole': t.role.wireName,
+        'requestedByRole': t.actorLabel,
         'requestedAt': now,
         'history': [_event(t, 'requested')],
         'updatedAt': now,
@@ -361,7 +361,7 @@ class RefundService {
         'method': method,
         'reference': reference,
         'processedBy': t.uid,
-        'processedByRole': t.role.wireName,
+        'processedByRole': t.actorLabel,
         'processedAt': now,
         'attempts': ((f['attempts'] as int?) ?? 0) + 1,
         'failureReason': outcome == 'failed' ? failure : null,

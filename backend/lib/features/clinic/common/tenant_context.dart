@@ -47,6 +47,9 @@ class TenantContext {
 
   Set<String> get permissions => ClinicRolePolicy.permissionsFor(role);
 
+  /// Who is acting, for audit records (a clinic role, or `patient`).
+  String get actorLabel => role.wireName;
+
   bool can(String permission) => permissions.contains(permission);
 
   void require(String permission) {
@@ -110,4 +113,43 @@ Future<TenantContext> resolveTenantContext({
     ),
     entitlements: ent,
   );
+}
+
+/// A patient (or a person acting for a dependent) using the patient app.
+///
+/// Used only by the patient portal, and only after the portal has proved that
+/// the target record belongs to the caller or to someone they are authorized
+/// for. It carries a small fixed permission set instead of a staff role, so the
+/// shared scheduling services can be reused without giving the patient any
+/// staff power: every call still passes through the portal's own ownership,
+/// consent and policy checks first.
+class PatientActingContext extends TenantContext {
+  const PatientActingContext({
+    required super.tenantId,
+    required super.uid,
+    required super.entitlements,
+  }) : super(
+         // Placeholder only; `permissions` and `actorLabel` are overridden.
+         role: ClinicRole.receptionist,
+         scope: const BranchScope(allBranches: true, branchIds: {}),
+       );
+
+  static const Set<String> allowed = {
+    ClinicPermission.appointmentsView,
+    ClinicPermission.appointmentsBook,
+    ClinicPermission.appointmentsManage,
+    ClinicPermission.appointmentsCheckIn,
+    ClinicPermission.appointmentTypesView,
+    ClinicPermission.availabilityView,
+    ClinicPermission.branchesView,
+    ClinicPermission.doctorsView,
+    ClinicPermission.queueView,
+    ClinicPermission.consentsManage,
+  };
+
+  @override
+  Set<String> get permissions => allowed;
+
+  @override
+  String get actorLabel => 'patient';
 }

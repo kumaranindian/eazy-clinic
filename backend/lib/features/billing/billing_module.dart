@@ -252,10 +252,22 @@ void registerBillingRoutes(ClinicModule m, BillingModule b, Router r) {
   r.post(
     '$_v1/billing/invoices/<id>/finalize',
     m.secured(
-      g1(
-        (req, t, id) async =>
-            ok(req, await b.invoices.finalize(t, id, requestId: m.rid(req))),
-      ),
+      g1((req, t, id) async {
+        final res = await b.invoices.finalize(t, id, requestId: m.rid(req));
+        if (res['idempotentReplay'] != true) {
+          await b.support.notifier?.publishForPatient(
+            t.tenantId,
+            '${res['patientId']}',
+            category: 'invoice_generated',
+            title: 'New invoice',
+            body: 'A new invoice is available in the app.',
+            dedupeKey: 'invoice:${res['invoiceId']}',
+            resourceType: 'invoice',
+            resourceId: '${res['invoiceId']}',
+          );
+        }
+        return ok(req, res);
+      }),
       write: true,
     ),
   );
@@ -305,18 +317,28 @@ void registerBillingRoutes(ClinicModule m, BillingModule b, Router r) {
   r.post(
     '$_v1/billing/payments',
     m.secured(
-      g0(
-        (req, t) async => ok(
-          req,
-          await b.payments.create(
-            t,
-            await m.body(req),
-            idempotencyKey: key(req),
-            requestId: m.rid(req),
-          ),
-          status: 201,
-        ),
-      ),
+      g0((req, t) async {
+        final res = await b.payments.create(
+          t,
+          await m.body(req),
+          idempotencyKey: key(req),
+          requestId: m.rid(req),
+        );
+        if (res['idempotentReplay'] != true) {
+          await b.support.notifier?.publishForPatient(
+            t.tenantId,
+            '${res['patientId']}',
+            category: 'payment_received',
+            title: 'Payment received',
+            body:
+                'The clinic recorded a payment. Open the app for the receipt.',
+            dedupeKey: 'payment:${res['paymentId']}',
+            resourceType: 'payment',
+            resourceId: '${res['paymentId']}',
+          );
+        }
+        return ok(req, res, status: 201);
+      }),
       write: true,
     ),
   );
@@ -474,11 +496,25 @@ void registerBillingRoutes(ClinicModule m, BillingModule b, Router r) {
         g1((req, t, id) async {
           final body = await m.optionalBody(req);
           final rid = m.rid(req);
-          return ok(req, switch (action) {
+          final res = switch (action) {
             'approve' => await b.refunds.approve(t, id, body, requestId: rid),
             'reject' => await b.refunds.reject(t, id, body, requestId: rid),
             _ => await b.refunds.complete(t, id, body, requestId: rid),
-          });
+          };
+          if (res['idempotentReplay'] != true && action != 'approve') {
+            await b.support.notifier?.publishForPatient(
+              t.tenantId,
+              '${res['patientId']}',
+              category: 'refund_status',
+              title: 'Refund update',
+              body:
+                  'There is an update on your refund. Open the app for details.',
+              dedupeKey: 'refund:${res['refundId']}:${res['status']}',
+              resourceType: 'refund',
+              resourceId: '${res['refundId']}',
+            );
+          }
+          return ok(req, res);
         }),
         write: true,
       ),

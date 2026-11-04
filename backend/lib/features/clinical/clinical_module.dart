@@ -287,6 +287,36 @@ void registerClinicalRoutes(ClinicModule m, ClinicalModule c, Router r) {
       write: true,
     ),
   );
+  for (final release in [true, false]) {
+    r.post(
+      '$_v1/consultations/<cid>/${release ? 'release' : 'unrelease'}',
+      m.secured(
+        g1((req, t, cid) async {
+          final res = await c.consultations.release(
+            t,
+            m.id(cid),
+            release: release,
+            requestId: m.rid(req),
+          );
+          if (release && res['idempotentReplay'] != true) {
+            await c.support.notifier?.publishForPatient(
+              t.tenantId,
+              '${res['patientId']}',
+              category: 'summary_available',
+              title: 'Visit summary available',
+              body:
+                  'Your doctor shared a summary of your visit. Open the app to read it.',
+              dedupeKey: 'summary:${res['consultationId']}',
+              resourceType: 'consultation',
+              resourceId: '${res['consultationId']}',
+            );
+          }
+          return ok(req, res);
+        }),
+        write: true,
+      ),
+    );
+  }
   r.get(
     '$_v1/consultations/<cid>/amendments',
     m.secured(
@@ -517,12 +547,26 @@ void registerClinicalRoutes(ClinicModule m, ClinicalModule c, Router r) {
   r.post(
     '$_v1/prescriptions/<rid>/finalize',
     m.secured(
-      g1(
-        (req, t, rid) async => ok(
-          req,
-          await c.prescriptions.finalize(t, m.id(rid), requestId: m.rid(req)),
-        ),
-      ),
+      g1((req, t, rid) async {
+        final res = await c.prescriptions.finalize(
+          t,
+          m.id(rid),
+          requestId: m.rid(req),
+        );
+        if (res['idempotentReplay'] != true) {
+          await c.support.notifier?.publishForPatient(
+            t.tenantId,
+            '${res['patientId']}',
+            category: 'prescription_available',
+            title: 'Prescription available',
+            body: 'Your doctor issued a prescription. Open the app to view it.',
+            dedupeKey: 'rx:${res['prescriptionId']}',
+            resourceType: 'prescription',
+            resourceId: '${res['prescriptionId']}',
+          );
+        }
+        return ok(req, res);
+      }),
       write: true,
     ),
   );

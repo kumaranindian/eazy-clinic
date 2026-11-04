@@ -131,7 +131,7 @@ class SchedulingSupport {
     'resourceType': resourceType,
     'resourceId': resourceId,
     'actorUid': t.uid,
-    'actorRole': t.role.wireName,
+    'actorRole': t.actorLabel,
     'reason': reason,
     'requestId': requestId,
     'before': before,

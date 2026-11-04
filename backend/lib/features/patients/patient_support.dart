@@ -87,7 +87,7 @@ class PatientSupport {
     'resourceType': resourceType,
     'resourceId': resourceId ?? patientId,
     'actorUid': t.uid,
-    'actorRole': t.role.wireName,
+    'actorRole': t.actorLabel,
     'reason': reason,
     'requestId': requestId,
     'before': before,

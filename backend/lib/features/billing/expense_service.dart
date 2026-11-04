@@ -148,7 +148,7 @@ class ExpenseService {
       {
         'status': status,
         'by': t.uid,
-        'role': t.role.wireName,
+        'role': t.actorLabel,
         'at': _s.d.now,
         'note': note,
       }..removeWhere((k, v) => v == null);
@@ -261,7 +261,7 @@ class ExpenseService {
       'rev': 1,
       'createdAt': now,
       'createdBy': t.uid,
-      'createdByRole': t.role.wireName,
+      'createdByRole': t.actorLabel,
       'updatedAt': now,
     };
     await _s.d.store.commit([
@@ -394,7 +394,7 @@ class ExpenseService {
           );
         }
         final limits = (settings['expenseApprovalLimits'] as Map?) ?? const {};
-        final limit = limits[t.role.wireName];
+        final limit = limits[t.actorLabel];
         if (limit is int && (e['amount']! as int) > limit) {
           throw ApiException.forbidden(
             'This expense is above your approval limit of $limit.',

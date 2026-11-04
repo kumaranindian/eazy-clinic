@@ -22,7 +22,7 @@ class ClinicDeps {
 
   DateTime get now => clock().toUtc();
 
-  Actor actorOf(TenantContext t) => Actor(t.uid, t.role.wireName);
+  Actor actorOf(TenantContext t) => Actor(t.uid, t.actorLabel);
 
   /// Path of a tenant-scoped document. Every path is built from the tenant id
   /// of the caller's membership, never from request input.

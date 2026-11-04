@@ -642,7 +642,7 @@ class ConsultationService {
               'before': {for (final n in changedSections) n: before[n]},
               'after': {for (final n in changedSections) n: merged[n]},
               'amendedBy': t.uid,
-              'amendedByRole': t.role.wireName,
+              'amendedByRole': t.actorLabel,
               'amendedAt': now,
             }),
             // full copy of the record as it is after this revision
@@ -729,6 +729,52 @@ class ConsultationService {
       ],
       'hasMore': page.meta.hasMore,
     };
+  }
+
+  /// Lets the patient see (or stops them seeing) a finalized consultation's
+  /// summary in the patient app. Only the authoring doctor decides; drafts can
+  /// never be released. The patient sees a limited summary, never the notes.
+  Future<Map<String, Object?>> release(
+    TenantContext t,
+    String id, {
+    required bool release,
+    String? requestId,
+  }) async {
+    t.require(ClinicPermission.consultationsFinalize);
+    final now = _s.d.now;
+    return _s.d.store.transaction((tx) async {
+      final c = await _s.consultation(t, id, tx: tx);
+      await _s.requireAuthor(t, c);
+      if (c['status'] != 'finalized' && c['status'] != 'amended') {
+        throw const ApiException.conflict(
+          'Only a finalized consultation can be released to the patient.',
+        );
+      }
+      if ((c['releasedToPatient'] == true) == release) {
+        return {...ClinicalSupport.present(c), 'idempotentReplay': true};
+      }
+      final patch = {
+        'releasedToPatient': release,
+        'releasedAt': release ? now : null,
+        'releasedBy': release ? t.uid : null,
+        'updatedAt': now,
+        'updatedBy': t.uid,
+      };
+      tx.write([
+        UpdateOp(_s.path(t, collection, id), patch),
+        _s.audit(
+          t,
+          action: release ? 'consultation.released' : 'consultation.unreleased',
+          resourceType: 'consultation',
+          resourceId: id,
+          branchId: '${c['branchId']}',
+          patientId: '${c['patientId']}',
+          consultationId: id,
+          requestId: requestId,
+        ),
+      ]);
+      return ClinicalSupport.present({...c, ...patch});
+    });
   }
 
   // ----------------------------------------------------------- diagnoses
