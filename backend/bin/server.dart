@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:backend/app.dart';
@@ -34,9 +35,34 @@ Future<void> main() async {
     'environment': config.environment.wireName,
   });
 
+  // Notification worker: reminders, outbox processing and delivery retries.
+  // There is no other scheduler in the project, so this uses a plain timer in
+  // the server process. A pass never overlaps the previous one, and passes
+  // are safe to run on several instances (every claim is transactional).
+  Timer? worker;
+  final hub = modules.clinic?.hub;
+  if (hub != null && config.notificationWorkerEnabled) {
+    var running = false;
+    worker = Timer.periodic(const Duration(seconds: 60), (_) async {
+      if (running) return;
+      running = true;
+      try {
+        await hub.tick();
+      } on Object catch (e) {
+        logger.error('notification_worker_failed', {
+          'exceptionType': e.runtimeType.toString(),
+        });
+      } finally {
+        running = false;
+      }
+    });
+    logger.info('notification_worker_started', {'intervalSeconds': 60});
+  }
+
   // Graceful shutdown on SIGINT / SIGTERM (Cloud Run sends SIGTERM).
   Future<void> shutdown(ProcessSignal signal) async {
     logger.info('server_stopping', {'signal': signal.toString()});
+    worker?.cancel();
     await server.close(force: false);
     exit(0);
   }

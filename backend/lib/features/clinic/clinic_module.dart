@@ -18,6 +18,10 @@ import '../auth/presentation/auth_routes.dart';
 import '../billing/billing_module.dart';
 import '../clinical/clinical_module.dart';
 import '../laboratory/lab_module.dart';
+import '../notifications/notification_core.dart';
+import '../notifications/notification_hub.dart';
+import '../notifications/notification_module.dart';
+import '../notifications/notification_service.dart';
 import '../patients/patient_module.dart';
 import '../platform/audit/audit_service.dart';
 import '../platform/common/paging.dart';
@@ -47,6 +51,8 @@ class ClinicModule {
     required this.auth,
     required DocumentStore store,
     required ObjectStorage storage,
+    FcmSender fcm = const UnconfiguredFcmSender(),
+    Map<String, MessageProvider> messageProviders = const {},
     DateTime Function()? clock,
     RateLimiter? writeLimiter,
     RateLimiter? inviteLimiter,
@@ -94,6 +100,9 @@ class ClinicModule {
     );
     portal = PortalModule(deps, patients, scheduling, storage);
     lab.support.notifier = portal.notifier;
+    hub = NotificationHub(deps, fcm: fcm, providers: messageProviders);
+    portal.notifier.hub = hub;
+    notifications = NotificationService(deps, hub, fcm, messageProviders);
     clinical.support.notifier = portal.notifier;
     billing.support.notifier = portal.notifier;
   }
@@ -110,6 +119,8 @@ class ClinicModule {
   late final ClinicalModule clinical;
   late final BillingModule billing;
   late final LabModule lab;
+  late final NotificationHub hub;
+  late final NotificationService notifications;
   late final PortalModule portal;
   late final ClinicService clinic;
   late final BranchService branches;
@@ -200,6 +211,7 @@ class ClinicModule {
     registerClinicalRoutes(this, clinical, r);
     registerBillingRoutes(this, billing, r);
     registerLabRoutes(this, lab, r);
+    registerNotificationRoutes(this, notifications, r);
     registerPortalRoutes(this, portal, r);
     registerPatientRoutes(
       this,

@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../core/data/document_store.dart';
 import '../clinic/common/clinic_deps.dart';
+import '../notifications/notification_hub.dart';
 
 /// Categories of patient notifications (see PATIENT_NOTIFICATION_WORKFLOW.md).
 const List<String> notificationCategories = [
@@ -39,6 +40,12 @@ class PortalNotifier {
 
   final ClinicDeps _d;
 
+  /// Set by the clinic module. When present, notifications that belong to a
+  /// clinic go through the durable event pipeline (outbox, preferences,
+  /// templates, channels, delivery tracking); otherwise the in-app entry is
+  /// written directly, as before.
+  NotificationHub? hub;
+
   /// Idempotent: the same [dedupeKey] never creates a second entry.
   Future<void> publish({
     required String accountId,
@@ -50,6 +57,21 @@ class PortalNotifier {
     String? resourceType,
     String? resourceId,
   }) async {
+    final h = hub;
+    if (h != null && clinicId != null) {
+      final eventId = await h.emit(
+        tenantId: clinicId,
+        type: category,
+        dedupeKey: dedupeKey,
+        accountId: accountId,
+        resourceType: resourceType,
+        resourceId: resourceId,
+        fallbackTitle: title,
+        fallbackBody: body,
+      );
+      await h.processNow(clinicId, eventId);
+      return;
+    }
     final id =
         'n_${sha256.convert(utf8.encode('$accountId:$dedupeKey')).toString().substring(0, 24)}';
     try {
@@ -101,5 +123,32 @@ class PortalNotifier {
       resourceType: resourceType,
       resourceId: resourceId,
     );
+  }
+
+  /// Tells the clinic's doctor (a staff user) about an event. Requires the
+  /// event pipeline; without it nothing is sent.
+  Future<void> notifyDoctor(
+    String tenantId,
+    String? doctorId, {
+    required String category,
+    required String title,
+    required String body,
+    required String dedupeKey,
+    String? resourceType,
+    String? resourceId,
+  }) async {
+    final h = hub;
+    if (h == null || doctorId == null) return;
+    final eventId = await h.emit(
+      tenantId: tenantId,
+      type: category,
+      dedupeKey: 'staff:$dedupeKey',
+      staffDoctorId: doctorId,
+      resourceType: resourceType,
+      resourceId: resourceId,
+      fallbackTitle: title,
+      fallbackBody: body,
+    );
+    await h.processNow(tenantId, eventId);
   }
 }
