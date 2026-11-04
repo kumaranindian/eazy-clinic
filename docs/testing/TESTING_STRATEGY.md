@@ -102,3 +102,6 @@ Laboratory tests: `backend/test/features/laboratory` (flag logic and PDF unit te
 
 ## Phase 10
 Notification and report tests: `backend/test/features/notifications` (pipeline, push, preferences, templates, reminders, administration, event integration), `backend/test/features/reports`, `backend/test/features/portal/portal_lab_test.dart`, `test/integration/notification_flow_emulator_test.dart`, rules tests for the new collections, Clinic Web `test/communications_test.dart`, and inbox tests in the doctor and patient apps. Counts: `docs/phase-10/TESTING.md`.
+
+## Phase 11
+Release gates: `backend/test/security/route_auth_test.dart` (authentication, least privilege, mass assignment over every route read from the source), `cross_tenant_test.dart`, `backend/test/config/app_config_test.dart`, `backend/test/perf` (run with `PERF=1`), `backend/tool/restore_drill.dart` (emulator only), `scripts/security_scan.sh`, `.github/workflows/ci.yml`. Results: `docs/phase-11/`.

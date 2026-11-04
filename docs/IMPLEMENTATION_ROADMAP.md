@@ -45,3 +45,6 @@ Implemented (see `docs/phase-9/`): catalogue, orders, samples, results, verifica
 
 ## Phase 10: Notifications and operational reports (branch `feature/phase-10-reports-notifications`)
 Implemented (see `docs/phase-10/`): notification pipeline, templates, preferences, device tokens, reminders, administration, in-app centres, operational reports, dashboard and exports. Live FCM, external channels, an external scheduler, charts and several event types are deferred. Awaiting approval before Phase 11 (production readiness).
+
+## Phase 11: Production readiness (branch `feature/phase-11-production-readiness`)
+Audit, release gates as tests, CI, runbooks and a risk register are done (see `docs/phase-11/`). Verdict: **not ready**; the open gates need staging, an Android toolchain and keystore, managed backups, monitoring and a legal review. Release execution needs a separate explicit approval.

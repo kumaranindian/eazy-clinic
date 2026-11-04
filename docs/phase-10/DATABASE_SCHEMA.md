@@ -23,4 +23,4 @@ Object storage: `{tenantId}/report_exports/{id}.csv|pdf`, private.
 Prompt model items **not** created as separate collections: `notification_schedules` (reminders are derived by the worker and made unique by dedupe keys, ADR 080) and `report_jobs` (the export record is the job; generation is synchronous within limits, TD-88).
 
 ## Indexes
-24 composite indexes added to `firebase/firestore.indexes.json` for the staff inbox, delivery queue and administration lists, export history, and the report queries (appointments, queues, patients, consultations, lab orders and samples, invoices, payments, refunds). **Not deployed.**
+20 composite indexes added to `firebase/firestore.indexes.json` for the staff inbox, delivery queue and administration lists, export history, and the report queries (appointments, queues, patients, consultations, lab orders and samples, invoices, payments, refunds). **Not deployed.**

@@ -984,7 +984,7 @@ Do not allow documentation to contradict the actual code.
 - Every API response uses the `api_contracts` envelope; errors use `ApiErrorCode`.
 - Firestore/Storage rules are deny-all for clients; the backend is the only data path. Tenant data lives under `tenants/{tenantId}/` (see `docs/database/DATABASE_SCHEMA.md`).
 - Configuration: backend via environment variables, apps via `--dart-define-from-file`; both validated at startup. Only `*.example.*` templates are committed.
-- Run `scripts/check_all.sh` before every commit that changes code.
+- Run `scripts/check_all.sh` and `scripts/security_scan.sh` before every commit that changes code; CI (`.github/workflows/ci.yml`) runs both. Release builds only through `scripts/build_release.sh`; Android release builds fail without `android/key.properties` by design.
 - Git: `master` ← `develop` ← `feature/*`; never push, merge or deploy without explicit approval.
 - Open decision before Phase 1: how the Dart backend accesses Firebase (Admin SDK options) - see `docs/TECHNICAL_DEBT.md` TD-01.
 
