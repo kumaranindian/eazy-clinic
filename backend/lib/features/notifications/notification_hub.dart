@@ -205,6 +205,18 @@ class NotificationHub {
       (k, v) => MapEntry('$k', '$v'),
     );
     final allowedVars = variablesFor(type);
+    // an event with no variables carries its own ready-made text (one-off
+    // service messages); templates are for events that bring variables
+    final ft = e['fallbackTitle'] as String?;
+    final fb = e['fallbackBody'] as String?;
+    if (vars.isEmpty && (ft != null || fb != null)) {
+      return (
+        title: ft ?? 'Notification',
+        body: fb ?? '',
+        ref: 'fallback',
+        version: 0,
+      );
+    }
     // an active tenant template wins over the built-in one
     final rows = await _d.store.query(
       DocQuery(
@@ -266,7 +278,10 @@ class NotificationHub {
   /// Why [e] should no longer be sent, or null.
   Future<String?> staleReason(String tenantId, DocData e) async {
     final type = '${e['type']}';
-    if (type == 'appointment_reminder') {
+    final data = (e['data'] as Map?) ?? const {};
+    // only scheduled reminders carry the details they must still match; the
+    // same category also serves one-off messages that are never stale
+    if (type == 'appointment_reminder' && data['startUtc'] != null) {
       final a = await _d.store.get(
         _p(tenantId, 'appointments', '${e['resourceId']}'),
       );
@@ -280,7 +295,7 @@ class NotificationHub {
         return 'appointment_passed';
       }
     }
-    if (type == 'followup_reminder') {
+    if (type == 'followup_reminder' && data['date'] != null) {
       final f = await _d.store.get(
         _p(tenantId, 'followups', '${e['resourceId']}'),
       );

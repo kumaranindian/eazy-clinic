@@ -142,9 +142,7 @@ void main() {
     await publish();
     final inbox = (await p.get('/patient/notifications'))['items']! as List;
     expect(
-      inbox
-          .where((n) => (n! as Map)['category'] == 'lab_report_available')
-          .length,
+      inbox.where((n) => (n! as Map)['category'] == 'report_available').length,
       1,
     );
   });

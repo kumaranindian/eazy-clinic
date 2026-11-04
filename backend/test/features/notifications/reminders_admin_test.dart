@@ -44,6 +44,11 @@ void main() {
   Iterable<Map<String, Object?>> events([
     String type = 'appointment_reminder',
   ]) => h.docsOf('notification_events').where((e) => e['type'] == type);
+  Iterable<Map<String, Object?>> reminderPushes() => h
+      .docsOf('notification_deliveries')
+      .where(
+        (d) => d['channel'] == 'push' && d['type'] == 'appointment_reminder',
+      );
   Iterable<Map<String, Object?>> deliveries([String? channel]) => h
       .docsOf('notification_deliveries')
       .where((d) => channel == null || d['channel'] == channel);
@@ -120,7 +125,7 @@ void main() {
             .where((n) => n['category'] == 'appointment_reminder'),
         isEmpty,
       );
-      expect(fcm.sent, isEmpty);
+      expect(reminderPushes(), isEmpty);
     });
 
     test('cancelling after the push was queued cancels the push', () async {
@@ -133,12 +138,12 @@ void main() {
         body: {'reason': 'Patient request'},
       );
       await h.clinic.hub.dispatchDue(p.tid);
-      expect(deliveries('push').single['status'], 'cancelled');
+      expect(reminderPushes().single['status'], 'cancelled');
       expect(
-        deliveries('push').single['error'],
+        reminderPushes().single['error'],
         'appointment_no_longer_confirmed',
       );
-      expect(fcm.sent, isEmpty);
+      expect(fcm.sent.where((m) => m.title.contains('reminder')), isEmpty);
     });
 
     test(
@@ -206,15 +211,26 @@ void main() {
         body: {'recommendedDate': '2026-06-02', 'reason': 'Review'},
       );
       await work();
-      expect(events('followup_reminder'), hasLength(1));
+      expect(
+        events(
+          'followup_reminder',
+        ).where((e) => '${e['dedupeKey']}'.startsWith('followup:')),
+        hasLength(1),
+      );
       expect(
         h
             .docsOf('patient_notifications')
             .where((n) => n['category'] == 'followup_reminder'),
-        hasLength(1),
+        hasLength(2),
+        reason: 'one when recommended, one the day before',
       );
       await work();
-      expect(events('followup_reminder'), hasLength(1));
+      expect(
+        events(
+          'followup_reminder',
+        ).where((e) => '${e['dedupeKey']}'.startsWith('followup:')),
+        hasLength(1),
+      );
     });
 
     test(

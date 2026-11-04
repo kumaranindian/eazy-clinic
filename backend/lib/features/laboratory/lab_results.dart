@@ -727,6 +727,7 @@ class LabResultService {
     String? requestId,
   }) async {
     t.require(ClinicPermission.labReportsPublish);
+    String? notifyDoctorId;
     String? notifyPatient;
     String? notifyNumber;
     String? notifyId;
@@ -866,6 +867,7 @@ class LabResultService {
       }
       tx.write(ops);
       notifyPatient = '${o['patientId']}';
+      notifyDoctorId = o['doctorId'] as String?;
       notifyNumber = '${o['orderNumber']}';
       notifyId = '${doc['reportId']}';
       return LabSupport.present(doc);
@@ -875,7 +877,7 @@ class LabResultService {
         await _s.notifier?.publishForPatient(
           t.tenantId,
           notifyPatient!,
-          category: 'lab_report_available',
+          category: 'report_available',
           title: 'Your laboratory report is ready',
           body: 'Report for order $notifyNumber is available.',
           dedupeKey: 'lab_report:$notifyId',
@@ -884,6 +886,20 @@ class LabResultService {
         );
       } on Object {
         // a failed notification never undoes a published report
+      }
+      try {
+        await _s.notifier?.notifyDoctor(
+          t.tenantId,
+          notifyDoctorId,
+          category: 'report_available',
+          title: 'A laboratory report is ready',
+          body: 'A report you requested was published. Open the app.',
+          dedupeKey: 'lab_report:$notifyId',
+          resourceType: 'lab_report',
+          resourceId: notifyId,
+        );
+      } on Object {
+        // best effort
       }
     }
     return out;

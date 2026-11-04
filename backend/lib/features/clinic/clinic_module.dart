@@ -105,6 +105,47 @@ class ClinicModule {
     lab.support.notifier = portal.notifier;
     hub = NotificationHub(deps, fcm: fcm, providers: messageProviders);
     portal.notifier.hub = hub;
+    scheduling.onEvent = (t, type, d) async {
+      final pid = d['patientId'];
+      if (pid == null) return;
+      final id = '${d['appointmentId'] ?? d['entryId']}';
+      const text = {
+        'appointment_confirmed': (
+          'Appointment confirmed',
+          'Your appointment was confirmed. Open the app for details.',
+        ),
+        'appointment_cancelled': (
+          'Appointment cancelled',
+          'Your appointment was cancelled. Open the app for details.',
+        ),
+        'appointment_rescheduled': (
+          'Appointment changed',
+          'Your appointment time changed. Open the app for details.',
+        ),
+        'token_generated': (
+          'You are checked in',
+          'Your queue token is ready. Open the app for details.',
+        ),
+        'doctor_calling': (
+          'Your turn',
+          'The doctor is ready to see you. Please come to the room.',
+        ),
+      };
+      final (title, body) = text[type]!;
+      final eventId = await hub.emit(
+        tenantId: t.tenantId,
+        type: type,
+        dedupeKey:
+            'staff:$type:$id:${d['startUtc'] ?? ''}:${d['recallCount'] ?? ''}',
+        branchId: d['branchId'] as String?,
+        patientId: '$pid',
+        resourceType: d['appointmentId'] != null ? 'appointment' : 'queue',
+        resourceId: id,
+        fallbackTitle: title,
+        fallbackBody: body,
+      );
+      await hub.processNow(t.tenantId, eventId);
+    };
     notifications = NotificationService(deps, hub, fcm, messageProviders);
     reports = ReportService(deps, scheduling.support);
     exports = ExportService(deps, reports, storage);

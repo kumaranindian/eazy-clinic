@@ -957,7 +957,7 @@ class LabOrderService {
     final r = BodyReader(body)..rejectUnknown({'reason'});
     final reason = r.str('reason', min: 5, max: 300);
     r.throwIfInvalid();
-    return _s.d.store.transaction((tx) async {
+    final out = await _s.d.store.transaction((tx) async {
       final s = await _sample(t, sampleId, tx: tx);
       if (s['status'] == 'rejected') {
         return {...LabSupport.present(s), 'idempotentReplay': true};
@@ -1006,6 +1006,28 @@ class LabOrderService {
       ]);
       return LabSupport.present({...s, ...patch});
     });
+    // tell the requesting doctor; the reason (clinical text) is not sent
+    final order = await _s.d.store.get(
+      _s.path(t, collection, '${out['orderId']}'),
+    );
+    if (order != null && order['doctorId'] != null) {
+      try {
+        await _s.notifier?.notifyDoctor(
+          t.tenantId,
+          '${order['doctorId']}',
+          category: 'lab_sample_rejected',
+          title: 'A sample was rejected',
+          body:
+              'A laboratory sample needs to be collected again. Open the app.',
+          dedupeKey: 'sample_rejected:$sampleId',
+          resourceType: 'lab_order',
+          resourceId: '${out['orderId']}',
+        );
+      } on Object {
+        // notifications never undo a rejection
+      }
+    }
+    return out;
   }
 
   Future<Map<String, Object?>> recollect(
