@@ -222,6 +222,7 @@ class NotificationsPage extends ConsumerWidget {
       'consultation' => '/records?tab=visits',
       'prescription' => '/records?tab=prescriptions',
       'invoice' || 'payment' || 'refund' => '/records?tab=bills',
+      'lab_report' => '/records?tab=reports',
       _ => '/notifications',
     };
   }
