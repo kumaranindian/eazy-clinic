@@ -30,6 +30,33 @@ class SchedulingModule {
   }
 
   final SchedulingSupport support;
+
+  /// Set by the clinic module: tells the notification pipeline about an
+  /// appointment or queue event done by staff. A failure here never undoes or
+  /// fails the business action.
+  Future<void> Function(
+    TenantContext t,
+    String type,
+    Map<String, Object?> data,
+  )?
+  onEvent;
+
+  Future<Map<String, Object?>> notify(
+    TenantContext t,
+    String type,
+    Map<String, Object?> out,
+  ) async {
+    final h = onEvent;
+    if (h != null && out['idempotentReplay'] != true) {
+      try {
+        await h(t, type, out);
+      } on Object {
+        // notifications are best effort; the durable event is retried by the worker
+      }
+    }
+    return out;
+  }
+
   late final AvailabilityService availability;
   late final AppointmentTypeService types;
   late final SlotService slots;
@@ -372,7 +399,11 @@ void registerSchedulingRoutes(ClinicModule m, SchedulingModule s, Router r) {
     m.secured(
       (Request req, TenantContext t, String aid) async => ok(
         req,
-        await s.appointments.confirm(t, m.id(aid), requestId: m.rid(req)),
+        await s.notify(
+          t,
+          'appointment_confirmed',
+          await s.appointments.confirm(t, m.id(aid), requestId: m.rid(req)),
+        ),
       ),
       write: true,
     ),
@@ -382,11 +413,15 @@ void registerSchedulingRoutes(ClinicModule m, SchedulingModule s, Router r) {
     m.secured(
       (Request req, TenantContext t, String aid) async => ok(
         req,
-        await s.appointments.cancel(
+        await s.notify(
           t,
-          m.id(aid),
-          await m.body(req),
-          requestId: m.rid(req),
+          'appointment_cancelled',
+          await s.appointments.cancel(
+            t,
+            m.id(aid),
+            await m.body(req),
+            requestId: m.rid(req),
+          ),
         ),
       ),
       write: true,
@@ -397,11 +432,15 @@ void registerSchedulingRoutes(ClinicModule m, SchedulingModule s, Router r) {
     m.secured(
       (Request req, TenantContext t, String aid) async => ok(
         req,
-        await s.appointments.reschedule(
+        await s.notify(
           t,
-          m.id(aid),
-          await m.body(req),
-          requestId: m.rid(req),
+          'appointment_rescheduled',
+          await s.appointments.reschedule(
+            t,
+            m.id(aid),
+            await m.body(req),
+            requestId: m.rid(req),
+          ),
         ),
       ),
       write: true,
@@ -412,11 +451,15 @@ void registerSchedulingRoutes(ClinicModule m, SchedulingModule s, Router r) {
     m.secured(
       (Request req, TenantContext t, String aid) async => ok(
         req,
-        await s.appointments.checkIn(
+        await s.notify(
           t,
-          m.id(aid),
-          body: await m.optionalBody(req),
-          requestId: m.rid(req),
+          'token_generated',
+          await s.appointments.checkIn(
+            t,
+            m.id(aid),
+            body: await m.optionalBody(req),
+            requestId: m.rid(req),
+          ),
         ),
       ),
       write: true,
@@ -566,8 +609,14 @@ void registerSchedulingRoutes(ClinicModule m, SchedulingModule s, Router r) {
   r.post(
     '$_v1/queues/<qid>/call-next',
     m.secured(
-      (Request req, TenantContext t, String qid) async =>
-          ok(req, await s.queue.callNext(t, m.id(qid), requestId: m.rid(req))),
+      (Request req, TenantContext t, String qid) async => ok(
+        req,
+        await s.notify(
+          t,
+          'doctor_calling',
+          await s.queue.callNext(t, m.id(qid), requestId: m.rid(req)),
+        ),
+      ),
       write: true,
     ),
   );
@@ -587,18 +636,21 @@ void registerSchedulingRoutes(ClinicModule m, SchedulingModule s, Router r) {
       m.secured((Request req, TenantContext t, String eid) async {
         final body = await m.optionalBody(req);
         final reason = body['reason'];
+        final out = await s.queue.transition(
+          t,
+          m.id(eid),
+          to,
+          action: action,
+          permission: perm,
+          reason: reason is String ? reason : null,
+          reasonRequired: needsReason,
+          requestId: m.rid(req),
+        );
         return ok(
           req,
-          await s.queue.transition(
-            t,
-            m.id(eid),
-            to,
-            action: action,
-            permission: perm,
-            reason: reason is String ? reason : null,
-            reasonRequired: needsReason,
-            requestId: m.rid(req),
-          ),
+          action == 'call' || action == 'recall'
+              ? await s.notify(t, 'doctor_calling', out)
+              : out,
         );
       }, write: true),
     );

@@ -67,6 +67,24 @@ const _destinations = [
     ClinicPermission.appointmentTypesView,
   ),
   _Dest(
+    'Notifications',
+    Icons.notifications_outlined,
+    '/clinic/notifications',
+    ClinicPermission.clinicView,
+  ),
+  _Dest(
+    'Notification admin',
+    Icons.settings_input_antenna,
+    '/clinic/notifications/admin',
+    ClinicPermission.notificationsManage,
+  ),
+  _Dest(
+    'Reports',
+    Icons.insights_outlined,
+    '/clinic/reports',
+    ClinicPermission.reportsView,
+  ),
+  _Dest(
     'Laboratory',
     Icons.biotech_outlined,
     '/clinic/laboratory',

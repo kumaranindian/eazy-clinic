@@ -11,6 +11,8 @@ import '../../features/clinic_admin/doctors_pages.dart';
 import '../../features/clinic_admin/overview_pages.dart';
 import '../../features/clinic_admin/settings_page.dart';
 import '../../features/clinic_admin/staff_pages.dart';
+import '../../features/communications/notification_pages.dart';
+import '../../features/communications/report_pages.dart';
 import '../../features/finance/finance_pages.dart';
 import '../../features/finance/invoices_pages.dart';
 import '../../features/finance/payments_pages.dart';
@@ -225,6 +227,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/clinic/appointment-types',
             builder: (context, state) => const AppointmentTypesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/notifications',
+            builder: (context, state) => const NotificationCenterPage(),
+          ),
+          GoRoute(
+            path: '/clinic/notifications/settings',
+            builder: (context, state) => const NotificationPreferencesPage(),
+          ),
+          GoRoute(
+            path: '/clinic/notifications/admin',
+            builder: (context, state) => const NotificationAdminPage(),
+          ),
+          GoRoute(
+            path: '/clinic/reports',
+            builder: (context, state) => const ReportsDashboardPage(),
+          ),
+          GoRoute(
+            path: '/clinic/reports/:kind',
+            builder: (context, state) => ReportDetailPage(
+              kind: state.pathParameters['kind']!,
+              from: state.uri.queryParameters['from'],
+              to: state.uri.queryParameters['to'],
+            ),
           ),
           GoRoute(
             path: '/clinic/laboratory',

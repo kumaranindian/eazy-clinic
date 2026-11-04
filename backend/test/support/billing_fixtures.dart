@@ -9,6 +9,9 @@ import 'scheduling_fixtures.dart';
 class BillingClinic {
   BillingClinic(this.h) : c = Clinic(h);
 
+  /// Billing flows on a clinic that is already set up.
+  BillingClinic.on(this.h, this.c);
+
   final PlatformHarness h;
   final Clinic c;
 

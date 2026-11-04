@@ -18,11 +18,18 @@ import '../auth/presentation/auth_routes.dart';
 import '../billing/billing_module.dart';
 import '../clinical/clinical_module.dart';
 import '../laboratory/lab_module.dart';
+import '../notifications/notification_core.dart';
+import '../notifications/notification_hub.dart';
+import '../notifications/notification_module.dart';
+import '../notifications/notification_service.dart';
 import '../patients/patient_module.dart';
 import '../platform/audit/audit_service.dart';
 import '../platform/common/paging.dart';
 import '../platform/entitlements/entitlement_service.dart';
 import '../portal/portal_module.dart';
+import '../reports/export_service.dart';
+import '../reports/report_module.dart';
+import '../reports/report_service.dart';
 import '../scheduling/scheduling_module.dart';
 import 'branches/branch_service.dart';
 import 'common/clinic_deps.dart';
@@ -47,6 +54,8 @@ class ClinicModule {
     required this.auth,
     required DocumentStore store,
     required ObjectStorage storage,
+    FcmSender fcm = const UnconfiguredFcmSender(),
+    Map<String, MessageProvider> messageProviders = const {},
     DateTime Function()? clock,
     RateLimiter? writeLimiter,
     RateLimiter? inviteLimiter,
@@ -94,6 +103,52 @@ class ClinicModule {
     );
     portal = PortalModule(deps, patients, scheduling, storage);
     lab.support.notifier = portal.notifier;
+    hub = NotificationHub(deps, fcm: fcm, providers: messageProviders);
+    portal.notifier.hub = hub;
+    scheduling.onEvent = (t, type, d) async {
+      final pid = d['patientId'];
+      if (pid == null) return;
+      final id = '${d['appointmentId'] ?? d['entryId']}';
+      const text = {
+        'appointment_confirmed': (
+          'Appointment confirmed',
+          'Your appointment was confirmed. Open the app for details.',
+        ),
+        'appointment_cancelled': (
+          'Appointment cancelled',
+          'Your appointment was cancelled. Open the app for details.',
+        ),
+        'appointment_rescheduled': (
+          'Appointment changed',
+          'Your appointment time changed. Open the app for details.',
+        ),
+        'token_generated': (
+          'You are checked in',
+          'Your queue token is ready. Open the app for details.',
+        ),
+        'doctor_calling': (
+          'Your turn',
+          'The doctor is ready to see you. Please come to the room.',
+        ),
+      };
+      final (title, body) = text[type]!;
+      final eventId = await hub.emit(
+        tenantId: t.tenantId,
+        type: type,
+        dedupeKey:
+            'staff:$type:$id:${d['startUtc'] ?? ''}:${d['recallCount'] ?? ''}',
+        branchId: d['branchId'] as String?,
+        patientId: '$pid',
+        resourceType: d['appointmentId'] != null ? 'appointment' : 'queue',
+        resourceId: id,
+        fallbackTitle: title,
+        fallbackBody: body,
+      );
+      await hub.processNow(t.tenantId, eventId);
+    };
+    notifications = NotificationService(deps, hub, fcm, messageProviders);
+    reports = ReportService(deps, scheduling.support);
+    exports = ExportService(deps, reports, storage);
     clinical.support.notifier = portal.notifier;
     billing.support.notifier = portal.notifier;
   }
@@ -110,6 +165,10 @@ class ClinicModule {
   late final ClinicalModule clinical;
   late final BillingModule billing;
   late final LabModule lab;
+  late final NotificationHub hub;
+  late final NotificationService notifications;
+  late final ReportService reports;
+  late final ExportService exports;
   late final PortalModule portal;
   late final ClinicService clinic;
   late final BranchService branches;
@@ -200,6 +259,8 @@ class ClinicModule {
     registerClinicalRoutes(this, clinical, r);
     registerBillingRoutes(this, billing, r);
     registerLabRoutes(this, lab, r);
+    registerNotificationRoutes(this, notifications, r);
+    registerReportRoutes(this, reports, exports, r);
     registerPortalRoutes(this, portal, r);
     registerPatientRoutes(
       this,

@@ -14,6 +14,7 @@ import 'package:backend/features/auth/domain/platform_user.dart';
 import 'package:backend/features/auth/presentation/auth_routes.dart';
 import 'package:backend/features/clinic/clinic_module.dart';
 import 'package:backend/features/clinic/common/object_storage.dart';
+import 'package:backend/features/notifications/notification_core.dart';
 import 'package:backend/features/platform/platform_module.dart';
 import 'package:common_models/common_models.dart';
 import 'package:shelf/shelf.dart';
@@ -25,7 +26,11 @@ import 'platform_fixtures.dart';
 /// Whole app (auth + platform) over an in-memory document store, with real
 /// signed test tokens. Nothing here is available in production code.
 class PlatformHarness {
-  PlatformHarness({TestClock? clock}) : clock = clock ?? TestClock() {
+  PlatformHarness({
+    TestClock? clock,
+    FcmSender fcm = const UnconfiguredFcmSender(),
+    Map<String, MessageProvider> providers = const {},
+  }) : clock = clock ?? TestClock() {
     final users = DocumentPlatformUserStore(store);
     final events = SecurityEventRecorder(
       AppLogger(minLevel: LogLevel.debug, sink: logs.add),
@@ -52,6 +57,8 @@ class PlatformHarness {
       auth: auth,
       store: store,
       storage: storage,
+      fcm: fcm,
+      messageProviders: providers,
       clock: this.clock.call,
     );
     handler = buildApp(
@@ -230,6 +237,7 @@ extension ClinicFlows on PlatformHarness {
     bool billing = true,
     bool patientApp = true,
     bool laboratory = true,
+    bool reports = true,
   }) async {
     if (!store.docs.containsKey('platform_users/$ownerUid')) user(ownerUid);
     final planRes = await call(
@@ -250,6 +258,7 @@ extension ClinicFlows on PlatformHarness {
           'doctor_workspace': true,
           'billing': billing,
           'laboratory': laboratory,
+          'reports': reports,
           'patient_mobile_app': patientApp,
           'multiple_branches': multipleBranches,
         },

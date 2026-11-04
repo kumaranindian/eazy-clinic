@@ -15,6 +15,8 @@ class AppConfig {
     required this.authCheckRevoked,
     required this.trustForwardedFor,
     required this.storageBucket,
+    required this.fcmEnabled,
+    required this.notificationWorkerEnabled,
   });
 
   /// Builds a validated config from [env] (normally `Platform.environment`).
@@ -100,6 +102,17 @@ class AppConfig {
       problems.add('STORAGE_BUCKET is required in ${environment.wireName}.');
     }
 
+    bool flag(String name, bool fallback) {
+      final raw = (env[name] ?? '$fallback').toLowerCase();
+      if (raw != 'true' && raw != 'false') {
+        problems.add('$name must be "true" or "false".');
+      }
+      return raw == 'true';
+    }
+
+    final fcmEnabled = flag('NOTIFICATIONS_FCM_ENABLED', false);
+    final worker = flag('NOTIFICATIONS_WORKER_ENABLED', true);
+
     if (problems.isNotEmpty) {
       throw ConfigurationException(problems.join(' '));
     }
@@ -115,6 +128,8 @@ class AppConfig {
       authCheckRevoked: checkRevoked,
       trustForwardedFor: trustRaw == 'true',
       storageBucket: (bucket == null || bucket.isEmpty) ? null : bucket,
+      fcmEnabled: fcmEnabled,
+      notificationWorkerEnabled: worker,
     );
   }
 
@@ -141,6 +156,15 @@ class AppConfig {
   /// Private Cloud Storage bucket of this environment (clinic logos). When
   /// absent (dev only) logo endpoints answer 503.
   final String? storageBucket;
+
+  /// Whether push messages are sent through FCM (needs the messaging scope on
+  /// the service account). Off by default: deliveries then report
+  /// `configuration_required` instead of pretending to send.
+  final bool fcmEnabled;
+
+  /// Whether this instance runs the notification worker (reminders, outbox,
+  /// retries) on a timer.
+  final bool notificationWorkerEnabled;
 }
 
 /// Log severity, ordered from most to least verbose.

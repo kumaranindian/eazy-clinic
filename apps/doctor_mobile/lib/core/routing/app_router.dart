@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/home/presentation/home_page.dart';
 import '../../features/shell/doctor_shell.dart';
 import '../../features/workspace/presentation/consultation_page.dart';
+import '../../features/workspace/presentation/notifications_page.dart';
 import '../../features/workspace/presentation/patient_pages.dart';
 import '../../features/workspace/presentation/prescription_page.dart';
 import '../../features/workspace/presentation/workspace_pages.dart';
@@ -56,6 +57,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/prescriptions/:id',
             builder: (c, s) =>
                 PrescriptionPage(prescriptionId: s.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/notifications',
+            builder: (c, s) => const NotificationsPage(),
+          ),
+          GoRoute(
+            path: '/notifications/settings',
+            builder: (c, s) => const NotificationPreferencesPage(),
           ),
           GoRoute(path: AppRoutes.account, builder: (c, s) => const HomePage()),
         ],

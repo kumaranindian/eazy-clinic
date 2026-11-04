@@ -113,6 +113,11 @@ abstract final class ClinicPermission {
   static const String labDashboardView = 'lab.dashboard.view';
   static const String labAuditView = 'lab.audit.view';
 
+  // Phase 10: reports and notifications
+  static const String reportsView = 'reports.view';
+  static const String reportsExport = 'reports.export';
+  static const String notificationsManage = 'notifications.manage';
+
   // Phase 6: clinical workspace
   static const String consultationsView = 'consultations.view';
   static const String consultationsViewAll = 'consultations.view_all';
@@ -246,6 +251,9 @@ abstract final class ClinicPermission {
     labExternalManage,
     labDashboardView,
     labAuditView,
+    reportsView,
+    reportsExport,
+    notificationsManage,
   ];
 
   static bool isKnown(String key) => all.contains(key);
@@ -257,6 +265,8 @@ abstract final class ClinicRolePolicy {
   static const Set<String> _readBasics = {
     ClinicPermission.clinicView,
     ClinicPermission.branchesView,
+    // each report section still needs its own module permission
+    ClinicPermission.reportsView,
   };
 
   /// Permissions that expose clinical information.

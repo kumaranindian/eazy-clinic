@@ -637,11 +637,15 @@ void registerClinicalRoutes(ClinicModule m, ClinicalModule c, Router r) {
       g1(
         (req, t, cid) async => ok(
           req,
-          await c.followups.create(
+          await _followupCreated(
+            c,
             t,
-            m.id(cid),
-            await m.body(req),
-            requestId: m.rid(req),
+            await c.followups.create(
+              t,
+              m.id(cid),
+              await m.body(req),
+              requestId: m.rid(req),
+            ),
           ),
           status: 201,
         ),
@@ -709,4 +713,32 @@ void registerClinicalRoutes(ClinicModule m, ClinicalModule c, Router r) {
       ),
     ),
   );
+}
+
+/// Tells the patient a follow-up was recommended (generic text; the reason and
+/// instructions stay in the clinic record).
+Future<Map<String, Object?>> _followupCreated(
+  ClinicalModule c,
+  TenantContext t,
+  Map<String, Object?> f,
+) async {
+  try {
+    final pid = f['patientId'];
+    if (pid != null) {
+      await c.support.notifier?.publishForPatient(
+        t.tenantId,
+        '$pid',
+        category: 'followup_reminder',
+        title: 'Follow-up recommended',
+        body:
+            'Your doctor recommended a follow-up visit. Open the app for details.',
+        dedupeKey: 'followup_created:${f['followupId']}',
+        resourceType: 'followup',
+        resourceId: '${f['followupId']}',
+      );
+    }
+  } on Object {
+    // best effort
+  }
+  return f;
 }

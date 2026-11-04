@@ -7,6 +7,7 @@ import 'features/auth/auth_wiring.dart';
 import 'features/auth/presentation/auth_routes.dart';
 import 'features/clinic/clinic_module.dart';
 import 'features/clinic/common/object_storage.dart';
+import 'features/notifications/notification_core.dart';
 import 'features/platform/platform_module.dart';
 
 /// Production dependency graph. Credentials come from Application Default
@@ -25,6 +26,7 @@ buildProductionModules(AppConfig config, AppLogger logger) async {
     scopes: const [
       'https://www.googleapis.com/auth/cloud-platform',
       'https://www.googleapis.com/auth/datastore',
+      'https://www.googleapis.com/auth/firebase.messaging',
     ],
   );
   final store = FirestoreDocumentStore(projectId: projectId, client: authed);
@@ -45,6 +47,9 @@ buildProductionModules(AppConfig config, AppLogger logger) async {
       storage: bucket == null
           ? const UnconfiguredObjectStorage()
           : GcsObjectStorage(bucket: bucket, client: authed),
+      fcm: config.fcmEnabled
+          ? HttpFcmSender(projectId: projectId, client: authed)
+          : const UnconfiguredFcmSender(),
     ),
   );
 }

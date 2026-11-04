@@ -88,6 +88,18 @@ const patientPaths = [
   'tenants/t1/lab_report_numbers/RPT-000001',
   'tenants/t1/lab_idempotency/hash1',
   'tenants/t1/lab_audit_logs/la1',
+  'tenants/t1/notification_events/ev1',
+  'tenants/t1/notifications/nt1',
+  'tenants/t1/notification_deliveries/dl1',
+  'tenants/t1/notification_templates/tpl1',
+  'tenants/t1/notification_template_versions/tpl1_v1',
+  'tenants/t1/notification_preferences/alice',
+  'tenants/t1/notification_settings/main',
+  'tenants/t1/notification_channel_configs/push',
+  'tenants/t1/notification_audit_logs/na1',
+  'tenants/t1/report_exports/rx1',
+  'tenants/t1/report_audit_logs/ra1',
+  'notification_devices/dev1',
   'patient_notifications/n1',
   'patient_devices/dev1',
   'patient_notification_preferences/pa1',
@@ -331,6 +343,22 @@ describe('patient, scheduling and clinical data is backend-only (Phases 4-6)', (
     await assertFails(setDoc(doc(alice(), 'tenants/t1/lab_tests/lt2'), { name: 'x' }));
     await assertFails(setDoc(doc(alice(), 'tenants/t1/lab_report_numbers/RPT-000002'), { ownerId: 'x' }));
     await assertFails(deleteDoc(doc(alice(), 'tenants/t1/lab_audit_logs/la1')));
+  });
+
+  it('no client can read or change notification events, deliveries, templates, device tokens, report exports or their audit records', async () => {
+    const { collectionGroup, query, where } = await import('firebase/firestore');
+    await assertFails(getDocs(query(collectionGroup(alice(), 'notifications'), where('recipientUid', '==', 'alice'))));
+    await assertFails(getDocs(query(collectionGroup(alice(), 'notification_deliveries'), where('status', '==', 'sent'))));
+    await assertFails(getDocs(query(collectionGroup(anon(), 'report_exports'), where('requestedBy', '==', 'alice'))));
+    await assertFails(getDoc(doc(alice(), 'notification_devices/dev1')));
+    await assertFails(getDoc(doc(alice(), 'tenants/t1/notification_events/ev1')));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/notifications/nt1'), { read: true }));
+    await assertFails(updateDoc(doc(alice(), 'tenants/t1/notification_deliveries/dl1'), { status: 'delivered' }));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/notification_templates/tpl2'), { body: 'x' }));
+    await assertFails(setDoc(doc(alice(), 'notification_devices/dev2'), { uid: 'alice', token: 't' }));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/report_exports/rx2'), { status: 'ready' }));
+    await assertFails(deleteDoc(doc(alice(), 'tenants/t1/notification_audit_logs/na1')));
+    await assertFails(deleteDoc(doc(alice(), 'tenants/t1/report_audit_logs/ra1')));
   });
 
   it('no client can read or write patient notifications, device tokens, preferences or deletion requests', async () => {

@@ -472,6 +472,17 @@ void registerPortalRoutes(ClinicModule m, PortalModule p, Router r) {
     secured((req, c) async => ok(req, await p.notifications.inbox(c))),
   );
   r.post(
+    '$_v1/patient/notifications/read-all',
+    secured((req, c) async => ok(req, await p.notifications.markAllRead(c))),
+  );
+  r.post(
+    '$_v1/patient/notifications/<nid>/archive',
+    secured(
+      (req, c) async =>
+          ok(req, await p.notifications.archive(c, req.params['nid']!)),
+    ),
+  );
+  r.post(
     '$_v1/patient/notifications/<nid>/read',
     secured(
       (req, c) async =>

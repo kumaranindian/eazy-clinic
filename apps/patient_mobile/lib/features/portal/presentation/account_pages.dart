@@ -237,6 +237,18 @@ class NotificationsPage extends ConsumerWidget {
           title: 'Notifications',
           actions: [
             TextButton(
+              key: const Key('mark-all-read'),
+              onPressed: () => runAction(
+                context,
+                action: () => ref
+                    .read(portalRepositoryProvider)
+                    .send('POST', '/patient/notifications/read-all', {}),
+                success: 'All marked as read.',
+                after: () => ref.invalidate(mapProvider),
+              ),
+              child: const Text('Mark all read'),
+            ),
+            TextButton(
               onPressed: () => context.go('/notifications/settings'),
               child: const Text('Settings'),
             ),
@@ -276,6 +288,23 @@ class NotificationsPage extends ConsumerWidget {
                         '${n['body']}\n${shortDateTime(n['createdAt'])}',
                       ),
                       isThreeLine: true,
+                      trailing: IconButton(
+                        key: Key('dismiss-${n['notificationId']}'),
+                        tooltip: 'Dismiss',
+                        icon: const Icon(Icons.close),
+                        onPressed: () => runAction(
+                          context,
+                          action: () => ref
+                              .read(portalRepositoryProvider)
+                              .send(
+                                'POST',
+                                '/patient/notifications/${n['notificationId']}/archive',
+                                {},
+                              ),
+                          success: 'Dismissed.',
+                          after: () => ref.invalidate(mapProvider),
+                        ),
+                      ),
                       onTap: () async {
                         if (n['read'] != true) {
                           try {
