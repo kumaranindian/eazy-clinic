@@ -226,3 +226,14 @@ No clinic role can approve evidence or confirm applicability.
 | `platform.tax.verify` (verify a policy as a tax specialist) | ✔ | ✖ | – |
 
 Clinic roles reuse `billing.view`, `billing.finalize`, `billing.adjust`, `billing.settings.manage`, `finance.reports.view/export`.
+
+## Phase 16 additions (implemented)
+
+| Permission | Owner | Admin | Accountant | Others | Super Admin | Support |
+|---|---|---|---|---|---|---|
+| `gateway.manage` (configure, rotate) | ✔ | ✔ | ✖ | ✖ | – | – |
+| `gateway.reconcile` (reconciliation, sync, resolve) | ✔ | ✔ | ✔ | ✖ | – | – |
+| `platform.payments.read` | – | – | – | – | ✔ | ✔ |
+| `platform.payments.manage` | – | – | – | – | ✔ | ✖ |
+
+Existing `payment.collect` starts an intent; `refund.process` sends an approved refund to the provider.

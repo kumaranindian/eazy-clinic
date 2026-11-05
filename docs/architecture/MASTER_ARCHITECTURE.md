@@ -151,5 +151,10 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 103 | A write-once `issueSnapshot` (seller, customer, currency, policies, rounding, numbering, template) is stored at finalization; corrections use credit/debit notes carrying a declared tax part | Immutable invoices | Implemented (TD-123) |
 | 104 | Rounding is an explicit mode (half-up default) applied to integer arithmetic; one mode per invoice | Currency precision | Implemented |
 | 105 | E-invoicing is a provider-neutral interface plus a submission state machine; the only shipped provider is disabled; payloads are never stored/logged (digest only) | Keep live integrations off until approved | Implemented (TD-122) |
+| 106 | Online payments sit behind a provider-neutral adapter contract; named providers are candidates only and the sole shipped adapter is a sandbox; live mode is hard-disabled by deployment switch plus per-provider approval | No unapproved providers or accidental live money | Implemented (TD-124/125) |
+| 107 | A payment is recorded only from a verified provider event or inquiry, through the existing `PaymentService`; amount and currency must match; mismatches open exceptions instead of recording | Never trust client or unverified data | Implemented |
+| 108 | Each webhook event is claimed once (unique document) and capture uses a per-transaction idempotency key, so duplicates and concurrent deliveries cannot duplicate money | Replay protection | Implemented |
+| 109 | Secrets live only in server configuration; the database holds a credential reference; rotation keeps the previous reference valid for in-flight events until retired | Secure credential handling | Implemented |
+| 110 | Settlement currency, amount, fee and FX evidence are stored apart from the transaction amount and are never computed | Do not assume invoice currency = settlement currency | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

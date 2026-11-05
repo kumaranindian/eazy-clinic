@@ -21,7 +21,7 @@ adds the Phase 0 inventory result and the prerequisites per phase.
 | 13 | Internationalization and localization | Implemented on `feature/phase-13-internationalization` (stacked on 12); PR pending |
 | 14 | Country compliance framework | Implemented on `feature/phase-14-compliance-framework` (stacked on 13); PR pending; registers are unvalidated drafts |
 | 15 | Tax, invoicing and e-invoicing foundations | Backend implemented on `feature/phase-15-tax-invoicing` (stacked on 14); PR pending; no tax content verified; no UI |
-| 16 | International payments | Not started |
+| 16 | International payments | Backend implemented on `feature/phase-16-international-payments` (stacked on 15); PR pending; sandbox only, no real provider, no UI |
 | 17 | Healthcare integrations and national ecosystems | Not started |
 | 18 | International identity and communications | Not started |
 | 19 | Clinical localization and country workflows | Not started |

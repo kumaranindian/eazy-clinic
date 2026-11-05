@@ -285,3 +285,16 @@ Verified by in-memory/API tests; emulator not run. **No tax rates, thresholds or
 | E-invoice contract and state machine | Implemented; **live provider disabled** | TD-122 |
 | Clinic Web UI for the above | **Not implemented** | TD-118 |
 | GST/VAT filing, live e-invoicing, tax content verification | **Not implemented / not done** | TD-116 |
+
+## Phase 16: International payments (branch `feature/phase-16-international-payments`)
+
+Verified by in-memory/API tests; emulator not run. **No real provider, no live mode, no card data. Sandbox adapter only.**
+
+| Item | Status | Evidence |
+|---|---|---|
+| Provider-neutral adapter contract, lifecycle, credential references, sandbox adapter | Implemented, tested | `docs/phase-16/` |
+| Country/currency/provider eligibility (candidates cannot be enabled), live hard-disabled | Implemented, tested | |
+| Intents, verified webhooks, replay protection, amount/currency verification, payment recording | Implemented, tested | `gateway_test.dart` |
+| Provider refunds, settlement facts, disputes, inquiry | Implemented, tested | |
+| Reconciliation queue, stale list, resolution, provider health, rotation, runbook | Implemented, tested | |
+| Real provider adapters; live activation; Clinic Web/patient UI; settlement import | **Not implemented** | TD-124..129 |

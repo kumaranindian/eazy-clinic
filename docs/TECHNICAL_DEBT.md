@@ -125,3 +125,11 @@
 | TD-121 | No place-of-supply logic; supply chosen per line. | Manual | Country packs. |
 | TD-122 | E-invoicing: contract only; no provider, mapper, signing, retry scheduler. | Disabled | Requires approvals. |
 | TD-123 | Existing invoices lack `issueSnapshot`; templates do not render it. | Display gap | Template work. |
+| TD-124 | No real payment provider adapter; candidates only; sandbox uses its own signature scheme. | Cannot take online payments | Provider decision, contract, adapter, certification, sandbox contract tests. |
+| TD-125 | Live mode hard-disabled with no activation workflow. | Intentional | Design with first provider. |
+| TD-126 | No Clinic Web or patient screens for online payments, configuration, reconciliation. | API only | UI pass. |
+| TD-127 | Currency selection UI is INR only; AED accepted in the backend. | Limited | Country packs. |
+| TD-128 | Public webhook endpoint lacks per-IP rate limit and provider IP allow-list. | Abuse surface | Edge/WAF + limiter. |
+| TD-129 | No settlement-report import or scheduled sweep of stale payments. | Manual reconciliation | Worker hook, report import. |
+| TD-130 | Gateway refunds carry no tax part. | See TD-120 | |
+| TD-131 | Subscription billing does not use the gateway. | Out of scope | Separate scope. |

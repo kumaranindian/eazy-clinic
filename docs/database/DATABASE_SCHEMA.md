@@ -168,3 +168,9 @@ New collection-group indexes: `compliance_applicability(profileKey, status)`, `c
 Platform: `tax_policies/{key}` and `tax_policies/{key}/versions/{n}`.
 Per clinic: `einvoice_submissions/{invoiceId}`. Invoices gain `issueSnapshot` and line tax-policy fields; `invoice_adjustments` gain `taxIncluded`; `billing_settings/main` gains `legalName`, `taxRegistrationNumber`.
 New index: `invoice_adjustments(branchId, createdAt)`. Details: `docs/phase-15/ARCHITECTURE_AND_DATA_MODEL.md`.
+
+## Phase 16 additions
+
+Platform: `payment_eligibility/{countryCode}`.
+Per clinic: `gateway_config/main`, `gateway_transactions/{id}`, `gateway_events/{hash}`, `gateway_exceptions/{id}`. `payments` gain `source: gateway`, `gatewayProvider`, `gatewayTransactionId`.
+New index: collection group `gateway_exceptions(status, createdAt)`. Details: `docs/phase-16/ARCHITECTURE_AND_DATA_MODEL.md`.
