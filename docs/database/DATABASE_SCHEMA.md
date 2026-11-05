@@ -162,3 +162,9 @@ Details: `docs/phase-12/ARCHITECTURE_AND_DATA_MODEL.md`.
 Platform: `compliance_profiles/{key}` and `compliance_profiles/{key}/versions/{n}`.
 Per clinic: `compliance_applicability/{profileKey}`, `compliance_items/{profileKey}__{requirementKey}`, `compliance_evidence/{id}`, `compliance_credentials/{id}`, `compliance_history/{auto}`; files under `tenants/{t}/compliance/{evidenceId}`.
 New collection-group indexes: `compliance_applicability(profileKey, status)`, `compliance_evidence(status, uploadedAt)`. Details: `docs/phase-14/ARCHITECTURE_AND_DATA_MODEL.md`.
+
+## Phase 15 additions
+
+Platform: `tax_policies/{key}` and `tax_policies/{key}/versions/{n}`.
+Per clinic: `einvoice_submissions/{invoiceId}`. Invoices gain `issueSnapshot` and line tax-policy fields; `invoice_adjustments` gain `taxIncluded`; `billing_settings/main` gains `legalName`, `taxRegistrationNumber`.
+New index: `invoice_adjustments(branchId, createdAt)`. Details: `docs/phase-15/ARCHITECTURE_AND_DATA_MODEL.md`.

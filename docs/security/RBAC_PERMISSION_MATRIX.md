@@ -216,3 +216,13 @@ Own notification inbox, preferences and devices need no permission beyond member
 | `platform.compliance.review` (applicability, evidence review/files, requirement status, credential verification) | – | – | – | ✔ | ✖ |
 
 No clinic role can approve evidence or confirm applicability.
+
+## Phase 15 additions (implemented)
+
+| Permission | Super Admin | Support Admin | Clinic roles |
+|---|---|---|---|
+| `platform.tax.read` | ✔ | ✔ | – |
+| `platform.tax.manage` (edit policies) | ✔ | ✖ | – |
+| `platform.tax.verify` (verify a policy as a tax specialist) | ✔ | ✖ | – |
+
+Clinic roles reuse `billing.view`, `billing.finalize`, `billing.adjust`, `billing.settings.manage`, `finance.reports.view/export`.

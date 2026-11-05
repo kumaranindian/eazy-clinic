@@ -269,3 +269,19 @@ Verified by in-memory/API and widget tests; emulator and live Firebase not run (
 | Clinic Web: clinic compliance page; platform overview, review queue, reviewer screen | Implemented, widget-tested; English only (TD-110) | |
 | ABDM/ABHA | **Readiness checklist only; no integration and no claim** | `in-abdm-readiness` |
 | UAE authority integrations, regulator submissions, legal validation | **Not implemented / not done** | |
+
+## Phase 15: Tax, invoicing and e-invoicing foundations (branch `feature/phase-15-tax-invoicing`)
+
+Verified by in-memory/API tests; emulator not run. **No tax rates, thresholds or exemptions are shipped; nothing is filed or transmitted; no compliance claim.**
+
+| Item | Status | Evidence |
+|---|---|---|
+| Effective-dated tax policies, verification workflow, baseline shells (India GST, UAE VAT, no rates) | Implemented, tested | `docs/phase-15/` |
+| Policy lines on invoices (supply, exemptions, zero-rating), frozen and re-checked at finalization | Implemented, tested | `tax_test.dart` |
+| Rounding modes; integer arithmetic | Implemented, tested | |
+| Issue snapshot, seller legal name/tax number settings | Implemented, tested | |
+| Concurrency-safe numbering; credit/debit notes with tax part | Implemented, tested (in-memory store) | |
+| Tax summary report (JSON/CSV) | Implemented, tested | PDF not built |
+| E-invoice contract and state machine | Implemented; **live provider disabled** | TD-122 |
+| Clinic Web UI for the above | **Not implemented** | TD-118 |
+| GST/VAT filing, live e-invoicing, tax content verification | **Not implemented / not done** | TD-116 |

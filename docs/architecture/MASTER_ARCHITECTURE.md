@@ -146,5 +146,10 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 098 | A register update is a new version with reason, snapshot and tenant impact report; scope fields are fixed; baseline registers ship as unvalidated drafts and are capped from "ready" until counsel review is recorded | Traceability, governance | Implemented |
 | 099 | Evidence files reuse the private-storage pattern (type by bytes, size cap, server-built path, authenticated download, generic names, every read audited) | Secure document access | Implemented |
 | 100 | Expiry alerts go through the notification hub (`compliance_expiry`, essential, generic text, per-recipient dedupe keys) and the existing worker via `hub.tenantScans` | One event pipeline, no new scheduler | Implemented |
+| 101 | Tax policies are platform-managed, effective-dated and ship **without rates**; a policy is usable only when a tax specialist's verification is recorded, and material edits void it | Never hardcode a universal rate; avoid implied tax advice | Implemented (TD-116) |
+| 102 | Rates are resolved on the invoice date, frozen on the line with policy key/version/rounding, and re-checked at finalization; failure is an error, never a default | Historical integrity | Implemented |
+| 103 | A write-once `issueSnapshot` (seller, customer, currency, policies, rounding, numbering, template) is stored at finalization; corrections use credit/debit notes carrying a declared tax part | Immutable invoices | Implemented (TD-123) |
+| 104 | Rounding is an explicit mode (half-up default) applied to integer arithmetic; one mode per invoice | Currency precision | Implemented |
+| 105 | E-invoicing is a provider-neutral interface plus a submission state machine; the only shipped provider is disabled; payloads are never stored/logged (digest only) | Keep live integrations off until approved | Implemented (TD-122) |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

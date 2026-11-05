@@ -117,3 +117,11 @@
 | TD-113 | No retention/deletion policy for compliance evidence and credentials. | Regulatory retention unknown | Per-country decision (Phases 21/22). |
 | TD-114 | Doctor registration numbers (Phase 3) are not migrated or linked to credentials. | Duplicate data entry | Import/link. |
 | TD-115 | `facilityTypes` is stored but not used to filter registers; practitioner-subject requirements are tracked at facility level; no register editor UI. | Coarse applicability | Per-practitioner items / admin editor if required. |
+| TD-116 | Tax policies are empty shells; no rates/thresholds/exemptions/invoice fields are verified; sources not fetched. | Cannot be used until specialists supply content | Specialist input + verification per country. |
+| TD-117 | Single `INV-` numbering series per clinic. | No per-branch/fiscal-year/country series | Country rules (Phases 19/22). |
+| TD-118 | No Clinic Web UI for tax policies, line policy selection, legal/tax identity, note tax part or tax report. | API only | UI pass. |
+| TD-119 | Tax report has no PDF export. | CSV/JSON only | Reuse report export pipeline. |
+| TD-120 | Refunds carry no tax part; note tax is declared, not recomputed. | Liability depends on issuer input | Compute from lines. |
+| TD-121 | No place-of-supply logic; supply chosen per line. | Manual | Country packs. |
+| TD-122 | E-invoicing: contract only; no provider, mapper, signing, retry scheduler. | Disabled | Requires approvals. |
+| TD-123 | Existing invoices lack `issueSnapshot`; templates do not render it. | Display gap | Template work. |
