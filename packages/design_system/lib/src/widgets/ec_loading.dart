@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../tokens/ec_colors.dart';
 import '../tokens/ec_dimensions.dart';
 import '../tokens/ec_typography.dart';
+import 'ec_texts.dart';
 
 /// Centered loading indicator with an optional message.
 class EcLoadingIndicator extends StatelessWidget {
@@ -14,7 +15,7 @@ class EcLoadingIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Semantics(
-        label: message ?? 'Loading',
+        label: message ?? EcTexts.of(context).loading,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

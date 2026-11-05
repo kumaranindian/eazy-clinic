@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'ec_texts.dart';
+
 /// Standard page app bar: white surface, navy title, hairline bottom border
 /// (configured in [EcTheme]).
 class EcAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -27,7 +29,7 @@ class EcAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       leading: showBack
           ? IconButton(
-              tooltip: 'Back',
+              tooltip: EcTexts.of(context).back,
               icon: const Icon(Icons.arrow_back),
               onPressed: onBack ?? () => Navigator.of(context).maybePop(),
             )

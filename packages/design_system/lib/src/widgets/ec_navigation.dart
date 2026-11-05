@@ -157,8 +157,8 @@ class _SideNavItem extends StatelessWidget {
           height: EcSizes.minTapTarget,
           decoration: BoxDecoration(
             color: selected ? const Color(0x1FFFFFFF) : null,
-            border: Border(
-              left: BorderSide(
+            border: BorderDirectional(
+              start: BorderSide(
                 color: selected ? EcColors.red : Colors.transparent,
                 width: 4,
               ),
