@@ -243,3 +243,15 @@ Legend as above. Verification is by tests with an in-memory store and widget tes
 | Firestore index, rules-test paths | Added, **not deployed/run** | `firestore.indexes.json` |
 | Live Firebase, emulator, Docker build | **Not run** | TD-95 |
 | GST/VAT, payment gateways, ABDM, UAE exchange, FX, multi-region deployment | **Not implemented** (excluded) | |
+
+## Phase 13: Internationalization and localization (branch `feature/phase-13-internationalization`)
+
+| Item | Status | Evidence |
+|---|---|---|
+| gen-l10n resources (en + ar, hi, ta starter packs), completeness tool in `check_all.sh` | Implemented, tested | `docs/phase-13/TRANSLATION_COMPLETENESS.md` |
+| Locale resolution, per-user language on the account, language menu in all apps | Implemented, tested | `localization_test.dart`, `localization_backend_test.dart` |
+| RTL (directional fixes, LTR data fields, identifiers), Unicode input | Implemented, widget-tested; screens not individually audited (TD-105) | design_system / app tests |
+| `RegionalDisplay` (clinic-zone time, locale numbers, currency decimals) replacing three formatters | Implemented, tested | `LOCALIZATION_AUDIT.md` |
+| Translated flows: auth/status, validation/sign-in failures, navigation, status words, design-system texts, reminder templates (ar/hi/ta) | Implemented (representative); **most screen text still English** (TD-102) | |
+| Template bidi safety, document-language hook | Implemented, tested | `SECURITY_AND_PRIVACY.md` |
+| Native-speaker/professional translation review, device font verification, screen-reader testing | **Not done** (TD-104, TD-108) | |

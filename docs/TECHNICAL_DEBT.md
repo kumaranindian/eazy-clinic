@@ -103,3 +103,10 @@
 | TD-99 | Existing tenants stay unassigned until a super admin assigns them (no bulk apply, no assign control on the tenant page). | Manual migration | Add tenant-page control; decide bulk policy with ops. |
 | TD-100 | Correcting a tenant's country does not revalidate or convert stored phones, currency or amounts. | Possible inconsistency after correction | Per-field migration tooling if corrections occur. |
 | TD-101 | Branch `address.localized` is stored but not displayed anywhere yet. | Presentation gap | Phase 13/19 UI work. |
+| TD-102 | Most screen text is still English (≈ 296 `Text` literals plus labels/hints); only auth/status screens, navigation, status words, selectors and design-system texts use resources. | Partial localization | Migrate feature by feature (Phase 13 follow-ups). |
+| TD-103 | Backend validation/error messages are English. | Mixed-language messages | Stable codes + client localization. |
+| TD-104 | Arabic, Hindi and Tamil are machine-assisted starter translations, unreviewed and uncertified; not for legal/clinical/consent text. | Quality/legal risk | Native-speaker and professional review before release. |
+| TD-105 | RTL not audited screen by screen (tables, calendars, pickers, dialogs in clinic screens). | Possible layout defects in Arabic | Per-feature visual QA. |
+| TD-106 | Eight hand-padded time helpers remain in slot-label code. | Inconsistent time text | Use `RegionalDisplay.time`. |
+| TD-107 | Numeral system follows platform locale data; no clinic/user numeral setting. | Preference gap | Add setting if requested. |
+| TD-108 | Bundled Inter font lacks Arabic, Devanagari and Tamil glyphs; platform fallback fonts are used and untested on devices. | Visual quality | Bundle per-script fonts and test on devices. |

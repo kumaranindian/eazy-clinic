@@ -134,5 +134,11 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 086 | Configuration resolution is layered (country → tenant → branch → user locale → deployment); unknown or invalid configuration fails closed; tenants without a country are "not configured", not guessed | Safe compatibility with existing tenants | Implemented (TD-97) |
 | 087 | Existing tenants are classified by a read-only dry-run report and assigned one by one by a super admin; no bulk apply | Safe migration | Implemented (TD-99, TD-100) |
 | 088 | Locale is presentation only: user preference never changes country, currency or stored data; instants stay UTC and render in the branch zone; money is minor units + ISO code | Clinical/legal meaning unchanged | Implemented (TD-98) |
+| 089 | UI strings use Flutter `gen-l10n` (ARB, generated code committed) in `app_core`; English is the template; a missing translation falls back to English, never a key | Standard Flutter mechanism, no new i18n dependency beyond `intl`/`flutter_localizations` | Implemented |
+| 090 | A user's language is a presentation preference stored on the account (`preferredLanguage`), precedence user → clinic → country → English; it never feeds authorization, tenancy, country, currency or stored values | Locale must not change legal or clinical meaning | Implemented |
+| 091 | One `RegionalDisplay` formats dates/times/numbers/money from the clinic's zone, country and currency (replacing three per-app formatters); money shows a symbol only for unambiguous currencies, else the ISO code | Correctness (clinic-local time, decimals) and consistency | Implemented |
+| 092 | Design-system widget texts come from an `EcTextsScope` filled by the app, so the package stays free of app localization | Package independence | Implemented |
+| 093 | Language changes refresh the whole tree while preserving widget state (no key-based rebuild) | "No data loss" on locale switch | Implemented |
+| 094 | Template values are stripped of bidirectional controls and isolated in RTL languages; translated templates must match English placeholders and contain no clinical variables | Bidi-injection and layout safety | Implemented (TD-104) |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).
