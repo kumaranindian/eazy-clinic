@@ -410,6 +410,7 @@ class ProfilePage extends ConsumerWidget {
               title: '${p['displayName'] ?? 'My profile'}',
               subtitle: 'Profile ${p['profileCompletion']}% complete',
               actions: [
+                const LanguageSelector(),
                 sized(
                   EcSecondaryButton(
                     label: 'Edit',
@@ -502,7 +503,7 @@ class ProfilePage extends ConsumerWidget {
               )
             else
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: TextButton(
                   key: const Key('request-deletion'),
                   onPressed: () async {

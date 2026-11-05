@@ -1,3 +1,4 @@
+import 'package:app_core/app_core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -150,7 +151,7 @@ class _RecordDialogState extends State<_RecordDialog> {
                               label: f.kind == FieldKind.date
                                   ? '${f.label} (YYYY-MM-DD)'
                                   : f.kind == FieldKind.money
-                                  ? '${f.label} (₹)'
+                                  ? '${f.label} (${RegionalDisplay.currencyLabel()})'
                                   : f.label,
                               controller: _c[f.key],
                               maxLength: f.maxLength,

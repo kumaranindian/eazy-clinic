@@ -99,6 +99,7 @@ class PlatformShell extends ConsumerWidget {
       ],
     );
     final actions = [
+      const LanguageSelector(),
       IconButton(
         tooltip: 'Sign out',
         icon: const Icon(Icons.logout),
@@ -147,7 +148,11 @@ class PlatformShell extends ConsumerWidget {
     return EcNavScaffold(
       appBar: appBar,
       destinations: [
-        for (final d in items) EcNavDestination(label: d.label, icon: d.icon),
+        for (final d in items)
+          EcNavDestination(
+            label: d.path == '/platform' ? context.l10n.navDashboard : d.label,
+            icon: d.icon,
+          ),
       ],
       selectedIndex: selected,
       onSelected: (i) => context.go(items[i].path),

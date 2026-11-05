@@ -189,7 +189,7 @@ class FinanceDashboardPage extends ConsumerWidget {
             ),
             if (can(ref, ClinicPermission.financeReportsView))
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: sized(
                   EcSecondaryButton(
                     label: 'Open reports',

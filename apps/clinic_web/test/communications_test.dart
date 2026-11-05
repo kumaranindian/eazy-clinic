@@ -376,7 +376,7 @@ void main() {
       await open(t, _app(e), '/clinic/reports');
       expect(
         t.widget<Text>(find.byKey(const Key('kpi-billing-grossBilled'))).data,
-        '₹1500.00',
+        '₹1,500.00',
       );
       expect(
         t.widget<Text>(find.byKey(const Key('kpi-billing-collected'))).data,

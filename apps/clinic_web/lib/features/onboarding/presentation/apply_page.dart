@@ -214,7 +214,7 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
 
   Widget _countryField(BuildContext context) {
     final countries = ref.watch(onboardableCountriesProvider);
-    final strings = AppStrings.of(context);
+    final strings = context.l10n;
     return SizedBox(
       width: 300,
       child: countries.when(

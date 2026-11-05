@@ -380,7 +380,7 @@ class _QueueBody extends ConsumerWidget {
     final id = '${e['entryId']}';
     final status = '${e['status']}';
     Widget b(String label, VoidCallback f) => Padding(
-      padding: const EdgeInsets.only(left: 4),
+      padding: const EdgeInsetsDirectional.only(start: 4),
       child: TextButton(onPressed: f, child: Text(label)),
     );
     Future<void> withReason(

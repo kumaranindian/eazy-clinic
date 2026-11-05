@@ -228,12 +228,13 @@ class _SettingsState extends ConsumerState<ClinicSettingsPage> {
                             : null,
                       ),
                     ),
-                    const SizedBox(
+                    SizedBox(
                       width: 300,
                       child: EcTextField(
                         label: 'Currency',
                         enabled: false,
-                        hint: 'INR (₹)',
+                        hint:
+                            '${RegionalDisplay.currency} (${RegionalDisplay.currencyLabel()})',
                       ),
                     ),
                     SizedBox(

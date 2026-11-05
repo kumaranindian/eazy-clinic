@@ -21,6 +21,7 @@ class EazyClinicApp extends ConsumerWidget {
       locale: ref.watch(appLocaleProvider),
       supportedLocales: supportedAppLocales,
       localizationsDelegates: appLocalizationDelegates,
+      builder: localizedAppBuilder,
       routerConfig: ref.watch(appRouterProvider),
     );
   }

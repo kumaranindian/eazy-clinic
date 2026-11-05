@@ -9,31 +9,12 @@ String humanize(Object? v) {
   return s.isEmpty ? '—' : s[0].toUpperCase() + s.substring(1);
 }
 
-String shortDate(Object? iso) {
-  final d = iso is String ? DateTime.tryParse(iso)?.toLocal() : null;
-  if (d == null) return '—';
-  const m = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return '${d.day} ${m[d.month - 1]} ${d.year}';
-}
+/// Date in the clinic's time zone and the user's language.
+String shortDate(Object? iso, {String? timezone}) =>
+    RegionalDisplay.date(iso, timezone: timezone);
 
-String shortDateTime(Object? iso) {
-  final d = iso is String ? DateTime.tryParse(iso)?.toLocal() : null;
-  if (d == null) return '—';
-  return '${shortDate(iso)}, ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-}
+String shortDateTime(Object? iso, {String? timezone}) =>
+    RegionalDisplay.dateTime(iso, timezone: timezone);
 
 EcStatusTone tone(Object? status) => switch (status) {
   'finalized' ||
@@ -50,8 +31,12 @@ EcStatusTone tone(Object? status) => switch (status) {
   _ => EcStatusTone.neutral,
 };
 
-Widget statusChip(Object? status) =>
-    EcStatusChip(label: humanize(status), tone: tone(status));
+Widget statusChip(Object? status) => Builder(
+  builder: (context) => EcStatusChip(
+    label: statusLabel(context.l10n, status),
+    tone: tone(status),
+  ),
+);
 
 String failureText(Object error) {
   if (error is! ApiFailure) return 'Something went wrong. Please try again.';

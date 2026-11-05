@@ -198,6 +198,7 @@ class ClinicShell extends ConsumerWidget {
           backgroundColor: EcColors.surface,
           title: const EcBrandLogo.icon(height: 32),
           actions: [
+            const LanguageSelector(),
             IconButton(
               tooltip: 'Sign out',
               icon: const Icon(Icons.logout),
@@ -272,6 +273,7 @@ class _Frame extends ConsumerWidget {
         ],
       ),
       actions: [
+        const LanguageSelector(),
         if (showSelector)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: EcSpacing.sm),
@@ -366,11 +368,29 @@ class _Frame extends ConsumerWidget {
     return EcNavScaffold(
       appBar: appBar,
       destinations: [
-        for (final d in items) EcNavDestination(label: d.label, icon: d.icon),
+        for (final d in items)
+          EcNavDestination(label: _navLabel(context, d), icon: d.icon),
       ],
       selectedIndex: selected,
       onSelected: (i) => context.go(items[i].path),
       body: body,
     );
   }
+}
+
+/// Navigation label in the user's language; entries without a translation
+/// keep their English label.
+String _navLabel(BuildContext context, _Dest d) {
+  final t = context.l10n;
+  return switch (d.path) {
+    '/clinic' => t.navOverview,
+    '/clinic/branches' => t.navBranches,
+    '/clinic/patients' => t.navPatients,
+    '/clinic/appointments' => t.navAppointments,
+    '/clinic/queue' => t.navQueue,
+    '/clinic/notifications' => t.navNotifications,
+    '/clinic/reports' => t.navReports,
+    '/clinic/laboratory' => t.navLaboratory,
+    _ => d.label,
+  };
 }
