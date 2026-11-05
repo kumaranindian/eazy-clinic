@@ -27,6 +27,7 @@ AuthProfileDto _profile(PlatformUser u) => AuthProfileDto(
   phoneNumber: u.phoneNumber,
   profileImageUrl: u.profileImageUrl,
   lastLoginAt: u.lastLoginAt?.toUtc().toIso8601String(),
+  preferredLanguage: u.preferredLanguage,
 );
 
 AuthSessionDto _session(PlatformUser u, List<MembershipSummaryDto> m) =>
@@ -37,6 +38,7 @@ AuthSessionDto _session(PlatformUser u, List<MembershipSummaryDto> m) =>
       accessGranted: u.accountStatus.canAccessProtectedFeatures,
       platformRole: u.platformRole,
       memberships: m,
+      preferredLanguage: u.preferredLanguage,
     );
 
 /// Everything the auth feature needs, built once at startup.
@@ -201,7 +203,11 @@ class AuthModule {
   Future<Response> _updateMe(Request request) async {
     final ctx = authContextOf(request);
     final body = await readJsonObject(request);
-    _rejectUnknownFields(body, const {'displayName', 'phoneNumber'});
+    _rejectUnknownFields(body, const {
+      'displayName',
+      'phoneNumber',
+      'preferredLanguage',
+    });
     final v = RequestValidator(body);
     String? name;
     if (body.containsKey('displayName')) {
@@ -220,8 +226,27 @@ class AuthModule {
     if (body.containsKey('phoneNumber') && !clearPhone) {
       phone = v.string('phoneNumber', Validators.indianMobile);
     }
+    String? language;
+    final clearLanguage =
+        body.containsKey('preferredLanguage') &&
+        body['preferredLanguage'] == null;
+    if (body.containsKey('preferredLanguage') && !clearLanguage) {
+      language = v.string(
+        'preferredLanguage',
+        (s) => isSupportedUiLanguage(s?.trim())
+            ? null
+            : ValidationFailure(
+                'unsupported_language',
+                'Choose one of: ${supportedUiLanguages.join(', ')}.',
+              ),
+      );
+    }
     v.throwIfInvalid();
-    if (name == null && phone == null && !clearPhone) {
+    if (name == null &&
+        phone == null &&
+        !clearPhone &&
+        language == null &&
+        !clearLanguage) {
       throw const ApiException.badRequest('No profile fields to update.');
     }
     final updated = await accounts.updateProfile(
@@ -229,6 +254,8 @@ class AuthModule {
       displayName: name,
       phoneNumber: phone,
       clearPhone: clearPhone,
+      preferredLanguage: language,
+      clearPreferredLanguage: clearLanguage,
       requestId: requestIdOf(request),
     );
     return ok(request, _profile(updated).toJson());

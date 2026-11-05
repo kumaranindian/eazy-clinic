@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:common_models/common_models.dart';
 import 'package:crypto/crypto.dart';
 
 import '../../core/data/document_store.dart';
@@ -242,10 +243,13 @@ class NotificationHub {
       ref = mine.id;
       version = (mine.data['version'] as int?) ?? 1;
     } else {
-      final b = builtinTemplates
-          .where((t) => t.eventType == type && t.channel == channel)
-          .where((t) => t.locale == locale || t.locale == 'en')
-          .firstOrNull;
+      final forEvent = builtinTemplates.where(
+        (t) => t.eventType == type && t.channel == channel,
+      );
+      // the recipient's language when a template exists, else English
+      final b =
+          forEvent.where((t) => t.locale == locale).firstOrNull ??
+          forEvent.where((t) => t.locale == 'en').firstOrNull;
       if (b != null) {
         subject = b.subject;
         body = b.body;
@@ -260,14 +264,25 @@ class NotificationHub {
       if (t == null && b == null) return null;
       return (title: t ?? 'Notification', body: b ?? '', ref: ref, version: 0);
     }
+    // right-to-left text: keep names, numbers and identifiers in their own
+    // direction (only when the chosen template really is in that language)
+    final usedLocale = mine != null ? '${mine.data['locale']}' : locale;
+    final rtl = rtlUiLanguages.contains(usedLocale);
     return (
       title: renderTemplate(
         subject ?? '',
         vars,
         allowed: allowedVars,
         html: html,
+        rtl: rtl,
       ),
-      body: renderTemplate(body ?? '', vars, allowed: allowedVars, html: html),
+      body: renderTemplate(
+        body ?? '',
+        vars,
+        allowed: allowedVars,
+        html: html,
+        rtl: rtl,
+      ),
       ref: ref,
       version: version,
     );

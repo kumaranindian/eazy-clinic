@@ -40,14 +40,29 @@ class LocaleFormatter {
         ).format(value);
 
   /// Formats [minorUnits] of [currencyCode] (e.g. `123450`, `INR` → ₹1,234.50).
-  /// The ISO code is always the source of truth; the symbol is presentation.
+  ///
+  /// The ISO code is always the source of truth. A symbol is used only for
+  /// currencies whose symbol is unambiguous (see [currencySymbols]); every
+  /// other currency is shown with its ISO code (`AED 1,234.50`), never with a
+  /// guessed abbreviation.
   String currency(int minorUnits, String currencyCode) {
     final digits = Currency.minorUnits(currencyCode);
     final major = minorUnits / math.pow(10, digits);
+    final symbol = currencySymbols[currencyCode] ?? '$currencyCode\u00A0';
     return NumberFormat.currency(
       locale: _icu,
+      symbol: symbol,
       name: currencyCode,
       decimalDigits: digits,
     ).format(major);
   }
+
+  /// Currencies shown with a symbol. Everything else uses the ISO 4217 code.
+  static const Map<String, String> currencySymbols = {
+    'INR': '₹',
+    'USD': r'$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+  };
 }

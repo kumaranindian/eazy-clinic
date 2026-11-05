@@ -238,7 +238,8 @@ void main() {
 
     test('formats money from minor units with currency-specific digits', () {
       const f = LocaleFormatter('en-IN');
-      expect(f.currency(123450, 'INR'), contains('1,234.50'));
+      expect(f.currency(123450, 'INR'), '₹1,234.50');
+      expect(f.currency(123450, 'AED'), 'AED\u00A01,234.50');
       expect(f.currency(123450, 'AED'), contains('1,234.50'));
       expect(f.currency(1234567, 'KWD'), contains('1,234.567'));
       expect(f.currency(1234, 'JPY'), contains('1,234'));

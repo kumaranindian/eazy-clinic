@@ -18,6 +18,7 @@ class PlatformUser {
     this.phoneNumber,
     this.profileImageUrl,
     this.platformRole,
+    this.preferredLanguage,
   });
 
   final String uid;
@@ -31,6 +32,9 @@ class PlatformUser {
   final String? phoneNumber;
   final String? profileImageUrl;
   final PlatformRole? platformRole;
+
+  /// UI language chosen by the user (`en`, `ar`, `hi`, `ta`), presentation only.
+  final String? preferredLanguage;
 
   PlatformUser copyWith({
     String? displayName,
@@ -51,6 +55,7 @@ class PlatformUser {
     phoneNumber: phoneNumber,
     profileImageUrl: profileImageUrl,
     platformRole: platformRole,
+    preferredLanguage: preferredLanguage,
   );
 
   /// Storage representation (scalars and [DateTime] only).
@@ -66,6 +71,7 @@ class PlatformUser {
     'phoneNumber': phoneNumber,
     'profileImageUrl': profileImageUrl,
     'platformRole': platformRole?.wireName,
+    'preferredLanguage': preferredLanguage,
   };
 
   /// Returns `null` when the stored document is malformed. An unknown status
@@ -91,6 +97,10 @@ class PlatformUser {
       phoneNumber: map['phoneNumber'] as String?,
       profileImageUrl: map['profileImageUrl'] as String?,
       platformRole: PlatformRole.tryParse(map['platformRole'] as String?),
+      preferredLanguage:
+          isSupportedUiLanguage(map['preferredLanguage'] as String?)
+          ? map['preferredLanguage'] as String?
+          : null,
     );
   }
 }

@@ -133,6 +133,97 @@ const List<TemplateDef> builtinTemplates = [
     subject: 'Follow-up reminder',
     body: 'You have a follow-up visit coming up. Open the app for details.',
   ),
+  // Phase 13: starter translations (machine-assisted, not reviewed by a
+  // native speaker; generic wording only, no clinical detail). Placeholders
+  // must match the English template exactly (enforced by a test).
+  TemplateDef(
+    eventType: 'appointment_reminder',
+    channel: 'in_app',
+    locale: 'ar',
+    subject: 'تذكير بالموعد',
+    body: 'لديك موعد في {{clinicName}} بتاريخ {{date}} الساعة {{time}}.',
+  ),
+  TemplateDef(
+    eventType: 'appointment_reminder',
+    channel: 'push',
+    locale: 'ar',
+    subject: 'تذكير بالموعد',
+    body: 'لديك موعد قريب. افتح التطبيق لمعرفة التفاصيل.',
+  ),
+  TemplateDef(
+    eventType: 'appointment_reminder',
+    channel: 'in_app',
+    locale: 'hi',
+    subject: 'अपॉइंटमेंट अनुस्मारक',
+    body: '{{clinicName}} में {{date}} को {{time}} बजे आपका अपॉइंटमेंट है।',
+  ),
+  TemplateDef(
+    eventType: 'appointment_reminder',
+    channel: 'push',
+    locale: 'hi',
+    subject: 'अपॉइंटमेंट अनुस्मारक',
+    body: 'आपका अपॉइंटमेंट जल्द है। विवरण के लिए ऐप खोलें।',
+  ),
+  TemplateDef(
+    eventType: 'appointment_reminder',
+    channel: 'in_app',
+    locale: 'ta',
+    subject: 'சந்திப்பு நினைவூட்டல்',
+    body:
+        '{{clinicName}} இல் {{date}} அன்று {{time}} மணிக்கு உங்களுக்கு சந்திப்பு உள்ளது.',
+  ),
+  TemplateDef(
+    eventType: 'appointment_reminder',
+    channel: 'push',
+    locale: 'ta',
+    subject: 'சந்திப்பு நினைவூட்டல்',
+    body:
+        'உங்கள் சந்திப்பு விரைவில் உள்ளது. விவரங்களுக்கு செயலியைத் திறக்கவும்.',
+  ),
+  TemplateDef(
+    eventType: 'followup_reminder',
+    channel: 'in_app',
+    locale: 'ar',
+    subject: 'تذكير بالمتابعة',
+    body: 'يُوصى بزيارة متابعة مع {{clinicName}} بتاريخ {{date}}.',
+  ),
+  TemplateDef(
+    eventType: 'followup_reminder',
+    channel: 'push',
+    locale: 'ar',
+    subject: 'تذكير بالمتابعة',
+    body: 'لديك زيارة متابعة قريبة. افتح التطبيق لمعرفة التفاصيل.',
+  ),
+  TemplateDef(
+    eventType: 'followup_reminder',
+    channel: 'in_app',
+    locale: 'hi',
+    subject: 'फ़ॉलो-अप अनुस्मारक',
+    body: '{{clinicName}} के साथ {{date}} को फ़ॉलो-अप विज़िट की सलाह दी गई है।',
+  ),
+  TemplateDef(
+    eventType: 'followup_reminder',
+    channel: 'push',
+    locale: 'hi',
+    subject: 'फ़ॉलो-अप अनुस्मारक',
+    body: 'आपकी फ़ॉलो-अप विज़िट जल्द है। विवरण के लिए ऐप खोलें।',
+  ),
+  TemplateDef(
+    eventType: 'followup_reminder',
+    channel: 'in_app',
+    locale: 'ta',
+    subject: 'தொடர் சிகிச்சை நினைவூட்டல்',
+    body:
+        '{{clinicName}} உடன் {{date}} அன்று தொடர் சந்திப்பு பரிந்துரைக்கப்படுகிறது.',
+  ),
+  TemplateDef(
+    eventType: 'followup_reminder',
+    channel: 'push',
+    locale: 'ta',
+    subject: 'தொடர் சிகிச்சை நினைவூட்டல்',
+    body:
+        'உங்கள் தொடர் சந்திப்பு விரைவில் உள்ளது. விவரங்களுக்கு செயலியைத் திறக்கவும்.',
+  ),
 ];
 
 class TemplateException implements Exception {
@@ -149,8 +240,16 @@ Set<String> placeholdersIn(String text) => {
   for (final m in _placeholder.allMatches(text)) m.group(1)!,
 };
 
+/// Bidirectional control characters (embeddings, overrides, isolates, marks,
+/// Arabic letter mark). Removed from interpolated values so a name or free
+/// text can neither reorder the surrounding message nor disguise it.
+final RegExp _bidiControls = RegExp(
+  r'[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069]',
+);
+
 String _clean(String v) => v
     .replaceAll(RegExp(r'[\u0000-\u001F\u007F]'), ' ')
+    .replaceAll(_bidiControls, '')
     .replaceAll('{{', '')
     .replaceAll('}}', '')
     .trim();
@@ -165,11 +264,16 @@ String escapeHtml(String v) => v
 /// Replaces `{{name}}` placeholders in a single pass (no logic, no recursion,
 /// no expressions, so there is nothing to inject into). Unknown names and
 /// missing values are errors; values are cleaned and, for HTML, escaped.
+///
+/// With [rtl] (right-to-left languages) every value is wrapped in a Unicode
+/// first-strong isolate (U+2068 ... U+2069), so Latin identifiers, numbers,
+/// phone numbers and names keep their own direction inside Arabic text.
 String renderTemplate(
   String text,
   Map<String, String> values, {
   required Set<String> allowed,
   bool html = false,
+  bool rtl = false,
 }) {
   return text.replaceAllMapped(_placeholder, (m) {
     final name = m.group(1)!;
@@ -181,7 +285,8 @@ String renderTemplate(
       throw TemplateException('Variable $name has no value.');
     }
     final c = _clean(v);
-    return html ? escapeHtml(c) : c;
+    final out = html ? escapeHtml(c) : c;
+    return rtl ? '\u2068$out\u2069' : out;
   });
 }
 

@@ -14,4 +14,6 @@ for p in "${FLUTTER_PROJECTS[@]}"; do
   echo "=== $p (flutter)"
   (cd "$ROOT/$p" && flutter pub get >/dev/null && dart format --output=none --set-exit-if-changed lib test && flutter analyze && flutter test)
 done
+echo "=== translation completeness (app_core)"
+(cd "$ROOT/packages/app_core" && dart run tool/l10n_report.dart --check)
 echo "All checks passed."

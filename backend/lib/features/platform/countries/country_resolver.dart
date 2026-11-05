@@ -1,13 +1,10 @@
 import 'package:api_contracts/api_contracts.dart';
+import 'package:common_models/common_models.dart';
 import 'package:country_config/country_config.dart';
 
 import '../../../core/data/document_store.dart';
 import '../../../core/errors/api_exception.dart';
 import 'country_directory.dart';
-
-/// UI languages the apps ship representative translations for (Phase 12).
-/// Phase 13 expands this list.
-const List<String> supportedUiLanguages = ['en', 'hi', 'ar'];
 
 /// Resolves the effective country configuration for a tenant by layering,
 /// from most to least authoritative:
