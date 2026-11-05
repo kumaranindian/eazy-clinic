@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/auth_ui_config.dart';
+import '../../regional/l10n_context.dart';
 import '../application/auth_controller.dart';
 import '../application/auth_redirect.dart';
 import '../domain/auth_state.dart';
@@ -42,7 +43,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!mounted) return;
     setState(() {
       _submitting = false;
-      _error = failure?.message;
+      _error = failure?.localized(context.l10n);
       if (failure != null) _password.clear();
     });
   }
@@ -53,19 +54,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final auth = ref.watch(authControllerProvider);
     final notice = auth is Unauthenticated ? auth.notice : null;
     return AuthScaffold(
-      title: 'Sign in',
+      title: context.l10n.signIn,
       subtitle: ui.audienceLabel,
       footer: ui.registrationEnabled
           ? Wrap(
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                const Text('New to EazyClinic?'),
+                Text(context.l10n.newToApp),
                 TextButton(
                   onPressed: _submitting
                       ? null
                       : () => context.go(AuthPaths.register),
-                  child: const Text('Create account'),
+                  child: Text(context.l10n.createAccount),
                 ),
               ],
             )
@@ -85,14 +86,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 const SizedBox(height: EcSpacing.lg),
               ],
               EcTextField(
-                label: 'Email',
+                label: context.l10n.email,
                 controller: _email,
                 prefixIcon: Icons.mail_outline,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.email],
                 enabled: !_submitting,
-                validator: AuthValidators.email,
+                validator: AuthValidators(context.l10n).email,
               ),
               const SizedBox(height: EcSpacing.lg),
               EcPasswordField(
@@ -100,20 +101,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 enabled: !_submitting,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _submit(),
-                validator: AuthValidators.existingPassword,
+                validator: AuthValidators(context.l10n).existingPassword,
               ),
               Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
                   onPressed: _submitting
                       ? null
                       : () => context.go(AuthPaths.forgotPassword),
-                  child: const Text('Forgot password?'),
+                  child: Text(context.l10n.forgotPassword),
                 ),
               ),
               const SizedBox(height: EcSpacing.sm),
               EcPrimaryButton(
-                label: 'Sign in',
+                label: context.l10n.signIn,
                 isLoading: _submitting,
                 onPressed: _submit,
               ),

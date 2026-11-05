@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/auth_ui_config.dart';
+import '../../regional/l10n_context.dart';
 import '../application/auth_controller.dart';
 import '../application/auth_redirect.dart';
+import '../domain/auth_failure.dart';
 import '../domain/auth_state.dart';
 import 'auth_layout.dart';
 
@@ -15,9 +17,9 @@ class AuthLoadingPage extends StatelessWidget {
   const AuthLoadingPage({super.key});
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
+  Widget build(BuildContext context) => Scaffold(
     backgroundColor: EcColors.background,
-    body: EcLoadingIndicator(message: 'Checking your session…'),
+    body: EcLoadingIndicator(message: context.l10n.checkingSession),
   );
 }
 
@@ -35,16 +37,18 @@ class AuthErrorPage extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           EcErrorState(
-            title: offline ? 'You appear to be offline' : 'Cannot sign you in',
+            title: offline
+                ? context.l10n.offlineTitle
+                : context.l10n.cannotSignInTitle,
             message: offline
-                ? 'Check your internet connection and try again.'
-                : 'We could not verify your session. Please try again.',
+                ? context.l10n.offlineMessage
+                : context.l10n.sessionVerifyFailed,
             onRetry: () => ref.read(authControllerProvider.notifier).retry(),
           ),
           TextButton(
             onPressed: () =>
                 ref.read(authControllerProvider.notifier).signOut(),
-            child: const Text('Sign out'),
+            child: Text(context.l10n.signOut),
           ),
         ],
       ),
@@ -65,17 +69,20 @@ class AccessDeniedPage extends ConsumerWidget {
         : AccessDeniedReason.notAuthorized;
     final (title, message, icon) = switch (reason) {
       AccessDeniedReason.suspended => (
-        'Account suspended',
-        'This account has been suspended. Please contact EazyClinic support '
-            'or your clinic administrator.',
+        context.l10n.accountSuspendedTitle,
+        context.l10n.accountSuspendedMessage,
         Icons.pause_circle_outline,
       ),
       AccessDeniedReason.disabled => (
-        'Account disabled',
-        'This account has been disabled. Please contact EazyClinic support.',
+        context.l10n.accountDisabledTitle,
+        context.l10n.accountDisabledMessage,
         Icons.block,
       ),
-      _ => ('Access not available', ui.deniedHint, Icons.lock_outline),
+      _ => (
+        context.l10n.accessUnavailableTitle,
+        ui.deniedHint,
+        Icons.lock_outline,
+      ),
     };
     return AuthScaffold(
       title: title,
@@ -91,7 +98,7 @@ class AccessDeniedPage extends ConsumerWidget {
           ),
           const SizedBox(height: EcSpacing.xl),
           EcSecondaryButton(
-            label: 'Sign out',
+            label: context.l10n.signOut,
             icon: Icons.logout,
             onPressed: () =>
                 ref.read(authControllerProvider.notifier).signOut(),
@@ -124,12 +131,12 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       _busy = true;
       _message = null;
     });
-    final failure = await action();
+    final failure = await action() as AuthFailure?;
     if (!mounted) return;
     setState(() {
       _busy = false;
       _isError = failure != null;
-      _message = failure?.message as String? ?? success;
+      _message = failure?.localized(context.l10n) ?? success;
     });
   }
 
@@ -139,10 +146,10 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
     final state = ref.watch(authControllerProvider);
     final email = state is AccessDenied ? state.user?.email : null;
     return AuthScaffold(
-      title: 'Verify your email',
+      title: context.l10n.verifyEmailTitle,
       subtitle: email == null
-          ? 'We sent you a verification link.'
-          : 'We sent a verification link to $email.',
+          ? context.l10n.verificationSentGeneric
+          : context.l10n.verificationSentTo(email),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -154,29 +161,28 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
             const SizedBox(height: EcSpacing.lg),
           ],
           Text(
-            'Open the link in that email, then come back and continue. '
-            'You will get access once your email is verified.',
+            context.l10n.verifyEmailInstructions,
             style: EcTypography.bodySecondary,
           ),
           const SizedBox(height: EcSpacing.xl),
           EcPrimaryButton(
-            label: "I've verified my email",
+            label: context.l10n.verifiedMyEmail,
             isLoading: _busy,
             onPressed: () => _run(controller.refreshAccess),
           ),
           const SizedBox(height: EcSpacing.md),
           EcSecondaryButton(
-            label: 'Resend verification email',
+            label: context.l10n.resendVerification,
             onPressed: _busy
                 ? null
                 : () => _run(
                     controller.resendVerificationEmail,
-                    success: 'Verification email sent.',
+                    success: context.l10n.verificationResent,
                   ),
           ),
           TextButton(
             onPressed: _busy ? null : () => controller.signOut(),
-            child: const Text('Sign out'),
+            child: Text(context.l10n.signOut),
           ),
         ],
       ),
@@ -192,7 +198,7 @@ class PasswordResetSentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
-      title: 'Check your email',
+      title: context.l10n.checkYourEmailTitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -203,20 +209,18 @@ class PasswordResetSentPage extends StatelessWidget {
           ),
           const SizedBox(height: EcSpacing.lg),
           Text(
-            'If an account exists for this email, a password reset link has '
-            'been sent. Check your inbox and spam folder. The link expires '
-            'after a short time.',
+            context.l10n.resetLinkInfo,
             style: EcTypography.bodySecondary,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: EcSpacing.xl),
           EcPrimaryButton(
-            label: 'Back to sign in',
+            label: context.l10n.backToSignIn,
             onPressed: () => context.go(AuthPaths.login),
           ),
           const SizedBox(height: EcSpacing.md),
           EcSecondaryButton(
-            label: 'Use a different email',
+            label: context.l10n.useDifferentEmail,
             onPressed: () => context.go(AuthPaths.forgotPassword),
           ),
         ],

@@ -106,13 +106,14 @@ void main() {
     test('resolution order is user, clinic, then fallback', () {
       final cfg = RegionalConfig.fromJson(dto(tag: 'ar-AE', rtl: true));
       expect(resolveAppLocale(userPreference: 'hi', config: cfg).tag, 'hi');
+      expect(resolveAppLocale(userPreference: 'ta').tag, 'ta');
       expect(resolveAppLocale(config: cfg).tag, 'ar');
       expect(resolveAppLocale(config: cfg).isRtl, isTrue);
       expect(resolveAppLocale().tag, 'en');
     });
   });
 
-  group('representative translations', () {
+  group('generated localizations', () {
     Widget host(Locale? locale, Widget child) => MaterialApp(
       locale: locale,
       supportedLocales: supportedAppLocales,
@@ -121,15 +122,17 @@ void main() {
       home: Scaffold(body: child),
     );
 
-    testWidgets('Arabic, Hindi and English strings resolve', (tester) async {
+    testWidgets('English, Arabic, Hindi and Tamil strings resolve', (
+      tester,
+    ) async {
       final seen = <String, String>{};
-      for (final code in ['en', 'hi', 'ar']) {
+      for (final code in ['en', 'ar', 'hi', 'ta']) {
         await tester.pumpWidget(
           host(
             Locale(code),
             Builder(
               builder: (context) {
-                seen[code] = AppStrings.of(context).signIn;
+                seen[code] = context.l10n.signIn;
                 return const SizedBox();
               },
             ),
@@ -138,14 +141,30 @@ void main() {
         await tester.pumpAndSettle();
       }
       expect(seen['en'], 'Sign in');
-      expect(seen['hi'], 'साइन इन करें');
       expect(seen['ar'], 'تسجيل الدخول');
+      expect(seen['hi'], 'साइन इन करें');
+      expect(seen['ta'], 'உள்நுழை');
     });
 
-    test('an unsupported language falls back to English', () async {
-      expect(AppStrings.delegate.isSupported(const Locale('fr')), isFalse);
-      final strings = await AppStrings.delegate.load(const Locale('fr'));
-      expect(strings.country, 'Country');
+    testWidgets('an unsupported device language falls back to English', (
+      tester,
+    ) async {
+      late String text;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('fr'),
+          supportedLocales: supportedAppLocales,
+          localizationsDelegates: appLocalizationDelegates,
+          home: Builder(
+            builder: (context) {
+              text = context.l10n.country;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(text, 'Country');
     });
 
     testWidgets('widgets work with no localization installed', (tester) async {
@@ -154,13 +173,45 @@ void main() {
         MaterialApp(
           home: Builder(
             builder: (context) {
-              text = AppStrings.of(context).welcome;
+              text = context.l10n.welcome;
               return const SizedBox();
             },
           ),
         ),
       );
       expect(text, 'Welcome');
+    });
+
+    testWidgets('plurals follow each language\'s rules', (tester) async {
+      final seen = <String, List<String>>{};
+      for (final code in ['en', 'ar', 'hi', 'ta']) {
+        await tester.pumpWidget(
+          host(
+            Locale(code),
+            Builder(
+              builder: (context) {
+                seen[code] = [
+                  for (final n in [0, 1, 2, 5])
+                    context.l10n.appointmentsCount(n),
+                ];
+                return const SizedBox();
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+      expect(seen['en'], [
+        'No appointments',
+        '1 appointment',
+        '2 appointments',
+        '5 appointments',
+      ]);
+      expect(seen['ar']![1], 'موعد واحد');
+      expect(seen['ar']![2], 'موعدان');
+      expect(seen['ar']![3], contains('5'));
+      expect(seen['hi']![1], '1 अपॉइंटमेंट');
+      expect(seen['ta']![3], contains('5'));
     });
   });
 

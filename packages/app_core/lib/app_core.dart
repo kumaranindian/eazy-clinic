@@ -3,6 +3,7 @@
 /// apps; nothing here knows about clinics, patients or consultations.
 library;
 
+export 'l10n/generated/app_localizations.dart';
 export 'src/api/api_client.dart';
 export 'src/auth/application/auth_controller.dart';
 export 'src/auth/application/auth_providers.dart';
@@ -20,6 +21,10 @@ export 'src/auth/presentation/auth_layout.dart';
 export 'src/auth/presentation/auth_routes.dart';
 export 'src/config/auth_ui_config.dart';
 export 'src/config/firebase_bootstrap.dart';
-export 'src/regional/app_strings.dart';
+export 'src/regional/l10n_context.dart';
+export 'src/regional/language_selector.dart';
 export 'src/regional/locale_providers.dart';
+export 'src/regional/localized_app_scope.dart';
 export 'src/regional/regional_config.dart';
+export 'src/regional/regional_display.dart';
+export 'src/regional/status_labels.dart';
