@@ -255,3 +255,17 @@ Legend as above. Verification is by tests with an in-memory store and widget tes
 | Translated flows: auth/status, validation/sign-in failures, navigation, status words, design-system texts, reminder templates (ar/hi/ta) | Implemented (representative); **most screen text still English** (TD-102) | |
 | Template bidi safety, document-language hook | Implemented, tested | `SECURITY_AND_PRIVACY.md` |
 | Native-speaker/professional translation review, device font verification, screen-reader testing | **Not done** (TD-104, TD-108) | |
+
+## Phase 14: Country compliance framework (branch `feature/phase-14-compliance-framework`)
+
+Verified by in-memory/API and widget tests; emulator and live Firebase not run (TD-95). **Registers are unvalidated drafts (TD-109); no compliance, certification or integration is claimed.**
+
+| Item | Status | Evidence |
+|---|---|---|
+| Versioned registers per country/jurisdiction/authority; India (4) and UAE (4) baseline drafts; impact reports | Implemented, tested | `docs/phase-14/` |
+| Applicability (unknown by default, reviewer-set), evidence workflow, effective status, no "compliant" value | Implemented, tested | `compliance_api_test.dart` |
+| Practitioner/facility credential register, verification, expiry states | Implemented, tested | |
+| Expiry alerts through the notification worker | Implemented; tested with a recording notifier | TD-111/-112 |
+| Clinic Web: clinic compliance page; platform overview, review queue, reviewer screen | Implemented, widget-tested; English only (TD-110) | |
+| ABDM/ABHA | **Readiness checklist only; no integration and no claim** | `in-abdm-readiness` |
+| UAE authority integrations, regulator submissions, legal validation | **Not implemented / not done** | |

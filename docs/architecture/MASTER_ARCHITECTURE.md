@@ -140,5 +140,11 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 092 | Design-system widget texts come from an `EcTextsScope` filled by the app, so the package stays free of app localization | Package independence | Implemented |
 | 093 | Language changes refresh the whole tree while preserving widget state (no key-based rebuild) | "No data loss" on locale switch | Implemented |
 | 094 | Template values are stripped of bidirectional controls and isolated in RTL languages; translated templates must match English placeholders and contain no clinical variables | Bidi-injection and layout safety | Implemented (TD-104) |
+| 095 | Compliance is an evidence framework, not a verdict: versioned registers per country/jurisdiction/authority; clinic evidence reviewed by platform reviewers; there is no "compliant" value anywhere | Avoid false compliance claims | Implemented (TD-109) |
+| 096 | Applicability is unknown by default and is set only by a platform reviewer for registers of the clinic's own country | Safe defaults; no blanket regulator assumptions (esp. UAE) | Implemented |
+| 097 | Effective status is computed on read: expired approvals and approvals of changed requirements stop counting without any job; the scan only persists and alerts | No stale badge | Implemented |
+| 098 | A register update is a new version with reason, snapshot and tenant impact report; scope fields are fixed; baseline registers ship as unvalidated drafts and are capped from "ready" until counsel review is recorded | Traceability, governance | Implemented |
+| 099 | Evidence files reuse the private-storage pattern (type by bytes, size cap, server-built path, authenticated download, generic names, every read audited) | Secure document access | Implemented |
+| 100 | Expiry alerts go through the notification hub (`compliance_expiry`, essential, generic text, per-recipient dedupe keys) and the existing worker via `hub.tenantScans` | One event pipeline, no new scheduler | Implemented |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

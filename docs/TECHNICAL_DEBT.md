@@ -110,3 +110,10 @@
 | TD-106 | Eight hand-padded time helpers remain in slot-label code. | Inconsistent time text | Use `RegionalDisplay.time`. |
 | TD-107 | Numeral system follows platform locale data; no clinic/user numeral setting. | Preference gap | Add setting if requested. |
 | TD-108 | Bundled Inter font lacks Arabic, Devanagari and Tamil glyphs; platform fallback fonts are used and untested on devices. | Visual quality | Bundle per-script fonts and test on devices. |
+| TD-109 | Compliance registers (India, UAE) are unvalidated product drafts; source links are authority home pages that were not fetched, with no clause citations. | Legal risk if relied on | Counsel review per `docs/phase-14/LEGAL_REVIEW_CHECKLIST.md` before production. |
+| TD-110 | Compliance screens and messages are English only. | Not localized | Localize after counsel reviews wording. |
+| TD-111 | Platform reviewers have no MFA, four-eyes rule or review SLA. | Privileged role risk | With TD-94 and Phase 20. |
+| TD-112 | Evidence files are type-checked but not malware-scanned; authenticity is not verified. | File/forgery risk | Scanning hook; authority integrations only when approved. |
+| TD-113 | No retention/deletion policy for compliance evidence and credentials. | Regulatory retention unknown | Per-country decision (Phases 21/22). |
+| TD-114 | Doctor registration numbers (Phase 3) are not migrated or linked to credentials. | Duplicate data entry | Import/link. |
+| TD-115 | `facilityTypes` is stored but not used to filter registers; practitioner-subject requirements are tracked at facility level; no register editor UI. | Coarse applicability | Per-practitioner items / admin editor if required. |

@@ -204,3 +204,15 @@ Results, reports and the audit trail belong to the clinical permission set, so t
 | `notifications.manage` (templates, deliveries, retry, channels, settings, health) | ✔ | ✔ | |
 
 Own notification inbox, preferences and devices need no permission beyond membership. Report sections require: appointments `appointments.view`, queues `queue.view`, patients `patients.view` (not doctors), consultations `consultations.view` (own) or `view_all`, laboratory `lab.dashboard.view`, billing `finance.reports.view`.
+
+## Phase 14 additions (implemented)
+
+| Permission | Clinic Owner | Clinic Admin | Others | Platform Super Admin | Platform Support |
+|---|---|---|---|---|---|
+| `compliance.view` (checklist, credentials, evidence list/download) | ✔ | ✔ | ✖ | – | – |
+| `compliance.manage` (upload evidence, maintain credentials) | ✔ | ✔ | ✖ | – | – |
+| `platform.compliance.read` (registers, overview, clinic dashboards) | – | – | – | ✔ | ✔ |
+| `platform.compliance.manage` (create/update/seed registers) | – | – | – | ✔ | ✖ |
+| `platform.compliance.review` (applicability, evidence review/files, requirement status, credential verification) | – | – | – | ✔ | ✖ |
+
+No clinic role can approve evidence or confirm applicability.

@@ -156,3 +156,9 @@ Tenant: `notification_events`, `notification_deliveries`, `notifications` (staff
 
 `countries/{ISO}` (+ `versions/{n}`) at platform level; `tenants/{id}` gains `countryCode`, `countryConfigVersion`, `countrySource`, `countrySetAt`, `countrySetBy`; `tenants/{id}/country_history/{ts}`; branch/profile `address.countryCode`, `address.localized`.
 Details: `docs/phase-12/ARCHITECTURE_AND_DATA_MODEL.md`.
+
+## Phase 14 additions
+
+Platform: `compliance_profiles/{key}` and `compliance_profiles/{key}/versions/{n}`.
+Per clinic: `compliance_applicability/{profileKey}`, `compliance_items/{profileKey}__{requirementKey}`, `compliance_evidence/{id}`, `compliance_credentials/{id}`, `compliance_history/{auto}`; files under `tenants/{t}/compliance/{evidenceId}`.
+New collection-group indexes: `compliance_applicability(profileKey, status)`, `compliance_evidence(status, uploadedAt)`. Details: `docs/phase-14/ARCHITECTURE_AND_DATA_MODEL.md`.
