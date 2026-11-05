@@ -3,7 +3,7 @@
 # Usage: scripts/check_all.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DART_PROJECTS=(backend packages/common_models packages/api_contracts packages/validation packages/utilities)
+DART_PROJECTS=(backend packages/common_models packages/api_contracts packages/validation packages/utilities packages/country_config)
 FLUTTER_PROJECTS=(packages/design_system packages/app_core apps/clinic_web apps/doctor_mobile apps/patient_mobile)
 
 for p in "${DART_PROJECTS[@]}"; do

@@ -131,6 +131,7 @@ void main() {
         '/notifications/preferences',
         '/notifications/read-all', // own notifications
         '/clinics/current/settings', // clinic hours and time zone, every member
+        '/clinics/current/country-config', // client-safe country DTO, every member
         '/laboratory/categories', // fixed lists, no data
         '/patient/consent-catalog', // static wording
         '/patient/documents', // fixed 'not available' answer
@@ -142,6 +143,9 @@ void main() {
           path.startsWith('/patient-accounts') ||
           path == '/clinic-applications/my' ||
           path == '/consent-catalog' ||
+          // onboarding selector: public-by-design list of countries a new
+          // clinic may choose (client-safe fields only)
+          path == '/countries' ||
           // idempotent, bound to the caller's own uid; no data
           path.startsWith('/patient/devices/') ||
           path == '/patient/consent-catalog' ||

@@ -16,6 +16,7 @@ class AppConfig {
     required this.trustForwardedFor,
     required this.storageBucket,
     required this.fcmEnabled,
+    required this.deploymentRegion,
     required this.notificationWorkerEnabled,
   });
 
@@ -121,6 +122,15 @@ class AppConfig {
       return raw == 'true';
     }
 
+    final regionRaw = env['DEPLOYMENT_REGION']?.trim();
+    if (regionRaw != null &&
+        regionRaw.isNotEmpty &&
+        !RegExp(r'^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$').hasMatch(regionRaw)) {
+      problems.add(
+        'DEPLOYMENT_REGION must be a lowercase region id such as asia-south1.',
+      );
+    }
+
     final fcmEnabled = flag('NOTIFICATIONS_FCM_ENABLED', false);
     final worker = flag('NOTIFICATIONS_WORKER_ENABLED', true);
 
@@ -140,6 +150,9 @@ class AppConfig {
       trustForwardedFor: trustRaw == 'true',
       storageBucket: (bucket == null || bucket.isEmpty) ? null : bucket,
       fcmEnabled: fcmEnabled,
+      deploymentRegion: (regionRaw == null || regionRaw.isEmpty)
+          ? null
+          : regionRaw,
       notificationWorkerEnabled: worker,
     );
   }
@@ -167,6 +180,11 @@ class AppConfig {
   /// Private Cloud Storage bucket of this environment (clinic logos). When
   /// absent (dev only) logo endpoints answer 503.
   final String? storageBucket;
+
+  /// Where this deployment runs (e.g. `asia-south1`). Informational layer of
+  /// the country configuration; it is not a tenant property and never decides
+  /// a tenant's legal country. Data-residency enforcement is a later phase.
+  final String? deploymentRegion;
 
   /// Whether push messages are sent through FCM (needs the messaging scope on
   /// the service account). Off by default: deliveries then report

@@ -1,4 +1,6 @@
+import 'package:api_contracts/api_contracts.dart';
 import 'package:common_models/common_models.dart';
+import 'package:country_config/country_config.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../../core/data/document_store.dart';
@@ -7,6 +9,7 @@ import '../../../core/ids.dart';
 import '../applications/application_service.dart';
 import '../audit/audit_service.dart';
 import '../common/paging.dart';
+import '../countries/country_directory.dart';
 import '../subscriptions/subscription_logic.dart';
 import '../subscriptions/subscription_service.dart';
 
@@ -103,6 +106,7 @@ class TenantService {
     String? initialPlanId,
     bool startTrial = false,
     String? note,
+    String? countryCode,
     String? requestId,
   }) async {
     if (!applicationId.startsWith('app_') || applicationId.length < 8) {
@@ -143,6 +147,38 @@ class TenantService {
               );
             }
           }
+          // Legal country: from the application (validated at submission) or,
+          // for an application that predates Phase 12, supplied by the
+          // approving admin. Validated against the CURRENT country master in
+          // this same transaction, before anything is written, so a country
+          // problem can never leave a partially provisioned tenant.
+          final applied = (app['address'] as Map?)?['countryCode'] as String?;
+          if (applied != null &&
+              countryCode != null &&
+              countryCode != applied) {
+            throw const ApiException.conflict(
+              'The application already states a different country.',
+            );
+          }
+          final legalCountry = applied ?? countryCode;
+          if (legalCountry == null) {
+            throw ApiException.validation(const [
+              FieldIssue(
+                field: 'countryCode',
+                code: 'required',
+                message:
+                    'This application has no country. Send countryCode or '
+                    'ask the applicant to provide it.',
+              ),
+            ]);
+          }
+          final country = await CountryDirectory.profileIn(tx, legalCountry);
+          if (country == null || country.status != CountryStatus.supported) {
+            throw const ApiException.conflict(
+              'The clinic\'s country is not available. Review the country '
+              'configuration before approving.',
+            );
+          }
           final clinic = (app['clinic']! as Map).cast<String, Object?>();
           final slug = await _chooseSlug(
             tx,
@@ -175,6 +211,13 @@ class TenantService {
               'approvedBy': actor.uid,
               'subscriptionId': null,
               'configurationVersion': 1,
+              // Immutable by tenant users: only a privileged, audited
+              // migration (CountryService.assignTenantCountry) may change it.
+              'countryCode': legalCountry,
+              'countryConfigVersion': country.configurationVersion,
+              'countrySource': applied != null ? 'application' : 'approval',
+              'countrySetAt': now,
+              'countrySetBy': actor.uid,
               'statusReason': null,
             }),
             CreateOp('tenant_slugs/$slug', {

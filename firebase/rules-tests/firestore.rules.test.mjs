@@ -206,6 +206,10 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
     'subscription_plans/plan_1/versions/1',
     'platform_subscriptions/sub_1',
     'platform_subscriptions/sub_1/history/h1',
+    // Phase 12: country master and tenant country history
+    'countries/IN',
+    'countries/IN/versions/1',
+    'tenants/ten_1/country_history/h1',
     // Phase 3: clinic administration data
     'tenants/ten_1/clinic_settings/profile',
     'tenants/ten_1/clinic_settings/operations',

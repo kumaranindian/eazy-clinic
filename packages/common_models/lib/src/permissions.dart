@@ -26,6 +26,12 @@ abstract final class Permission {
   static const String manageSubscriptions = 'platform.subscriptions.manage';
   static const String overrideEntitlements = 'platform.entitlements.override';
   static const String readAuditLogs = 'platform.audit.read';
+
+  /// Phase 12: country master (read), availability/configuration (manage) and
+  /// the audited assignment of a legal country to an existing tenant.
+  static const String readCountries = 'platform.countries.read';
+  static const String manageCountries = 'platform.countries.manage';
+  static const String migrateTenantCountry = 'platform.countries.migrate';
 }
 
 /// Maps roles to permissions. Backend policies call this; apps must never use
@@ -51,6 +57,9 @@ abstract final class PermissionPolicy {
       Permission.manageSubscriptions,
       Permission.overrideEntitlements,
       Permission.readAuditLogs,
+      Permission.readCountries,
+      Permission.manageCountries,
+      Permission.migrateTenantCountry,
     },
     // Support can investigate (read) but cannot change anything sensitive and
     // has no access to audit logs or clinical data.
@@ -61,6 +70,7 @@ abstract final class PermissionPolicy {
       Permission.readTenants,
       Permission.readPlans,
       Permission.readSubscriptions,
+      Permission.readCountries,
     },
   };
 

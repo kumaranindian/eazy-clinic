@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:api_contracts/api_contracts.dart';
+import 'package:country_config/country_config.dart';
 
 import '../../../core/data/document_store.dart';
 import '../../../core/errors/api_exception.dart';
@@ -9,6 +10,7 @@ import '../../platform/applications/application_service.dart' show clinicTypes;
 import '../../platform/audit/audit_service.dart';
 import '../../platform/common/body_reader.dart';
 import '../../platform/common/paging.dart';
+import '../../platform/countries/country_rules.dart';
 import '../common/clinic_deps.dart';
 import '../common/object_storage.dart';
 import '../common/tenant_context.dart';
@@ -120,6 +122,7 @@ class ClinicService {
     Actor actor, {
     String? requestId,
   }) async {
+    final rules = CountryRules(await _d.countries.tenantProfile(t.tenantId));
     final r = BodyReader(body, partial: true)..rejectUnknown(profileFields);
     final name = r.str('name', min: 2, max: 120);
     final type = r.str('type', max: 40);
@@ -150,8 +153,8 @@ class ClinicService {
     );
     final email = r.email('email', required: false);
     final altEmail = r.email('alternateEmail', required: false);
-    final phone = r.phone('phone', required: false);
-    final altPhone = r.phone('alternatePhone', required: false);
+    final phone = rules.phone(r, 'phone', required: false);
+    final altPhone = rules.phone(r, 'alternatePhone', required: false);
     final website = r.str('website', max: 200, required: false);
     if (website != null) {
       final u = Uri.tryParse(website);
@@ -170,27 +173,44 @@ class ClinicService {
         'city',
         'state',
         'country',
+        'countryCode',
         'postalCode',
+        'localized',
       });
-      final country = a.str('country', min: 2, max: 60);
-      final postal = a.str('postalCode', min: 3, max: 10);
-      if (postal != null &&
-          (country ?? 'india').toLowerCase() == 'india' &&
-          !RegExp(r'^[1-9][0-9]{5}$').hasMatch(postal)) {
-        a.addIssue(
+      final suppliedCode = a.str(
+        'countryCode',
+        min: 2,
+        max: 2,
+        required: false,
+      );
+      final country = rules.profile == null
+          ? a.str('country', min: 2, max: 60)
+          : a.str('country', min: 2, max: 60, required: false);
+      final postal = rules.postal(
+        a,
+        a.str(
           'postalCode',
-          'invalid_postal_code',
-          'Enter a valid 6-digit PIN code.',
-        );
-      }
+          min: 3,
+          max: 10,
+          required: rules.profile != null && rules.profile!.postalCode.required,
+        ),
+        legacyCountryText: country,
+      );
+      final canonical = rules.canonicalCountry(
+        a,
+        suppliedCode: suppliedCode,
+        suppliedName: country,
+      );
+      final localized = readLocalizedAddress(a);
       address = {
         for (final e in {
           'line1': a.str('line1', min: 3, max: 120),
           'line2': a.str('line2', max: 120, required: false),
           'city': a.str('city', min: 2, max: 60),
           'state': a.str('state', min: 2, max: 60),
-          'country': country,
+          ...canonical,
           'postalCode': postal,
+          'localized': localized,
         }.entries)
           if (e.value != null) e.key: e.value,
       };
@@ -266,10 +286,10 @@ class ClinicService {
 
   // --------------------------------------------------------------- settings
 
-  Map<String, Object?> _defaultSettings() => {
+  Map<String, Object?> _defaultSettings([CountryProfile? country]) => {
     'timezone': null,
-    'currency': 'INR',
-    'language': 'en',
+    'currency': country?.defaultCurrency ?? 'INR',
+    'language': country?.defaultLocale.split('-').first ?? 'en',
     'appointmentDurationMinutes': 15,
     'consultationDurationMinutes': 15,
     'weeklyHours': {
@@ -289,9 +309,12 @@ class ClinicService {
 
   Future<Map<String, Object?>> getSettings(TenantContext t) async {
     final stored = await _d.store.get(_settingsPath(t));
-    final s = {..._defaultSettings(), ...?stored};
+    final country = await _d.countries.tenantProfile(t.tenantId);
+    final s = {..._defaultSettings(country), ...?stored};
     return {
       'configured': s['timezone'] != null,
+      // Read-only: the legal country is set by the platform, never here.
+      'countryCode': country?.code,
       for (final k in settingsFields) k: jsonSafe(s[k]),
       'updatedAt': jsonSafe(stored?['updatedAt']),
     };
@@ -307,22 +330,51 @@ class ClinicService {
     Actor actor, {
     String? requestId,
   }) async {
+    final country = await _d.countries.tenantProfile(t.tenantId);
+    final overrides = country?.policy.allowedTenantOverrides;
     final r = BodyReader(body, partial: true)..rejectUnknown(settingsFields);
     final tz = r.str('timezone', max: 64);
-    if (tz != null && !_tz.hasMatch(tz)) {
+    if (tz != null && (!_tz.hasMatch(tz) || !Timezones.isValid(tz))) {
       r.addIssue(
         'timezone',
         'invalid_timezone',
-        'Use an IANA time zone such as Asia/Kolkata.',
+        'Use an IANA time zone such as Asia/Kolkata or Asia/Dubai.',
+      );
+    } else if (tz != null &&
+        overrides != null &&
+        !overrides.contains('timezone')) {
+      r.addIssue(
+        'timezone',
+        'not_overridable',
+        'The time zone is fixed by the clinic\'s country.',
       );
     }
     final currency = r.str('currency', min: 3, max: 3);
-    if (currency != null && !supportedCurrencies.contains(currency)) {
-      r.addIssue('currency', 'unsupported', 'Unsupported currency.');
+    if (currency != null) {
+      final allowed = country == null
+          ? supportedCurrencies.contains(currency)
+          : currency == country.defaultCurrency ||
+                (overrides!.contains('currency') &&
+                    country.policy.supportedCurrencies.contains(currency));
+      if (!allowed) {
+        r.addIssue('currency', 'unsupported', 'Unsupported currency.');
+      }
     }
     final language = r.str('language', min: 2, max: 5);
-    if (language != null && !supportedLanguages.contains(language)) {
-      r.addIssue('language', 'unsupported', 'Unsupported language.');
+    if (language != null) {
+      final allowed =
+          supportedLanguages.contains(language) ||
+          (country?.locales.any((l) => l.split('-').first == language) ??
+              false);
+      if (!allowed) {
+        r.addIssue('language', 'unsupported', 'Unsupported language.');
+      } else if (overrides != null && !overrides.contains('language')) {
+        r.addIssue(
+          'language',
+          'not_overridable',
+          'The language is fixed by the clinic\'s country.',
+        );
+      }
     }
     final appt = r.integer(
       'appointmentDurationMinutes',
@@ -435,9 +487,16 @@ class ClinicService {
           ),
         ]);
       }
+      final countryDefaults = cur == null
+          ? await _d.countries.tenantProfile(t.tenantId)
+          : null;
       tx.write([
         if (cur == null)
-          CreateOp(path, {..._defaultSettings(), ...patch, 'createdAt': now})
+          CreateOp(path, {
+            ..._defaultSettings(countryDefaults),
+            ...patch,
+            'createdAt': now,
+          })
         else
           UpdateOp(path, patch),
         _d.audit.op(

@@ -44,6 +44,7 @@ buildProductionModules(AppConfig config, AppLogger logger) async {
     clinic: ClinicModule(
       auth: auth,
       store: store,
+      deploymentRegion: config.deploymentRegion,
       storage: bucket == null
           ? const UnconfiguredObjectStorage()
           : GcsObjectStorage(bucket: bucket, client: authed),

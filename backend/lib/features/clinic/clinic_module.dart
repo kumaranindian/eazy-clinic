@@ -25,6 +25,7 @@ import '../notifications/notification_service.dart';
 import '../patients/patient_module.dart';
 import '../platform/audit/audit_service.dart';
 import '../platform/common/paging.dart';
+import '../platform/countries/country_resolver.dart';
 import '../platform/entitlements/entitlement_service.dart';
 import '../portal/portal_module.dart';
 import '../reports/export_service.dart';
@@ -57,6 +58,7 @@ class ClinicModule {
     FcmSender fcm = const UnconfiguredFcmSender(),
     Map<String, MessageProvider> messageProviders = const {},
     DateTime Function()? clock,
+    String? deploymentRegion,
     RateLimiter? writeLimiter,
     RateLimiter? inviteLimiter,
     RateLimiter? acceptLimiter,
@@ -84,6 +86,11 @@ class ClinicModule {
        invites =
            inviteLimiter ??
            RateLimiter(maxRequests: 30, window: const Duration(hours: 1)) {
+    countryConfig = CountryConfigResolver(
+      store,
+      deps.countries,
+      deploymentRegion: deploymentRegion,
+    );
     clinic = ClinicService(deps, storage);
     branches = BranchService(deps);
     doctors = DoctorService(deps, branches);
@@ -172,6 +179,7 @@ class ClinicModule {
   late final PortalModule portal;
   late final ClinicService clinic;
   late final BranchService branches;
+  late final CountryConfigResolver countryConfig;
   late final DoctorService doctors;
   late final StaffService staff;
   late final InvitationService invitations;
@@ -291,6 +299,29 @@ class ClinicModule {
           ),
         );
       }, write: true),
+    );
+    r.get(
+      '$_v1/clinics/current/country-config',
+      secured((Request req, TenantContext t) async {
+        t.require(ClinicPermission.clinicView);
+        final branchId = query(req, 'branchId');
+        if (branchId != null) {
+          t.scope.require(id(branchId));
+        }
+        final locale = query(req, 'locale', max: 12);
+        if (locale != null &&
+            !RegExp(r'^[A-Za-z]{2,3}([-_][A-Za-z]{2})?$').hasMatch(locale)) {
+          throw const ApiException.badRequest('locale is invalid.');
+        }
+        return ok(
+          req,
+          await countryConfig.forTenant(
+            t.tenantId,
+            branchId: branchId,
+            userLocale: locale,
+          ),
+        );
+      }),
     );
     r.get(
       '$_v1/clinics/current/settings',

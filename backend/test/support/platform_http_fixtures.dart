@@ -31,6 +31,7 @@ class PlatformHarness {
     FcmSender fcm = const UnconfiguredFcmSender(),
     Map<String, MessageProvider> providers = const {},
   }) : clock = clock ?? TestClock() {
+    seedCountries(store);
     final users = DocumentPlatformUserStore(store);
     final events = SecurityEventRecorder(
       AppLogger(minLevel: LogLevel.debug, sink: logs.add),
@@ -238,6 +239,7 @@ extension ClinicFlows on PlatformHarness {
     bool patientApp = true,
     bool laboratory = true,
     bool reports = true,
+    String countryCode = 'IN',
   }) async {
     if (!store.docs.containsKey('platform_users/$ownerUid')) user(ownerUid);
     final planRes = await call(
@@ -272,7 +274,12 @@ extension ClinicFlows on PlatformHarness {
     );
     final appId = await apply(
       ownerUid,
-      body: applicationBody(name: name, city: city, postalCode: pin),
+      body: applicationBody(
+        name: name,
+        city: city,
+        postalCode: pin,
+        countryCode: countryCode,
+      ),
     );
     return approve(appId, planId: planId);
   }

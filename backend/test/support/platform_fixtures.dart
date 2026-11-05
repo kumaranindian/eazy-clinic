@@ -4,6 +4,7 @@ import 'package:backend/features/platform/plans/plan_service.dart';
 import 'package:backend/features/platform/subscriptions/subscription_service.dart';
 import 'package:backend/features/platform/tenants/tenant_service.dart';
 import 'package:common_models/common_models.dart';
+import 'package:country_config/country_config.dart';
 
 import 'memory_document_store.dart';
 
@@ -41,8 +42,23 @@ class TestClock {
   DateTime call() => now;
 }
 
+/// Seeds the reviewed India and UAE country master (what the platform admin's
+/// "seed baseline" action creates) directly into a test store.
+void seedCountries(MemoryDocumentStore store, {DateTime? at}) {
+  final when = at ?? DateTime.utc(2026, 6, 1);
+  for (final p in BaselineCountries.all(effectiveFrom: when)) {
+    store.docs['countries/${p.code}'] = {
+      ...p.toJson(),
+      'effectiveFrom': p.effectiveFrom,
+      'updatedAt': when,
+      'updatedBy': 'seed',
+    };
+  }
+}
+
 class PlatformServices {
   PlatformServices({TestClock? clock}) : clock = clock ?? TestClock() {
+    seedCountries(store);
     audit = AuditService(store, clock: this.clock.call);
     plans = PlanService(store, audit, clock: this.clock.call);
     subscriptions = SubscriptionService(store, audit, clock: this.clock.call);
@@ -104,27 +120,28 @@ Map<String, Object?> applicationBody({
   String city = 'Pune',
   String postalCode = '411001',
   String? preferredPlanId,
+  String countryCode = 'IN',
 }) => {
   'clinic': {
     'name': name,
     'type': 'general_medicine',
     'registrationNumber': 'MH/2020/1234',
     'email': 'info@greenvalley.test',
-    'phone': '9876543210',
+    'phone': countryCode == 'AE' ? '+971501234567' : '9876543210',
     'website': 'https://greenvalley.test',
     'description': 'Family clinic',
   },
   'address': {
     'line1': '12 Main Road',
     'city': city,
-    'state': 'Maharashtra',
-    'country': 'India',
+    'state': countryCode == 'AE' ? 'Dubai' : 'Maharashtra',
+    'countryCode': countryCode,
     'postalCode': postalCode,
   },
   'owner': {
     'fullName': 'Dr Asha Rao',
     'email': 'asha@greenvalley.test',
-    'phone': '9876543211',
+    'phone': countryCode == 'AE' ? '+971501234568' : '9876543211',
     'designation': 'Physician',
   },
   'expectations': {'doctors': 3, 'staff': 8, 'monthlyPatients': 600},

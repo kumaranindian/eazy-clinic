@@ -1,4 +1,5 @@
 import 'package:api_contracts/api_contracts.dart';
+import 'package:country_config/country_config.dart';
 import 'package:validation/validation.dart';
 
 import '../../../core/errors/api_exception.dart';
@@ -76,9 +77,30 @@ class BodyReader {
     return v.toLowerCase();
   }
 
-  String? phone(String f, {bool required = true, String prefix = ''}) {
-    final v = str(f, min: 1, max: 20, required: required, prefix: prefix);
+  /// Reads a phone number. With a [country] (ISO 3166-1 alpha-2, from
+  /// trusted configuration, never from the number itself) the number is
+  /// validated for that country and returned in E.164 form. Without one the
+  /// legacy Indian-mobile rule applies (tenants not yet assigned a country).
+  String? phone(
+    String f, {
+    bool required = true,
+    String prefix = '',
+    String? country,
+  }) {
+    final v = str(f, min: 1, max: 25, required: required, prefix: prefix);
     if (v == null) return null;
+    if (country != null) {
+      final check = PhoneNumbers.validate(v, country);
+      if (!check.isValid) {
+        addIssue(
+          '$prefix$f',
+          check.failureCode!,
+          'Enter a valid phone number for the selected country.',
+        );
+        return null;
+      }
+      return check.e164;
+    }
     final failure = Validators.indianMobile(v);
     if (failure != null) {
       addIssue('$prefix$f', failure.code, failure.message);

@@ -17,6 +17,8 @@ import 'applications/application_service.dart';
 import 'audit/audit_service.dart';
 import 'common/body_reader.dart';
 import 'common/paging.dart';
+import 'countries/country_directory.dart';
+import 'countries/country_service.dart';
 import 'dashboard/dashboard_service.dart';
 import 'entitlements/entitlement_service.dart';
 import 'plans/plan_service.dart';
@@ -49,6 +51,8 @@ class PlatformModule {
     tenants = TenantService(store, audit, subscriptions, clock: clock);
     entitlements = EntitlementService(store, clock: clock);
     dashboard = DashboardService(store, audit, clock: clock);
+    countryDirectory = CountryDirectory(store, clock: clock);
+    countries = CountryService(store, audit, countryDirectory, clock: clock);
   }
 
   final AuthModule auth;
@@ -61,6 +65,8 @@ class PlatformModule {
   late final TenantService tenants;
   late final EntitlementService entitlements;
   late final DashboardService dashboard;
+  late final CountryDirectory countryDirectory;
+  late final CountryService countries;
 
   static const String _p = '$apiV1Prefix/platform';
 
@@ -175,6 +181,89 @@ class PlatformModule {
       _secured(
         (Request req) async => ok(req, await dashboard.build()),
         permission: Permission.readDashboard,
+      ),
+    );
+
+    // Countries (Phase 12). Literal paths first so they win over `<code>`.
+    r.get(
+      '$apiV1Prefix/countries',
+      _secured(
+        (Request req) async =>
+            ok(req, {'items': await countries.listOnboardable()}),
+      ),
+    );
+    r.get(
+      '$_p/countries',
+      _secured(
+        (Request req) async => ok(req, {'items': await countries.list()}),
+        permission: Permission.readCountries,
+      ),
+    );
+    r.get(
+      '$_p/countries/backfill-report',
+      _secured(
+        (Request req) async => ok(req, await countries.backfillReport()),
+        permission: Permission.readCountries,
+      ),
+    );
+    r.post(
+      '$_p/countries/seed-baseline',
+      _secured(
+        (Request req) async => ok(req, {
+          'items': await countries.seedBaseline(
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        }),
+        permission: Permission.manageCountries,
+        write: true,
+      ),
+    );
+    r.post(
+      '$_p/countries',
+      _secured(
+        (Request req) async => ok(
+          req,
+          await countries.create(
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+          status: 201,
+        ),
+        permission: Permission.manageCountries,
+        write: true,
+      ),
+    );
+    r.get(
+      '$_p/countries/<code>',
+      _secured(
+        (Request req, String code) async => ok(req, await countries.get(code)),
+        permission: Permission.readCountries,
+      ),
+    );
+    r.patch(
+      '$_p/countries/<code>',
+      _secured(
+        (Request req, String code) async => ok(
+          req,
+          await countries.update(
+            code,
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.manageCountries,
+        write: true,
+      ),
+    );
+    r.post(
+      '$_p/tenants/<id>/country',
+      _secured(
+        _assignTenantCountry,
+        permission: Permission.migrateTenantCountry,
+        write: true,
       ),
     );
 
@@ -700,11 +789,20 @@ class PlatformModule {
 
   Future<Response> _approve(Request req, String id) async {
     final r = BodyReader(await _body(req));
-    r.rejectUnknown({'confirm', 'planId', 'startTrial', 'note'});
+    r.rejectUnknown({'confirm', 'planId', 'startTrial', 'note', 'countryCode'});
     final confirm = r.boolean('confirm', required: true);
     final planId = r.str('planId', min: 5, max: 40, required: false);
     final trial = r.boolean('startTrial') ?? false;
     final note = r.str('note', min: 0, max: 500, required: false);
+    final countryCode = r.str('countryCode', min: 2, max: 2, required: false);
+    if (countryCode != null &&
+        !CountryDirectory.isWellFormedCode(countryCode)) {
+      r.addIssue(
+        'countryCode',
+        'invalid_value',
+        'countryCode must be an ISO 3166-1 alpha-2 code.',
+      );
+    }
     if (confirm != true) {
       r.addIssue(
         'confirm',
@@ -722,9 +820,38 @@ class PlatformModule {
       initialPlanId: planId,
       startTrial: trial,
       note: note,
+      countryCode: countryCode,
       requestId: _rid(req),
     );
     return ok(req, result.toJson());
+  }
+
+  Future<Response> _assignTenantCountry(Request req, String id) async {
+    final r = BodyReader(await _body(req))
+      ..rejectUnknown({'countryCode', 'reason', 'expectedCurrent', 'confirm'});
+    final code = r.str('countryCode', min: 2, max: 2);
+    final reason = r.str('reason', min: 3, max: 500);
+    final expected = r.str('expectedCurrent', min: 2, max: 2, required: false);
+    final confirm = r.boolean('confirm', required: true);
+    if (confirm != true) {
+      r.addIssue(
+        'confirm',
+        'confirmation_required',
+        'Assigning a country must be confirmed (confirm: true).',
+      );
+    }
+    r.throwIfInvalid();
+    return ok(
+      req,
+      await countries.assignTenantCountry(
+        tenantId: _id(id),
+        countryCode: code!,
+        reason: reason!,
+        expectedCurrent: expected,
+        actor: _actor(req),
+        requestId: _rid(req),
+      ),
+    );
   }
 
   Future<Response> _listTenants(Request req) async {
