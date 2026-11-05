@@ -42,6 +42,12 @@ const _destinations = [
     Permission.readSubscriptions,
   ),
   _Dest(
+    'Countries',
+    Icons.public,
+    '/platform/countries',
+    Permission.readCountries,
+  ),
+  _Dest(
     'Audit log',
     Icons.history,
     '/platform/audit',

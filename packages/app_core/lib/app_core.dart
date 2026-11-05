@@ -20,3 +20,6 @@ export 'src/auth/presentation/auth_layout.dart';
 export 'src/auth/presentation/auth_routes.dart';
 export 'src/config/auth_ui_config.dart';
 export 'src/config/firebase_bootstrap.dart';
+export 'src/regional/app_strings.dart';
+export 'src/regional/locale_providers.dart';
+export 'src/regional/regional_config.dart';

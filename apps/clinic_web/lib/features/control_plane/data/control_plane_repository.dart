@@ -53,6 +53,12 @@ class ControlPlaneRepository {
   // Applicant ------------------------------------------------------------
   Future<Json> submitApplication(Json body) async =>
       (await _api.post('/clinic-applications', body: body)).map;
+
+  /// Countries a new clinic may choose (client-safe fields only).
+  Future<List<Json>> onboardableCountries() async =>
+      ((await _api.get('/countries')).map['items']! as List)
+          .map((e) => (e as Map).cast<String, Object?>())
+          .toList();
   Future<Json> myApplication(String id) async =>
       (await _api.get('/clinic-applications/$id')).map;
   Future<Json> respond(String id, Json body) async =>
@@ -121,6 +127,35 @@ class ControlPlaneRepository {
   )).map;
   Future<Json> retryProvisioning(String id) async =>
       (await _api.post('/platform/tenants/$id/retry-provisioning')).map;
+
+  Future<Json> assignTenantCountry(
+    String id, {
+    required String countryCode,
+    required String reason,
+    String? expectedCurrent,
+  }) async => (await _api.post(
+    '/platform/tenants/$id/country',
+    body: {
+      'countryCode': countryCode,
+      'reason': reason,
+      'confirm': true,
+      'expectedCurrent': ?expectedCurrent,
+    },
+  )).map;
+
+  // Platform: countries (Phase 12) ------------------------------------------
+  Future<List<Json>> countries() async =>
+      ((await _api.get('/platform/countries')).map['items']! as List)
+          .map((e) => (e as Map).cast<String, Object?>())
+          .toList();
+  Future<Json> updateCountry(String code, Json body) async =>
+      (await _api.patch('/platform/countries/$code', body: body)).map;
+  Future<void> seedCountries() async {
+    await _api.post('/platform/countries/seed-baseline');
+  }
+
+  Future<Json> backfillReport() async =>
+      (await _api.get('/platform/countries/backfill-report')).map;
 
   // Platform: plans --------------------------------------------------------
   Future<Json> plan(String id) async =>

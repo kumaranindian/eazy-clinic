@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:validation/validation.dart';
 
 import '../../control_plane/data/control_plane_repository.dart';
+import '../../control_plane/providers.dart';
 import '../../shared/ui_helpers.dart';
 import '../../shared/ui_kit.dart';
 
@@ -43,7 +44,6 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
       'line2',
       'city',
       'state',
-      'country',
       'postalCode',
       'ownerName',
       'ownerEmail',
@@ -56,6 +56,11 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
       k: TextEditingController(),
   };
   String _type = 'general_medicine';
+
+  /// The applicant's chosen country (a client-safe DTO from `GET /countries`).
+  /// Its code is sent as the clinic's legal country; the backend validates it
+  /// against the country master and derives everything else.
+  Json? _country;
   bool _submitting = false;
   String? _error;
   List<String> _issues = const [];
@@ -63,7 +68,6 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
   @override
   void initState() {
     super.initState();
-    _c['country']!.text = 'India';
     final auth = ref.read(authControllerProvider);
     if (auth is Authenticated) {
       _c['ownerName']!.text = auth.user.displayName ?? '';
@@ -90,16 +94,31 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
   }
 
   String? _email(String? v) => Validators.email(v)?.message;
-  String? _phone(String? v) => Validators.indianMobile(v)?.message;
+  String get _code => '${_country?['code'] ?? ''}';
 
-  String? _pin(String? v) {
+  /// Quick feedback only; the backend validates the number for the chosen
+  /// country (libphonenumber metadata) and is authoritative.
+  String? _phone(String? v) {
+    if (_code == 'IN') return Validators.indianMobile(v)?.message;
     final t = (v ?? '').trim();
-    if (_c['country']!.text.trim().toLowerCase() == 'india') {
-      return RegExp(r'^[1-9][0-9]{5}$').hasMatch(t)
-          ? null
-          : 'Enter a valid 6-digit PIN code.';
+    return RegExp(r'^\+?[0-9 ()\-]{7,18}$').hasMatch(t)
+        ? null
+        : 'Enter a valid phone number.';
+  }
+
+  /// Uses the selected country's postal rule from the country master.
+  String? _pin(String? v) {
+    final rule = (_country?['postalCode'] as Map?)?.cast<String, Object?>();
+    final label = '${rule?['label'] ?? 'postal code'}';
+    final t = (v ?? '').trim();
+    if (t.isEmpty) {
+      return rule?['required'] == false ? null : '$label is required.';
     }
-    return t.length < 3 ? 'Enter a postal code.' : null;
+    final pattern = rule?['pattern'] as String?;
+    if (pattern != null && !RegExp(pattern).hasMatch(t)) {
+      return 'Enter a valid $label.';
+    }
+    return null;
   }
 
   String? _url(String? v) {
@@ -114,7 +133,9 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
   }
 
   Future<void> _submit() async {
-    if (_submitting || !_form.currentState!.validate()) return;
+    if (_submitting) return;
+    final valid = _form.currentState!.validate();
+    if (!valid || _country == null) return;
     String t(String k) => _c[k]!.text.trim();
     String? opt(String k) => t(k).isEmpty ? null : t(k);
     setState(() {
@@ -137,8 +158,8 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
         'line2': ?opt('line2'),
         'city': t('city'),
         'state': t('state'),
-        'country': t('country'),
-        'postalCode': t('postalCode'),
+        'countryCode': _code,
+        'postalCode': ?opt('postalCode'),
       },
       'owner': {
         'fullName': t('ownerName'),
@@ -187,6 +208,51 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
         keyboardType: type,
         maxLength: max,
         maxLines: lines,
+      ),
+    );
+  }
+
+  Widget _countryField(BuildContext context) {
+    final countries = ref.watch(onboardableCountriesProvider);
+    final strings = AppStrings.of(context);
+    return SizedBox(
+      width: 300,
+      child: countries.when(
+        loading: () => InputDecorator(
+          decoration: InputDecoration(labelText: strings.country),
+          child: const Text('Loading countries…'),
+        ),
+        error: (e, _) => InputDecorator(
+          decoration: InputDecoration(
+            labelText: strings.country,
+            errorText: 'Could not load countries.',
+            suffixIcon: IconButton(
+              tooltip: 'Retry',
+              icon: const Icon(Icons.refresh),
+              onPressed: () => ref.invalidate(onboardableCountriesProvider),
+            ),
+          ),
+          child: const Text(''),
+        ),
+        data: (list) {
+          _country ??= list.cast<Json?>().firstWhere(
+            (c) => c!['code'] == 'IN',
+            orElse: () => list.isEmpty ? null : list.first,
+          );
+          return EcDropdown<String>(
+            label: strings.country,
+            items: [for (final c in list) '${c['code']}'],
+            value: _country == null ? null : '${_country!['code']}',
+            itemLabel: (code) =>
+                '${list.firstWhere((c) => c['code'] == code)['name']}',
+            validator: (v) => v == null ? strings.selectCountry : null,
+            onChanged: _submitting
+                ? null
+                : (code) => setState(
+                    () => _country = list.firstWhere((c) => c['code'] == code),
+                  ),
+          );
+        },
       ),
     );
   }
@@ -299,23 +365,21 @@ class _ApplyPageState extends ConsumerState<ApplyPage> {
                   validator: (v) => _req(v, min: 2, label: 'City'),
                   max: 60,
                 ),
+                _countryField(context),
                 _field(
                   'state',
-                  'State',
-                  validator: (v) => _req(v, min: 2, label: 'State'),
-                  max: 60,
-                ),
-                _field(
-                  'country',
-                  'Country',
-                  validator: (v) => _req(v, min: 2, label: 'Country'),
+                  '${_country?['adminAreaLabel'] ?? 'State'}',
+                  validator: (v) => _req(
+                    v,
+                    min: 2,
+                    label: '${_country?['adminAreaLabel'] ?? 'State'}',
+                  ),
                   max: 60,
                 ),
                 _field(
                   'postalCode',
-                  'PIN / postal code',
+                  '${(_country?['postalCode'] as Map?)?['label'] ?? 'Postal code'}',
                   validator: _pin,
-                  type: TextInputType.number,
                   max: 10,
                 ),
               ]),

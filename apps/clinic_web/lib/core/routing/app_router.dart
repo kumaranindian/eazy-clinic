@@ -25,6 +25,7 @@ import '../../features/patients/patient_detail_page.dart';
 import '../../features/patients/patients_pages.dart';
 import '../../features/platform/applications_pages.dart';
 import '../../features/platform/audit_page.dart';
+import '../../features/platform/countries_pages.dart';
 import '../../features/platform/dashboard_page.dart';
 import '../../features/platform/plans_pages.dart';
 import '../../features/platform/platform_shell.dart';
@@ -408,6 +409,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => SubscriptionDetailPage(
               subscriptionId: state.pathParameters['id']!,
             ),
+          ),
+          GoRoute(
+            path: '/platform/countries',
+            builder: (context, state) => const CountriesPage(),
+          ),
+          GoRoute(
+            path: '/platform/countries/backfill-report',
+            builder: (context, state) => const BackfillReportPage(),
           ),
           GoRoute(
             path: '/platform/audit',

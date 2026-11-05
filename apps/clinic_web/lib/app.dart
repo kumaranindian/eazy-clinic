@@ -1,3 +1,4 @@
+import 'package:app_core/app_core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,11 @@ class EazyClinicApp extends ConsumerWidget {
       title: AppInfo.name,
       debugShowCheckedModeBanner: false,
       theme: EcTheme.light(),
+      // Presentation language only: the user's choice, else the device, else
+      // English. It never changes the clinic's country or any stored value.
+      locale: ref.watch(appLocaleProvider),
+      supportedLocales: supportedAppLocales,
+      localizationsDelegates: appLocalizationDelegates,
       routerConfig: ref.watch(appRouterProvider),
     );
   }

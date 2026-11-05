@@ -67,3 +67,21 @@ final platformRoleProvider = Provider<PlatformRole?>((ref) {
   final state = ref.watch(authControllerProvider);
   return state is Authenticated ? state.session.platformRole : null;
 });
+
+/// Country master for platform admins (Phase 12).
+final countriesProvider = FutureProvider.autoDispose<List<Json>>(
+  retry: noRetry,
+  (ref) => ref.watch(controlPlaneRepositoryProvider).countries(),
+);
+
+/// Dry-run classification of tenants without a legal country.
+final backfillReportProvider = FutureProvider.autoDispose<Json>(
+  retry: noRetry,
+  (ref) => ref.watch(controlPlaneRepositoryProvider).backfillReport(),
+);
+
+/// Countries a new clinic may register in (onboarding selector).
+final onboardableCountriesProvider = FutureProvider.autoDispose<List<Json>>(
+  retry: noRetry,
+  (ref) => ref.watch(controlPlaneRepositoryProvider).onboardableCountries(),
+);
