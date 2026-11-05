@@ -213,3 +213,14 @@ Test counts: `docs/phase-9/TESTING.md`.
 | Not notified: staff bookings, failed payments, new lab orders, security events | **Deferred** (TD-89) | |
 
 Test counts: `docs/phase-10/TESTING.md`.
+
+## Phase 11: Production readiness (branch `feature/phase-11-production-readiness`, not pushed)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Readiness audit, security assessment, performance baseline, backup drill, runbooks, checklist, risk register | Done | `docs/phase-11/` |
+| CI workflow, secret/release-blocker scan, release build script | Added; CI not yet run on GitHub | `.github/workflows/ci.yml`, `scripts/` |
+| Release-gate tests (every route authenticated, least privilege, mass assignment, cross-tenant, production config, concurrency) | Passing | `backend/test/security`, `test/config`, `test/perf` |
+| Fixes: Android signing fails closed, billing gateway permission, production CORS, `/ready`, log severity | Done (Android change unbuilt) | |
+| Emulator backup/restore drill | 3,620 documents, checksums match | `BACKUP_AND_RESTORE.md` |
+| **Production readiness** | **NOT READY**: staging/UAT, live Firebase, Android build, managed backup rehearsal, monitoring, legal review open | `FINAL_RELEASE_READINESS_REPORT.md` |

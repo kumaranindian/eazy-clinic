@@ -1,0 +1,23 @@
+{
+  "_comment": "Example Firebase Hosting (or CDN) response headers for the Flutter Web apps. A DRAFT: validate the Content-Security-Policy in staging with the real API and Firebase hosts before production. Replace the placeholders; nothing here is deployed.",
+  "hosting": {
+    "public": "build/web",
+    "rewrites": [{ "source": "**", "destination": "/index.html" }],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "Referrer-Policy", "value": "no-referrer" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
+          { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com https://www.gstatic.com; connect-src 'self' <API_ORIGIN> https://*.googleapis.com https://www.gstatic.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'" }
+        ]
+      },
+      { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+      { "source": "/flutter_service_worker.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "**/*.@(js|wasm|png|ico|json)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }] }
+    ]
+  }
+}

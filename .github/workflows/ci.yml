@@ -1,0 +1,64 @@
+# Release gate. Everything here runs without secrets and never touches a real
+# Firebase project: tests use in-memory stores and the local Firestore emulator.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [develop, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the history scan needs it
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.8'
+          channel: stable
+          cache: true
+      - name: Versions
+        run: |
+          flutter --version
+          dart --version
+          node --version
+          java -version
+      - name: Secret and release-blocker scan
+        run: scripts/security_scan.sh --history
+      - name: Format, analyze, unit and API tests (all packages)
+        run: scripts/check_all.sh
+      - name: Firestore rules and emulator integration tests
+        run: |
+          (cd firebase/rules-tests && npm ci --no-audit --no-fund)
+          scripts/test_emulator.sh
+      - name: Backend release build
+        run: (cd backend && dart compile exe bin/server.dart -o /tmp/server_exe)
+      - name: Web release builds (Clinic Web, Doctor Workspace)
+        run: |
+          for app in clinic_web doctor_mobile; do
+            (cd apps/$app && flutter build web --release \
+              --dart-define=APP_ENV=staging \
+              --dart-define=API_BASE_URL=https://api.staging.invalid)
+          done
+      - name: Dependency advisories (report only)
+        continue-on-error: true
+        run: |
+          (cd firebase/rules-tests && npm audit --omit=dev || true)
+          (cd backend && dart pub outdated || true)

@@ -135,3 +135,6 @@ Not yet verified against a live Firebase project. Not built: online payments, pu
 ## License and Ownership
 
 © Avail404 (OPC) Private Limited. All rights reserved.
+
+## Release readiness
+Status and evidence: `docs/phase-11/` (verdict: not ready for production; see `FINAL_RELEASE_READINESS_REPORT.md`). Checks: `scripts/check_all.sh`, `scripts/security_scan.sh --history`, `scripts/test_emulator.sh`; CI runs them on every pull request.
