@@ -799,6 +799,10 @@ class NotificationHub {
     return n;
   }
 
+  /// Extra per-clinic scans run on every worker pass (for example compliance
+  /// expiry alerts). Registered by the modules that own them.
+  final List<Future<void> Function(String tenantId)> tenantScans = [];
+
   /// One worker pass over every active clinic. Safe to run concurrently with
   /// itself: claims are transactional.
   Future<void> tick({int maxTenants = 500}) async {
@@ -812,6 +816,9 @@ class NotificationHub {
     for (final t in tenants) {
       try {
         await scanReminders(t.id);
+        for (final scan in tenantScans) {
+          await scan(t.id);
+        }
         await processPending(t.id);
         await dispatchDue(t.id);
       } on Object {

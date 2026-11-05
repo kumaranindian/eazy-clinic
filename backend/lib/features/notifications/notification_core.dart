@@ -36,6 +36,8 @@ const Set<String> essentialCategories = {
   'refund_status',
   'lab_sample_rejected',
   'security_event',
+  // Phase 14: a credential or compliance approval is expiring or expired.
+  'compliance_expiry',
 };
 
 /// Promotional or informational messages need an explicit opt-in.

@@ -118,6 +118,12 @@ abstract final class ClinicPermission {
   static const String reportsExport = 'reports.export';
   static const String notificationsManage = 'notifications.manage';
 
+  /// Phase 14: view the clinic's compliance checklist and credentials, and
+  /// upload evidence / maintain credential records. Approval of evidence is a
+  /// platform reviewer action; no clinic role can approve its own evidence.
+  static const String complianceView = 'compliance.view';
+  static const String complianceManage = 'compliance.manage';
+
   // Phase 6: clinical workspace
   static const String consultationsView = 'consultations.view';
   static const String consultationsViewAll = 'consultations.view_all';
@@ -254,6 +260,8 @@ abstract final class ClinicPermission {
     reportsView,
     reportsExport,
     notificationsManage,
+    complianceView,
+    complianceManage,
   ];
 
   static bool isKnown(String key) => all.contains(key);

@@ -40,7 +40,13 @@ buildProductionModules(AppConfig config, AppLogger logger) async {
   final bucket = config.storageBucket;
   return (
     auth: auth,
-    platform: PlatformModule(auth: auth, store: store),
+    platform: PlatformModule(
+      auth: auth,
+      store: store,
+      storage: bucket == null
+          ? const UnconfiguredObjectStorage()
+          : GcsObjectStorage(bucket: bucket, client: authed),
+    ),
     clinic: ClinicModule(
       auth: auth,
       store: store,

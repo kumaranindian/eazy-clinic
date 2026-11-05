@@ -53,7 +53,12 @@ class PlatformHarness {
       checkRevoked: true,
       trustForwardedFor: false,
     );
-    platform = PlatformModule(auth: auth, store: store, clock: this.clock.call);
+    platform = PlatformModule(
+      auth: auth,
+      store: store,
+      clock: this.clock.call,
+      storage: storage,
+    );
     clinic = ClinicModule(
       auth: auth,
       store: store,

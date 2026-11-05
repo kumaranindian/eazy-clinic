@@ -13,6 +13,10 @@ import '../../core/validation/request_validator.dart';
 import '../auth/application/auth_context_keys.dart';
 import '../auth/application/security_event_recorder.dart';
 import '../auth/presentation/auth_routes.dart';
+import '../clinic/common/object_storage.dart';
+import '../compliance/compliance_profile_service.dart';
+import '../compliance/compliance_routes.dart' show fileResponse;
+import '../compliance/tenant_compliance_service.dart';
 import 'applications/application_service.dart';
 import 'audit/audit_service.dart';
 import 'common/body_reader.dart';
@@ -38,6 +42,7 @@ class PlatformModule {
     DateTime Function()? clock,
     RateLimiter? adminWriteLimiter,
     RateLimiter? submitLimiter,
+    ObjectStorage storage = const UnconfiguredObjectStorage(),
   }) : audit = AuditService(store, clock: clock),
        adminWrites =
            adminWriteLimiter ??
@@ -52,6 +57,14 @@ class PlatformModule {
     entitlements = EntitlementService(store, clock: clock);
     dashboard = DashboardService(store, audit, clock: clock);
     countryDirectory = CountryDirectory(store, clock: clock);
+    complianceProfiles = ComplianceProfileService(store, audit, clock: clock);
+    compliance = TenantComplianceService(
+      store,
+      audit,
+      complianceProfiles,
+      storage,
+      clock: clock,
+    );
     countries = CountryService(store, audit, countryDirectory, clock: clock);
   }
 
@@ -67,6 +80,8 @@ class PlatformModule {
   late final DashboardService dashboard;
   late final CountryDirectory countryDirectory;
   late final CountryService countries;
+  late final ComplianceProfileService complianceProfiles;
+  late final TenantComplianceService compliance;
 
   static const String _p = '$apiV1Prefix/platform';
 
@@ -263,6 +278,200 @@ class PlatformModule {
       _secured(
         _assignTenantCountry,
         permission: Permission.migrateTenantCountry,
+        write: true,
+      ),
+    );
+
+    // Compliance (Phase 14). Literal paths first.
+    r.get(
+      '$_p/compliance/overview',
+      _secured(
+        (Request req) async => ok(req, await compliance.overview()),
+        permission: Permission.readCompliance,
+      ),
+    );
+    r.get(
+      '$_p/compliance/review-queue',
+      _secured(
+        (Request req) async =>
+            ok(req, {'items': await compliance.reviewQueue()}),
+        permission: Permission.reviewCompliance,
+      ),
+    );
+    r.post(
+      '$_p/compliance/profiles/seed-baseline',
+      _secured(
+        (Request req) async => ok(req, {
+          'items': await complianceProfiles.seedBaseline(
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        }),
+        permission: Permission.manageCompliance,
+        write: true,
+      ),
+    );
+    r.get(
+      '$_p/compliance/profiles',
+      _secured(
+        (Request req) async => ok(req, {
+          'items': await complianceProfiles.list(
+            countryCode: _query(req, 'countryCode', max: 2),
+          ),
+        }),
+        permission: Permission.readCompliance,
+      ),
+    );
+    r.get(
+      '$_p/compliance/profiles/<key>',
+      _secured(
+        (Request req, String key) async =>
+            ok(req, await complianceProfiles.get(key)),
+        permission: Permission.readCompliance,
+      ),
+    );
+    r.get(
+      '$_p/compliance/profiles/<key>/versions',
+      _secured(
+        (Request req, String key) async =>
+            ok(req, {'items': await complianceProfiles.versions(key)}),
+        permission: Permission.readCompliance,
+      ),
+    );
+    r.get(
+      '$_p/compliance/profiles/<key>/impact',
+      _secured(
+        (Request req, String key) async =>
+            ok(req, await complianceProfiles.impact(key)),
+        permission: Permission.readCompliance,
+      ),
+    );
+    r.patch(
+      '$_p/compliance/profiles/<key>',
+      _secured(
+        (Request req, String key) async => ok(
+          req,
+          await complianceProfiles.update(
+            key,
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.manageCompliance,
+        write: true,
+      ),
+    );
+    r.get(
+      '$_p/tenants/<id>/compliance',
+      _secured(
+        (Request req, String id) async =>
+            ok(req, await compliance.dashboard(_id(id))),
+        permission: Permission.readCompliance,
+      ),
+    );
+    r.get(
+      '$_p/tenants/<id>/compliance/history',
+      _secured(
+        (Request req, String id) async =>
+            ok(req, {'items': await compliance.history(_id(id))}),
+        permission: Permission.readCompliance,
+      ),
+    );
+    r.get(
+      '$_p/tenants/<id>/compliance/credentials',
+      _secured(
+        (Request req, String id) async =>
+            ok(req, {'items': await compliance.listCredentials(_id(id))}),
+        permission: Permission.readCompliance,
+      ),
+    );
+    r.put(
+      '$_p/tenants/<id>/compliance/applicability/<profileKey>',
+      _secured(
+        (Request req, String id, String profileKey) async => ok(
+          req,
+          await compliance.setApplicability(
+            _id(id),
+            profileKey,
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.reviewCompliance,
+        write: true,
+      ),
+    );
+    r.get(
+      '$_p/tenants/<id>/compliance/evidence',
+      _secured(
+        (Request req, String id) async =>
+            ok(req, {'items': await compliance.listEvidence(_id(id))}),
+        permission: Permission.reviewCompliance,
+      ),
+    );
+    r.get(
+      '$_p/tenants/<id>/compliance/evidence/<eid>/file',
+      _secured((Request req, String id, String eid) async {
+        final f = await compliance.downloadEvidence(
+          _id(id),
+          _id(eid),
+          _actor(req),
+          requestId: _rid(req),
+        );
+        return fileResponse(f.bytes, f.mime, f.filename);
+      }, permission: Permission.reviewCompliance),
+    );
+    r.post(
+      '$_p/tenants/<id>/compliance/evidence/<eid>/review',
+      _secured(
+        (Request req, String id, String eid) async => ok(
+          req,
+          await compliance.reviewEvidence(
+            _id(id),
+            _id(eid),
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.reviewCompliance,
+        write: true,
+      ),
+    );
+    r.post(
+      '$_p/tenants/<id>/compliance/items/<profileKey>/<reqKey>/status',
+      _secured(
+        (Request req, String id, String profileKey, String reqKey) async => ok(
+          req,
+          await compliance.setItemStatus(
+            _id(id),
+            profileKey,
+            reqKey,
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.reviewCompliance,
+        write: true,
+      ),
+    );
+    r.post(
+      '$_p/tenants/<id>/compliance/credentials/<cid>/verify',
+      _secured(
+        (Request req, String id, String cid) async => ok(
+          req,
+          await compliance.verifyCredential(
+            _id(id),
+            _id(cid),
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.reviewCompliance,
         write: true,
       ),
     );

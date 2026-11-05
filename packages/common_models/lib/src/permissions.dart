@@ -32,6 +32,12 @@ abstract final class Permission {
   static const String readCountries = 'platform.countries.read';
   static const String manageCountries = 'platform.countries.manage';
   static const String migrateTenantCountry = 'platform.countries.migrate';
+
+  /// Phase 14: compliance profiles (read / manage) and review of a clinic's
+  /// applicability, evidence and credentials.
+  static const String readCompliance = 'platform.compliance.read';
+  static const String manageCompliance = 'platform.compliance.manage';
+  static const String reviewCompliance = 'platform.compliance.review';
 }
 
 /// Maps roles to permissions. Backend policies call this; apps must never use
@@ -60,6 +66,9 @@ abstract final class PermissionPolicy {
       Permission.readCountries,
       Permission.manageCountries,
       Permission.migrateTenantCountry,
+      Permission.readCompliance,
+      Permission.manageCompliance,
+      Permission.reviewCompliance,
     },
     // Support can investigate (read) but cannot change anything sensitive and
     // has no access to audit logs or clinical data.
@@ -71,6 +80,7 @@ abstract final class PermissionPolicy {
       Permission.readPlans,
       Permission.readSubscriptions,
       Permission.readCountries,
+      Permission.readCompliance,
     },
   };
 

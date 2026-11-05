@@ -17,6 +17,9 @@ import '../auth/domain/auth_context.dart';
 import '../auth/presentation/auth_routes.dart';
 import '../billing/billing_module.dart';
 import '../clinical/clinical_module.dart';
+import '../compliance/compliance_profile_service.dart';
+import '../compliance/compliance_routes.dart';
+import '../compliance/tenant_compliance_service.dart';
 import '../laboratory/lab_module.dart';
 import '../notifications/notification_core.dart';
 import '../notifications/notification_hub.dart';
@@ -86,6 +89,13 @@ class ClinicModule {
        invites =
            inviteLimiter ??
            RateLimiter(maxRequests: 30, window: const Duration(hours: 1)) {
+    compliance = TenantComplianceService(
+      store,
+      deps.audit,
+      ComplianceProfileService(store, deps.audit, clock: clock),
+      storage,
+      clock: clock,
+    );
     countryConfig = CountryConfigResolver(
       store,
       deps.countries,
@@ -112,6 +122,27 @@ class ClinicModule {
     lab.support.notifier = portal.notifier;
     hub = NotificationHub(deps, fcm: fcm, providers: messageProviders);
     portal.notifier.hub = hub;
+    compliance.notifier =
+        ({
+          required tenantId,
+          required staffUid,
+          required dedupeKey,
+          required title,
+          required body,
+        }) async {
+          await hub.emit(
+            tenantId: tenantId,
+            type: 'compliance_expiry',
+            dedupeKey: dedupeKey,
+            staffUid: staffUid,
+            resourceType: 'compliance',
+            fallbackTitle: title,
+            fallbackBody: body,
+          );
+        };
+    hub.tenantScans.add((tenantId) async {
+      await compliance.scanExpiries(tenantId);
+    });
     scheduling.onEvent = (t, type, d) async {
       final pid = d['patientId'];
       if (pid == null) return;
@@ -180,6 +211,7 @@ class ClinicModule {
   late final ClinicService clinic;
   late final BranchService branches;
   late final CountryConfigResolver countryConfig;
+  late final TenantComplianceService compliance;
   late final DoctorService doctors;
   late final StaffService staff;
   late final InvitationService invitations;
@@ -269,6 +301,7 @@ class ClinicModule {
     registerLabRoutes(this, lab, r);
     registerNotificationRoutes(this, notifications, r);
     registerReportRoutes(this, reports, exports, r);
+    registerComplianceRoutes(this, compliance, r);
     registerPortalRoutes(this, portal, r);
     registerPatientRoutes(
       this,

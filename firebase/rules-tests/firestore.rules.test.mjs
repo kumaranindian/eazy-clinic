@@ -210,6 +210,14 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
     'countries/IN',
     'countries/IN/versions/1',
     'tenants/ten_1/country_history/h1',
+    // Phase 14: compliance register, evidence and credentials
+    'compliance_profiles/in-data-protection',
+    'compliance_profiles/in-data-protection/versions/1',
+    'tenants/ten_1/compliance_applicability/in-data-protection',
+    'tenants/ten_1/compliance_items/in-data-protection__privacy-notice-consent',
+    'tenants/ten_1/compliance_evidence/ce_1',
+    'tenants/ten_1/compliance_credentials/cr_1',
+    'tenants/ten_1/compliance_history/h1',
     // Phase 3: clinic administration data
     'tenants/ten_1/clinic_settings/profile',
     'tenants/ten_1/clinic_settings/operations',
