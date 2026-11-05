@@ -131,6 +131,91 @@ class FakeRepo implements ControlPlaneRepository {
   @override
   Future<Json> tenant(String id) => _call<Json>('tenant', [id], {});
 
+  // Compliance (Phase 14)
+  @override
+  Future<Json> complianceDashboard() =>
+      _call<Json>('complianceDashboard', [], {});
+  @override
+  Future<List<Json>> complianceCredentials() =>
+      _call<List<Json>>('complianceCredentials', [], {});
+  @override
+  Future<Json> uploadComplianceEvidence(Json body) =>
+      _call<Json>('uploadComplianceEvidence', [body], {});
+  @override
+  Future<Json> createComplianceCredential(Json body) =>
+      _call<Json>('createComplianceCredential', [body], {});
+  @override
+  Future<Json> attachCredentialDocument(String id, Json body) =>
+      _call<Json>('attachCredentialDocument', [id, body], {});
+  @override
+  Future<Json> archiveComplianceCredential(String id) =>
+      _call<Json>('archiveComplianceCredential', [id], {});
+  @override
+  Future<Uint8List> complianceEvidenceBytes(String evidenceId) =>
+      _call<Uint8List>('complianceEvidenceBytes', [evidenceId], {});
+  @override
+  Future<Json> complianceOverview() =>
+      _call<Json>('complianceOverview', [], {});
+  @override
+  Future<List<Json>> complianceProfiles() =>
+      _call<List<Json>>('complianceProfiles', [], {});
+  @override
+  Future<List<Json>> complianceReviewQueue() =>
+      _call<List<Json>>('complianceReviewQueue', [], {});
+  @override
+  Future<void> seedComplianceProfiles() =>
+      _call<void>('seedComplianceProfiles', [], {});
+  @override
+  Future<Json> platformComplianceTenant(String tenantId) =>
+      _call<Json>('platformComplianceTenant', [tenantId], {});
+  @override
+  Future<List<Json>> platformComplianceCredentials(String tenantId) =>
+      _call<List<Json>>('platformComplianceCredentials', [tenantId], {});
+  @override
+  Future<void> setComplianceApplicability(
+    String tenantId,
+    String profileKey,
+    String status,
+    String reason,
+  ) => _call<void>('setComplianceApplicability', [
+    tenantId,
+    profileKey,
+    status,
+    reason,
+  ], {});
+  @override
+  Future<Json> reviewComplianceEvidence(
+    String tenantId,
+    String evidenceId,
+    Json body,
+  ) =>
+      _call<Json>('reviewComplianceEvidence', [tenantId, evidenceId, body], {});
+  @override
+  Future<Json> setComplianceItemStatus(
+    String tenantId,
+    String profileKey,
+    String reqKey,
+    Json body,
+  ) => _call<Json>('setComplianceItemStatus', [
+    tenantId,
+    profileKey,
+    reqKey,
+    body,
+  ], {});
+  @override
+  Future<Json> verifyComplianceCredential(
+    String tenantId,
+    String credentialId,
+    Json body,
+  ) => _call<Json>('verifyComplianceCredential', [
+    tenantId,
+    credentialId,
+    body,
+  ], {});
+  @override
+  Future<Uint8List> platformEvidenceBytes(String tenantId, String evidenceId) =>
+      _call<Uint8List>('platformEvidenceBytes', [tenantId, evidenceId], {});
+
   @override
   Future<Json> assignTenantCountry(
     String id, {

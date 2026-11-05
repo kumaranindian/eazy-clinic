@@ -42,6 +42,12 @@ const _destinations = [
     Permission.readSubscriptions,
   ),
   _Dest(
+    'Compliance',
+    Icons.verified_user_outlined,
+    '/platform/compliance',
+    Permission.readCompliance,
+  ),
+  _Dest(
     'Countries',
     Icons.public,
     '/platform/countries',

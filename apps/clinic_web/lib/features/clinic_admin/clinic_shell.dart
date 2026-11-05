@@ -73,6 +73,12 @@ const _destinations = [
     ClinicPermission.clinicView,
   ),
   _Dest(
+    'Compliance',
+    Icons.verified_user_outlined,
+    '/clinic/compliance',
+    ClinicPermission.complianceView,
+  ),
+  _Dest(
     'Notification admin',
     Icons.settings_input_antenna,
     '/clinic/notifications/admin',
