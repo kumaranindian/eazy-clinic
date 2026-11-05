@@ -43,6 +43,10 @@ abstract final class Permission {
   static const String readTax = 'platform.tax.read';
   static const String manageTax = 'platform.tax.manage';
   static const String verifyTax = 'platform.tax.verify';
+
+  /// Phase 16: payment provider eligibility and gateway health.
+  static const String readPayments = 'platform.payments.read';
+  static const String managePayments = 'platform.payments.manage';
 }
 
 /// Maps roles to permissions. Backend policies call this; apps must never use
@@ -77,6 +81,8 @@ abstract final class PermissionPolicy {
       Permission.readTax,
       Permission.manageTax,
       Permission.verifyTax,
+      Permission.readPayments,
+      Permission.managePayments,
     },
     // Support can investigate (read) but cannot change anything sensitive and
     // has no access to audit logs or clinical data.
@@ -90,6 +96,7 @@ abstract final class PermissionPolicy {
       Permission.readCountries,
       Permission.readCompliance,
       Permission.readTax,
+      Permission.readPayments,
     },
   };
 

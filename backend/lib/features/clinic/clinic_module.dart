@@ -16,6 +16,7 @@ import '../auth/application/auth_context_keys.dart';
 import '../auth/domain/auth_context.dart';
 import '../auth/presentation/auth_routes.dart';
 import '../billing/billing_module.dart';
+import '../billing/gateway/provider.dart';
 import '../clinical/clinical_module.dart';
 import '../compliance/compliance_profile_service.dart';
 import '../compliance/compliance_routes.dart';
@@ -60,6 +61,8 @@ class ClinicModule {
     required ObjectStorage storage,
     FcmSender fcm = const UnconfiguredFcmSender(),
     Map<String, MessageProvider> messageProviders = const {},
+    Map<String, PaymentProvider>? paymentProviders,
+    CredentialResolver? paymentCredentials,
     DateTime Function()? clock,
     String? deploymentRegion,
     RateLimiter? writeLimiter,
@@ -110,7 +113,13 @@ class ClinicModule {
     patients = PatientModule(deps, storage);
     scheduling = SchedulingModule(deps, patients.support);
     clinical = ClinicalModule(deps, patients.support, scheduling);
-    billing = BillingModule(deps, patients.support, scheduling.support);
+    billing = BillingModule(
+      deps,
+      patients.support,
+      scheduling.support,
+      paymentProviders: paymentProviders,
+      credentials: paymentCredentials,
+    );
     lab = LabModule(
       deps,
       patients.support,

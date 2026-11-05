@@ -177,6 +177,11 @@ class PaymentService {
     required String? idempotencyKey,
     String? requestId,
     bool advanceOnly = false,
+
+    /// Set only by the payment gateway service after a verified capture:
+    /// `{provider, transactionId, providerRef}`. Records the payment with
+    /// method `online` and source `gateway` through this same code path.
+    Map<String, Object?>? gateway,
   }) async {
     t.require(
       advanceOnly
@@ -195,11 +200,15 @@ class PaymentService {
     final amount = _s.amount(r, 'amountMinor');
     final methods = await _s.allowedMethods(t);
     final method = r.str('method', max: 30);
-    if (method != null && !methods.contains(method)) {
+    if (gateway != null) {
+      if (method != 'online') {
+        r.addIssue('method', 'unsupported', 'Gateway payments are online.');
+      }
+    } else if (method != null && !methods.contains(method)) {
       r.addIssue(
         'method',
         'unsupported',
-        'Use one of: ${methods.join(', ')}. Online payments are not available yet.',
+        'Use one of: ${methods.join(', ')}. Online payments are collected through the payment gateway.',
       );
     }
     final reference = r.str('reference', max: 100, required: false);
@@ -406,7 +415,9 @@ class PaymentService {
         'receivedBy': t.uid,
         'receivedByRole': t.actorLabel,
         'status': 'completed',
-        'source': 'offline',
+        'source': gateway == null ? 'offline' : 'gateway',
+        'gatewayProvider': gateway?['provider'],
+        'gatewayTransactionId': gateway?['transactionId'],
         'allocatedTotal': allocated,
         'advanceAmount': remainder,
         'creditId': creditId,

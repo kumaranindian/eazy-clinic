@@ -12,6 +12,7 @@ import 'package:backend/features/auth/data/firebase_auth_admin.dart';
 import 'package:backend/features/auth/data/membership_access_resolver.dart';
 import 'package:backend/features/auth/domain/platform_user.dart';
 import 'package:backend/features/auth/presentation/auth_routes.dart';
+import 'package:backend/features/billing/gateway/provider.dart';
 import 'package:backend/features/clinic/clinic_module.dart';
 import 'package:backend/features/clinic/common/object_storage.dart';
 import 'package:backend/features/notifications/notification_core.dart';
@@ -65,6 +66,8 @@ class PlatformHarness {
       storage: storage,
       fcm: fcm,
       messageProviders: providers,
+      paymentProviders: {'sandbox': sandbox},
+      paymentCredentials: MapCredentialResolver(credentials),
       clock: this.clock.call,
     );
     handler = buildApp(
@@ -77,6 +80,22 @@ class PlatformHarness {
   }
 
   final TestClock clock;
+
+  /// Online payments (Phase 16): the sandbox adapter and the server-side
+  /// credentials it may resolve.
+  final SandboxProvider sandbox = SandboxProvider();
+  final Map<String, ProviderCredentials> credentials = {
+    'TEST_ACME_1': const ProviderCredentials(
+      apiKey: 'key_1',
+      apiSecret: 'secret_1',
+      webhookSecret: 'whsec_1',
+    ),
+    'TEST_ACME_2': const ProviderCredentials(
+      apiKey: 'key_2',
+      apiSecret: 'secret_2',
+      webhookSecret: 'whsec_2',
+    ),
+  };
   final MemoryDocumentStore store = MemoryDocumentStore();
   final FakeAuthAdmin authAdmin = FakeAuthAdmin();
   final List<String> logs = [];

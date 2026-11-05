@@ -222,6 +222,12 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
     'tax_policies/in-gst',
     'tax_policies/in-gst/versions/1',
     'tenants/ten_1/einvoice_submissions/inv_1',
+    // Phase 16: online payments
+    'payment_eligibility/IN',
+    'tenants/ten_1/gateway_config/main',
+    'tenants/ten_1/gateway_transactions/gtx_1',
+    'tenants/ten_1/gateway_events/e1',
+    'tenants/ten_1/gateway_exceptions/ex_1',
     // Phase 3: clinic administration data
     'tenants/ten_1/clinic_settings/profile',
     'tenants/ten_1/clinic_settings/operations',

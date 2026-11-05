@@ -19,7 +19,7 @@ FieldIssue billingIssue(String f, String code, String m) =>
     FieldIssue(field: f, code: code, message: m);
 
 /// Minor-unit exponent per currency (INR: 2, so 1 rupee = 100 paise).
-const Map<String, int> currencyExponent = {'INR': 2};
+const Map<String, int> currencyExponent = {'INR': 2, 'AED': 2};
 
 const List<String> paymentMethods = [
   'cash',

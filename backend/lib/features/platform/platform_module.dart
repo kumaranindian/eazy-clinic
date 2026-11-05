@@ -13,6 +13,7 @@ import '../../core/validation/request_validator.dart';
 import '../auth/application/auth_context_keys.dart';
 import '../auth/application/security_event_recorder.dart';
 import '../auth/presentation/auth_routes.dart';
+import '../billing/gateway/payment_eligibility_service.dart';
 import '../billing/tax/tax_policy_service.dart';
 import '../clinic/common/object_storage.dart';
 import '../compliance/compliance_profile_service.dart';
@@ -44,6 +45,10 @@ class PlatformModule {
     RateLimiter? adminWriteLimiter,
     RateLimiter? submitLimiter,
     ObjectStorage storage = const UnconfiguredObjectStorage(),
+    Map<String, Set<String>> paymentAdapterModes = const {
+      'sandbox': {'test'},
+    },
+    bool livePaymentsEnabled = false,
   }) : audit = AuditService(store, clock: clock),
        adminWrites =
            adminWriteLimiter ??
@@ -68,6 +73,13 @@ class PlatformModule {
     );
     countries = CountryService(store, audit, countryDirectory, clock: clock);
     taxPolicies = TaxPolicyService(store, audit, clock: clock);
+    paymentEligibility = PaymentEligibilityService(
+      store,
+      audit,
+      adapterModes: paymentAdapterModes,
+      livePaymentsEnabled: livePaymentsEnabled,
+      clock: clock,
+    );
   }
 
   final AuthModule auth;
@@ -85,6 +97,7 @@ class PlatformModule {
   late final ComplianceProfileService complianceProfiles;
   late final TenantComplianceService compliance;
   late final TaxPolicyService taxPolicies;
+  late final PaymentEligibilityService paymentEligibility;
 
   static const String _p = '$apiV1Prefix/platform';
 
@@ -299,6 +312,51 @@ class PlatformModule {
         (Request req) async =>
             ok(req, {'items': await compliance.reviewQueue()}),
         permission: Permission.reviewCompliance,
+      ),
+    );
+    r.post(
+      '$_p/payments/eligibility/seed-baseline',
+      _secured(
+        (Request req) async => ok(req, {
+          'items': await paymentEligibility.seedBaseline(
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        }),
+        permission: Permission.managePayments,
+        write: true,
+      ),
+    );
+    r.get(
+      '$_p/payments/eligibility',
+      _secured(
+        (Request req) async =>
+            ok(req, {'items': await paymentEligibility.list()}),
+        permission: Permission.readPayments,
+      ),
+    );
+    r.patch(
+      '$_p/payments/eligibility/<country>/<provider>',
+      _secured(
+        (Request req, String country, String provider) async => ok(
+          req,
+          await paymentEligibility.updateProvider(
+            country,
+            provider,
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.managePayments,
+        write: true,
+      ),
+    );
+    r.get(
+      '$_p/payments/health',
+      _secured(
+        (Request req) async => ok(req, await paymentEligibility.health()),
+        permission: Permission.readPayments,
       ),
     );
     r.post(

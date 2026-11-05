@@ -99,10 +99,8 @@ class RefundService {
           'Only a completed payment can be refunded.',
         );
       }
-      if (pay['source'] != 'offline') {
-        throw const ApiException.conflict(
-          'Gateway payments can be refunded only once a payment gateway is configured.',
-        );
+      if (pay['source'] != 'offline' && pay['source'] != 'gateway') {
+        throw const ApiException.conflict('This payment cannot be refunded.');
       }
       final existing = await tx.query(
         DocQuery(
@@ -305,6 +303,9 @@ class RefundService {
     String id,
     Map<String, Object?> body, {
     String? requestId,
+
+    /// Set by the gateway service when the provider executed the refund.
+    bool viaGateway = false,
   }) async {
     t.require(ClinicPermission.refundProcess);
     final r = BodyReader(body)
@@ -322,7 +323,11 @@ class RefundService {
     ], (v) => v);
     final methods = await _s.allowedMethods(t);
     final method = r.str('method', max: 30, required: outcome != 'failed');
-    if (method != null && !methods.contains(method)) {
+    if (viaGateway) {
+      if (method != 'online') {
+        r.addIssue('method', 'unsupported', 'Gateway refunds are online.');
+      }
+    } else if (method != null && !methods.contains(method)) {
       r.addIssue('method', 'unsupported', 'Use one of: ${methods.join(', ')}.');
     }
     final reference = r.str('reference', max: 100, required: false);
@@ -354,6 +359,15 @@ class RefundService {
       }
       if (!const {'approved', 'processing', 'failed'}.contains(status)) {
         throw ApiException.conflict('A $status refund cannot be processed.');
+      }
+      final srcPay = await tx.get(_s.path(t, 'payments', '${f['paymentId']}'));
+      final gatewayPay = srcPay?['source'] == 'gateway';
+      if (gatewayPay != viaGateway) {
+        throw ApiException.conflict(
+          gatewayPay
+              ? 'This payment was made online. Refund it through the payment gateway.'
+              : 'This payment was not made online.',
+        );
       }
       final amount = f['amount']! as int;
       final base = <String, Object?>{

@@ -81,6 +81,10 @@ abstract final class ClinicPermission {
   static const String billingApplyDiscount = 'billing.apply_discount';
   static const String billingAdjust = 'billing.adjust';
   static const String billingSettingsManage = 'billing.settings.manage';
+
+  /// Phase 16: online payment gateway configuration and reconciliation.
+  static const String gatewayManage = 'gateway.manage';
+  static const String gatewayReconcile = 'gateway.reconcile';
   static const String paymentView = 'payment.view';
   static const String paymentCollect = 'payment.collect';
   static const String paymentAllocate = 'payment.allocate';
@@ -228,6 +232,8 @@ abstract final class ClinicPermission {
     billingApplyDiscount,
     billingAdjust,
     billingSettingsManage,
+    gatewayManage,
+    gatewayReconcile,
     paymentView,
     paymentCollect,
     paymentAllocate,
@@ -356,6 +362,7 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.expensePay,
     ClinicPermission.financeReportsView,
     ClinicPermission.financeReportsExport,
+    ClinicPermission.gatewayReconcile,
   };
 
   /// Laboratory (Phase 9). Results and reports are clinical: administrators

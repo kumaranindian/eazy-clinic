@@ -14,6 +14,8 @@ import 'billing_support.dart';
 import 'catalogue_service.dart';
 import 'expense_service.dart';
 import 'gateway.dart';
+import 'gateway/gateway_service.dart';
+import 'gateway/provider.dart';
 import 'invoice_service.dart';
 import 'payment_service.dart';
 import 'refund_service.dart';
@@ -30,6 +32,9 @@ class BillingModule {
     SchedulingSupport scheduling, {
     this.gateway = const NotConfiguredGateway(),
     EInvoiceProvider eInvoiceProvider = const NotConfiguredEInvoiceProvider(),
+    Map<String, PaymentProvider>? paymentProviders,
+    CredentialResolver? credentials,
+    bool livePaymentsEnabled = false,
   }) : support = BillingSupport(deps, patients, scheduling) {
     catalogue = CatalogueService(support);
     invoices = InvoiceService(support, catalogue);
@@ -38,6 +43,15 @@ class BillingModule {
     expenses = ExpenseService(support);
     reports = ReportService(support);
     eInvoices = EInvoiceService(support, eInvoiceProvider);
+    gateways = GatewayService(
+      support,
+      payments,
+      refunds,
+      invoices,
+      paymentProviders ?? {'sandbox': SandboxProvider()},
+      credentials ?? EnvCredentialResolver(),
+      livePaymentsEnabled: livePaymentsEnabled,
+    );
   }
 
   final BillingSupport support;
@@ -49,6 +63,7 @@ class BillingModule {
   late final ExpenseService expenses;
   late final ReportService reports;
   late final EInvoiceService eInvoices;
+  late final GatewayService gateways;
 }
 
 const String _v1 = apiV1Prefix;
@@ -277,6 +292,142 @@ void registerBillingRoutes(ClinicModule m, BillingModule b, Router r) {
       }),
     ),
   );
+  // ----------------------------------------------- online payments (Phase 16)
+  r.get(
+    '$_v1/billing/gateway/config',
+    m.secured(g0((req, t) async => ok(req, await b.gateways.getConfig(t)))),
+  );
+  r.put(
+    '$_v1/billing/gateway/config',
+    m.secured(
+      g0(
+        (req, t) async => ok(
+          req,
+          await b.gateways.putConfig(
+            t,
+            await m.body(req),
+            requestId: m.rid(req),
+          ),
+        ),
+      ),
+    ),
+  );
+  r.post(
+    '$_v1/billing/gateway/config/rotate',
+    m.secured(
+      g0(
+        (req, t) async => ok(
+          req,
+          await b.gateways.rotate(t, await m.body(req), requestId: m.rid(req)),
+        ),
+      ),
+    ),
+  );
+  r.post(
+    '$_v1/billing/gateway/intents',
+    m.secured(
+      g0(
+        (req, t) async => ok(
+          req,
+          await b.gateways.createIntent(
+            t,
+            await m.body(req),
+            idempotencyKey: key(req),
+            requestId: m.rid(req),
+          ),
+          status: 201,
+        ),
+      ),
+    ),
+  );
+  r.get(
+    '$_v1/billing/gateway/transactions',
+    m.secured(
+      g0(
+        (req, t) async => ok(req, {
+          'items': await b.gateways.list(
+            t,
+            invoiceId: req.url.queryParameters['invoiceId'],
+            status: req.url.queryParameters['status'],
+          ),
+        }),
+      ),
+    ),
+  );
+  r.get(
+    '$_v1/billing/gateway/transactions/<id>',
+    m.secured(
+      g1((req, t, id) async => ok(req, await b.gateways.detail(t, id))),
+    ),
+  );
+  r.post(
+    '$_v1/billing/gateway/transactions/<id>/sync',
+    m.secured(
+      g1(
+        (req, t, id) async =>
+            ok(req, await b.gateways.sync(t, id, requestId: m.rid(req))),
+      ),
+    ),
+  );
+  r.post(
+    '$_v1/billing/refunds/<id>/gateway',
+    m.secured(
+      g1(
+        (req, t, id) async =>
+            ok(req, await b.gateways.refund(t, id, requestId: m.rid(req))),
+      ),
+    ),
+  );
+  r.get(
+    '$_v1/billing/gateway/reconciliation',
+    m.secured(
+      g0((req, t) async => ok(req, await b.gateways.reconciliation(t))),
+    ),
+  );
+  r.post(
+    '$_v1/billing/gateway/exceptions/<id>/resolve',
+    m.secured(
+      g1(
+        (req, t, id) async => ok(
+          req,
+          await b.gateways.resolveException(
+            t,
+            id,
+            await m.body(req),
+            requestId: m.rid(req),
+          ),
+        ),
+      ),
+    ),
+  );
+  // Public by design: authenticity is the provider's signature over the raw
+  // body, checked against the clinic's own credentials.
+  r.post('$_v1/webhooks/payments/<provider>/<tenantId>', (
+    Request req,
+    String provider,
+    String tenantId,
+  ) async {
+    const maxBytes = 65536;
+    final declared = req.contentLength;
+    if (declared != null && declared > maxBytes) {
+      throw const ApiException(
+        ApiErrorCode.payloadTooLarge,
+        'Request body is too large.',
+      );
+    }
+    final raw = <int>[];
+    await for (final chunk in req.read()) {
+      raw.addAll(chunk);
+      if (raw.length > maxBytes) {
+        throw const ApiException(
+          ApiErrorCode.payloadTooLarge,
+          'Request body is too large.',
+        );
+      }
+    }
+    final res = await b.gateways.webhook(provider, tenantId, raw, req.headers);
+    return ok(req, res);
+  });
   r.get(
     '$_v1/billing/invoices/<id>/e-invoice',
     m.secured(
