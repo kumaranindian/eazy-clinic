@@ -3,20 +3,33 @@
 Source of truth for scope: `CLAUDE.md` §6 (modules) and §18 (phases). This file
 adds the Phase 0 inventory result and the prerequisites per phase.
 
-| Phase | Scope | Main deliverables | Status |
-|---|---|---|---|
-| **0** | Foundation, architecture, design system | Monorepo, 3 app shells, backend skeleton, shared packages, design system, docs | **Implemented, pending approval** |
-| 1 | Foundation and authentication | Firebase projects (dev), Admin SDK on backend, ID-token verification, login/sign-up flows, API client, error/logging plumbing, session handling, MFA design | Not started |
-| 2 | Multi-tenant and clinic setup | Tenants, clinic registration + approval, branches, clinic settings, subscription foundation | Not started |
-| 3 | Clinic setup, branches, doctors, staff, RBAC | Clinic profile/hours, branches, doctors + assignments, staff, invitations, centralized RBAC, branch-scoped access | **Implemented locally** (live Firebase, invitation delivery, custom roles, owner transfer deferred/unverified) |
-| 4 | Patient management | Patient registry, patient accounts, linking, family, history, consent, documents | **Implemented locally** (vitals, merge, patient app, live Firebase deferred/unverified) |
-| 5 | Appointments and queue | Availability, slots, booking, reschedule, cancel, tokens, queue | **Implemented locally** (notifications, push queue, DST zones, live Firebase deferred/unverified) |
-| 6 | Clinical operations | Consultation lifecycle, diagnosis, templates, prescriptions, follow-ups | Not started |
-| 7 | Billing and payments | Invoices, payments, Razorpay, receipts, refunds, expenses | Not started |
-| 8 | Patient Android app | Onboarding, auth, discovery, booking, history, queue, Rx, reports, notifications | Not started |
-| 9 | Laboratory and documents | Catalogue, orders, results, uploads, documents | Not started |
-| 10 | Reports and notifications | Dashboards, reports, FCM, reminders, preferences | Not started |
-| 11 | Production readiness | Security audit, tenant-isolation tests, performance, backup validation, monitoring, deploy | Not started |
+| Phase | Scope | Status (see IMPLEMENTATION_PROGRESS.md) |
+|---|---|---|
+| 0 | Foundation, architecture, design system | Merged into `develop` |
+| 1 | Authentication and security foundation | Merged into `develop` |
+| 2 | SaaS platform and multi-tenant management | Merged into `develop` |
+| 3 | Clinic setup, branches, doctors, staff, RBAC | Merged into `develop` |
+| 4 | Patient management, identity, family, consent | Merged into `develop` |
+| 5 | Appointments, availability, queue | Merged into `develop` |
+| 6 | Doctor workspace, consultation, prescriptions, follow-ups | Merged into `develop` |
+| 7 | Billing, payments, refunds, expenses | Merged into `develop` (PR #4) |
+| 8 | Patient Android application | Merged into `develop` (PR #5) |
+| 9 | Laboratory management | Merged into `develop` (PR #6) |
+| 10 | Notifications and operational reports | Merged into `develop` (PR #7) |
+| 11 | Production readiness | Merged into `develop`; production **NOT READY** (open release gates) |
+| 12 | Global architecture and country configuration | Implemented on `feature/phase-12-country-configuration`; PR pending |
+| 13 | Internationalization and localization | Not started |
+| 14 | Country compliance framework | Not started |
+| 15 | Tax, invoicing and e-invoicing foundations | Not started |
+| 16 | International payments | Not started |
+| 17 | Healthcare integrations and national ecosystems | Not started |
+| 18 | International identity and communications | Not started |
+| 19 | Clinical localization and country workflows | Not started |
+| 20 | Global SaaS administration and commercial operations | Not started |
+| 21 | Regional hosting, data residency and security | Not started |
+| 22 | Global release readiness and country launch certification | Not started |
+
+Detailed per-phase scope for 12–22 lives in the phase prompts (`EazyClinic_Phase_NN_Implementation_Prompt.docx`).
 
 ## Phase 1 prerequisites (must be true before starting)
 

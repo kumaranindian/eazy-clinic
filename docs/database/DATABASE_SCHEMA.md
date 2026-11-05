@@ -151,3 +151,8 @@ Top-level (backend-only): `patient_notifications` (inbox, one deterministic id p
 
 ## Phase 10 collections
 Tenant: `notification_events`, `notification_deliveries`, `notifications` (staff inbox), `notification_templates`, `notification_template_versions`, `notification_preferences`, `notification_settings`, `notification_channel_configs`, `notification_audit_logs`, `report_exports`, `report_audit_logs`. Top-level (backend-only): `notification_devices`. `patient_notifications` gains `archived`. Details: `docs/phase-10/DATABASE_SCHEMA.md`.
+
+## Phase 12 additions
+
+`countries/{ISO}` (+ `versions/{n}`) at platform level; `tenants/{id}` gains `countryCode`, `countryConfigVersion`, `countrySource`, `countrySetAt`, `countrySetBy`; `tenants/{id}/country_history/{ts}`; branch/profile `address.countryCode`, `address.localized`.
+Details: `docs/phase-12/ARCHITECTURE_AND_DATA_MODEL.md`.

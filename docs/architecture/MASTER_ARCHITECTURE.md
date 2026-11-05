@@ -128,5 +128,11 @@ credentials. See `deployment/ENVIRONMENT_STRATEGY.md`.
 | 080 | Reminders are derived by a worker scan with window-unique dedupe keys and re-checked before sending; the worker is an in-process timer | No new scheduler dependency | Implemented (TD-85) |
 | 081 | Reports are computed on demand from persisted records with documented formulas, scan caps and clinic-local dates | Honest, simple, bounded | Implemented (TD-87) |
 | 082 | Exports are generated server-side within limits, stored privately, requester-only, time-limited, audited, CSV-safe | Secure downloads | Implemented (TD-88) |
+| 083 | Country, timezone, phone and currency metadata come from maintained libraries (`intl`, `timezone`, `phone_numbers_parser`) behind `country_config`; only India and UAE are seeded, others are added by platform admins | No hand-maintained global catalogue | Implemented |
+| 084 | Country master is a platform collection (`countries/{ISO}`) with versioned snapshots; `code`, `callingCode`, `defaultCurrency` immutable; enabling onboarding needs review evidence | Auditable, effective-dated configuration | Implemented |
+| 085 | The tenant's legal country is set once by the server (application → approval, or audited migration) and has no tenant-facing write path; never inferred from phone, IP, locale or device | Country spoofing and silent drift | Implemented |
+| 086 | Configuration resolution is layered (country → tenant → branch → user locale → deployment); unknown or invalid configuration fails closed; tenants without a country are "not configured", not guessed | Safe compatibility with existing tenants | Implemented (TD-97) |
+| 087 | Existing tenants are classified by a read-only dry-run report and assigned one by one by a super admin; no bulk apply | Safe migration | Implemented (TD-99, TD-100) |
+| 088 | Locale is presentation only: user preference never changes country, currency or stored data; instants stay UTC and render in the branch zone; money is minor units + ISO code | Clinical/legal meaning unchanged | Implemented (TD-98) |
 
 New decisions are appended here before implementation (CLAUDE.md §19 last paragraph).

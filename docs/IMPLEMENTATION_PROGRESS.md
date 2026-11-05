@@ -224,3 +224,22 @@ Test counts: `docs/phase-10/TESTING.md`.
 | Fixes: Android signing fails closed, billing gateway permission, production CORS, `/ready`, log severity | Done (Android change unbuilt) | |
 | Emulator backup/restore drill | 3,620 documents, checksums match | `BACKUP_AND_RESTORE.md` |
 | **Production readiness** | **NOT READY**: staging/UAT, live Firebase, Android build, managed backup rehearsal, monitoring, legal review open | `FINAL_RELEASE_READINESS_REPORT.md` |
+
+## Phase 12: Global architecture and country configuration (branch `feature/phase-12-country-configuration`)
+
+Legend as above. Verification is by tests with an in-memory store and widget tests; live Firebase/emulator not run (TD-95).
+
+| Item | Status | Evidence |
+|---|---|---|
+| Country master, IN/UAE baseline, versioned snapshots, admin API (list, create, update, seed) | Implemented, tested | `docs/phase-12/`, `country_test.dart` |
+| Typed layered configuration resolution + safe DTO; fail closed | Implemented, tested (cache per instance, TD-97) | `country_resolver.dart` |
+| Onboarding country selector; backend validation; tenant legal country; immutability | Implemented, tested | apply page, `application_service.dart`, `tenant_service.dart` |
+| Atomic provisioning with country check | Implemented, tested | "approval fails atomically" |
+| Dry-run backfill report; audited per-tenant assignment/correction | Implemented, tested (no bulk apply, TD-99) | `country_service.dart` |
+| Branch IANA timezone, localized address, country-aware phone/postal | Implemented, tested | `branch_service.dart` |
+| Locale-aware formatting, locale resolution, user preference, en/hi/ar representative strings, RTL smoke test | Implemented, tested (full i18n = Phase 13) | `country_config`, `app_core/regional` |
+| Platform-admin country screens and backfill report | Implemented, widget-tested | `countries_pages.dart` |
+| New permissions (read / manage / migrate) | Implemented, tested | `permissions.dart` |
+| Firestore index, rules-test paths | Added, **not deployed/run** | `firestore.indexes.json` |
+| Live Firebase, emulator, Docker build | **Not run** | TD-95 |
+| GST/VAT, payment gateways, ABDM, UAE exchange, FX, multi-region deployment | **Not implemented** (excluded) | |
