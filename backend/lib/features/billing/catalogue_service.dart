@@ -61,8 +61,27 @@ class CatalogueService {
         'discountLimitsBps',
         'expenseApprovalLimits',
         'allowSelfApproval',
+        'legalName',
+        'taxRegistrationNumber',
       });
     final patch = <String, Object?>{};
+    final legal = r.str('legalName', min: 2, max: 120, required: false);
+    if (legal != null) patch['legalName'] = legal;
+    if (r.has('taxRegistrationNumber')) {
+      final raw = r.body['taxRegistrationNumber'];
+      if (raw == null) {
+        patch['taxRegistrationNumber'] = null;
+      } else if (raw is String &&
+          RegExp(r'^[A-Za-z0-9\- ]{5,30}$').hasMatch(raw)) {
+        patch['taxRegistrationNumber'] = raw.trim();
+      } else {
+        r.addIssue(
+          'taxRegistrationNumber',
+          'invalid_value',
+          'Use 5-30 letters, digits, spaces or hyphens.',
+        );
+      }
+    }
     final due = r.integer('invoiceDueDays', min: 0, max: 365, required: false);
     if (due != null) patch['invoiceDueDays'] = due;
     final self = r.boolean('allowSelfApproval');

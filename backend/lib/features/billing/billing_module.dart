@@ -18,6 +18,8 @@ import 'invoice_service.dart';
 import 'payment_service.dart';
 import 'refund_service.dart';
 import 'report_service.dart';
+import 'tax/einvoice.dart';
+import 'tax/tax_policy_service.dart';
 
 /// Phase 7: billing, payments, patient credit, refunds, expenses and finance
 /// reports.
@@ -27,6 +29,7 @@ class BillingModule {
     PatientSupport patients,
     SchedulingSupport scheduling, {
     this.gateway = const NotConfiguredGateway(),
+    EInvoiceProvider eInvoiceProvider = const NotConfiguredEInvoiceProvider(),
   }) : support = BillingSupport(deps, patients, scheduling) {
     catalogue = CatalogueService(support);
     invoices = InvoiceService(support, catalogue);
@@ -34,6 +37,7 @@ class BillingModule {
     refunds = RefundService(support, invoices, payments);
     expenses = ExpenseService(support);
     reports = ReportService(support);
+    eInvoices = EInvoiceService(support, eInvoiceProvider);
   }
 
   final BillingSupport support;
@@ -44,6 +48,7 @@ class BillingModule {
   late final RefundService refunds;
   late final ExpenseService expenses;
   late final ReportService reports;
+  late final EInvoiceService eInvoices;
 }
 
 const String _v1 = apiV1Prefix;
@@ -253,6 +258,41 @@ void registerBillingRoutes(ClinicModule m, BillingModule b, Router r) {
         ),
       ),
       write: true,
+    ),
+  );
+  r.get(
+    '$_v1/billing/tax/policies',
+    m.secured(
+      g0((req, t) async {
+        t.require(ClinicPermission.billingView);
+        final day = (await b.support.zone(t)).localDate(b.support.d.now);
+        return ok(req, {
+          'date': day,
+          'items': await TaxPolicyService.usableFor(
+            b.support.d.store,
+            t.tenantId,
+            day,
+          ),
+        });
+      }),
+    ),
+  );
+  r.get(
+    '$_v1/billing/invoices/<id>/e-invoice',
+    m.secured(
+      g1(
+        (req, t, id) async =>
+            ok(req, {'submission': await b.eInvoices.status(t, id)}),
+      ),
+    ),
+  );
+  r.post(
+    '$_v1/billing/invoices/<id>/e-invoice',
+    m.secured(
+      g1(
+        (req, t, id) async =>
+            ok(req, await b.eInvoices.submit(t, id, requestId: m.rid(req))),
+      ),
     ),
   );
   r.post(
@@ -671,6 +711,14 @@ void registerBillingRoutes(ClinicModule m, BillingModule b, Router r) {
       g0(
         (req, t) =>
             report(req, t, 'collections', () => b.reports.collections(t, req)),
+      ),
+    ),
+  );
+  r.get(
+    '$_v1/finance/reports/tax',
+    m.secured(
+      g0(
+        (req, t) => report(req, t, 'tax-summary', () => b.reports.tax(t, req)),
       ),
     ),
   );

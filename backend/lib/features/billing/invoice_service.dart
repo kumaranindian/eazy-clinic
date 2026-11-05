@@ -12,6 +12,7 @@ import '../scheduling/time_support.dart';
 import 'billing_math.dart';
 import 'billing_support.dart';
 import 'catalogue_service.dart';
+import 'tax/tax_policy.dart';
 
 const int maxInvoiceLines = 50;
 
@@ -118,6 +119,10 @@ class InvoiceService {
       }.contains(inv['status']) &&
       ((inv['outstanding'] as int?) ?? 0) > 0;
 
+  Future<String?> _countryOf(TenantContext t) async =>
+      (await _s.d.store.get('tenants/${t.tenantId}'))?['countryCode']
+          as String?;
+
   // -------------------------------------------------------------- lines
 
   Discount? _discount(BodyReader r, Object? raw, String field) {
@@ -149,8 +154,10 @@ class InvoiceService {
     BodyReader r,
     String branchId,
     String? invoiceDoctorId,
-    Object? raw,
-  ) async {
+    Object? raw, {
+    required String invoiceDate,
+  }) async {
+    final country = await _countryOf(t);
     if (raw is! List || raw.length > maxInvoiceLines) {
       r.addIssue(
         'lines',
@@ -177,8 +184,24 @@ class InvoiceService {
           'taxExempt',
           'taxExemptReason',
           'taxRuleId',
+          'taxPolicyKey',
+          'taxExemptionKey',
+          'supply',
           'doctorId',
         });
+      final policyKey = c.str('taxPolicyKey', max: 40, required: false);
+      final exemptionKey = c.str('taxExemptionKey', max: 40, required: false);
+      final supply = c.str('supply', max: 10, required: false);
+      if (supply != null && !taxSupplies.contains(supply)) {
+        c.addIssue('supply', 'invalid_value', 'Use any, intra or inter.');
+      }
+      if ((exemptionKey != null || supply != null) && policyKey == null) {
+        c.addIssue(
+          'taxPolicyKey',
+          'required',
+          'Give the tax policy these refer to.',
+        );
+      }
       final serviceId = c.str('serviceId', max: 40, required: false);
       final qty = c.integer('quantity', min: 1, max: 1000);
       final disc = _discount(c, c.body['discount'], 'discount');
@@ -244,7 +267,32 @@ class InvoiceService {
         r.addIssue('lines[$i].${x.field}', x.code, x.message);
       }
       if (c.issues.isNotEmpty) continue;
-      final rule = await _cat.taxRule(t, ruleId);
+      if (policyKey != null && (ruleId != null || exempt)) {
+        r.addIssue(
+          'lines[$i].taxPolicyKey',
+          'conflict',
+          'Use either a tax policy or a tax rule / exemption, not both.',
+        );
+        continue;
+      }
+      TaxRule? rule;
+      if (policyKey != null) {
+        try {
+          rule = resolvePolicyRule(
+            await _s.d.store.get('tax_policies/$policyKey'),
+            countryCode: country ?? '',
+            date: invoiceDate,
+            exemptionKey: exemptionKey,
+            supply: supply,
+          );
+        } on TaxPolicyUnavailable catch (e) {
+          r.addIssue('lines[$i].taxPolicyKey', e.reason, e.message);
+          continue;
+        }
+      } else {
+        rule = await _cat.taxRule(t, ruleId);
+      }
+      final pr = rule is PolicyTaxRule ? rule : null;
       out.add({
         'lineId': 'l${i + 1}',
         'serviceId': serviceId,
@@ -268,6 +316,14 @@ class InvoiceService {
               ],
         'taxExempt': exempt,
         'taxExemptReason': exemptReason,
+        'taxPolicyKey': pr?.policyKey,
+        'taxPolicyVersion': pr?.policyVersion,
+        'taxEffectiveOn': pr?.effectiveOn,
+        'taxTreatment': pr?.treatment,
+        'taxSupply': pr?.supply,
+        'taxRounding': pr?.rounding.wireName,
+        'taxType': pr?.taxType,
+        'taxExemptionKey': exemptionKey,
         'doctorId': doctorId,
       });
     }
@@ -312,7 +368,26 @@ class InvoiceService {
           ? Discount.fixed(invDiscount['value']! as int)
           : Discount.percent(invDiscount['value']! as int);
     }
-    final res = calculateInvoice(inputs, invoiceDiscount: inv);
+    final modes = {
+      for (final l in snaps)
+        if (l['taxRounding'] != null) '${l['taxRounding']}',
+    };
+    if (modes.length > 1) {
+      throw ApiException.validation([
+        billingIssue(
+          'lines',
+          'mixed_rounding',
+          'Lines use tax policies with different rounding rules. Split them into separate invoices.',
+        ),
+      ]);
+    }
+    final res = calculateInvoice(
+      inputs,
+      invoiceDiscount: inv,
+      rounding: modes.isEmpty
+          ? Rounding.halfUp
+          : (Rounding.tryParse(modes.first) ?? Rounding.halfUp),
+    );
     final lines = <Map<String, Object?>>[
       for (var i = 0; i < snaps.length; i++)
         {
@@ -431,7 +506,14 @@ class InvoiceService {
 
     var lines = <Map<String, Object?>>[];
     if (r.has('lines')) {
-      lines = await _snapshotLines(t, r, branchId, doctorId, r.body['lines']);
+      lines = await _snapshotLines(
+        t,
+        r,
+        branchId,
+        doctorId,
+        r.body['lines'],
+        invoiceDate: today,
+      );
     }
     Map<String, Object?>? discount;
     if (r.has('discount') && r.body['discount'] != null) {
@@ -560,6 +642,7 @@ class InvoiceService {
         '${head['branchId']}',
         head['doctorId'] as String?,
         r.body['lines'],
+        invoiceDate: '${head['invoiceDate']}',
       );
     }
     Map<String, Object?>? discount = head['discount'] as Map<String, Object?>?;
@@ -662,9 +745,26 @@ class InvoiceService {
           ),
         ]);
       }
+      // A policy-based line keeps the rates of the draft only while that
+      // policy version is still the verified, published one.
+      for (final l in snaps) {
+        final pk = l['taxPolicyKey'] as String?;
+        if (pk == null) continue;
+        final cur = await tx.get('tax_policies/$pk');
+        if (cur == null ||
+            cur['version'] != l['taxPolicyVersion'] ||
+            cur['status'] != 'published' ||
+            (cur['verification'] as Map?)?['status'] != 'verified') {
+          throw ApiException.conflict(
+            'The tax policy "$pk" changed after this draft was prepared. '
+            'Re-save the lines to apply the current policy.',
+          );
+        }
+      }
       // Recalculate from the stored snapshots: what is finalized is exactly
       // what the server computed, never a client figure.
       final calc = _compute(snaps, inv['discount'] as Map<String, Object?>?);
+      final issueSnapshot = await _issueSnapshot(t, inv, calc.lines);
       final ops = <WriteOp>[];
       final number = await _s.nextNumber(
         tx,
@@ -690,6 +790,7 @@ class InvoiceService {
         'lines': calc.lines,
         ...calc.totals,
         'invoiceNumber': number,
+        'issueSnapshot': issueSnapshot,
         'finalizedAt': now,
         'finalizedBy': t.uid,
         'updatedBy': t.uid,
@@ -712,6 +813,55 @@ class InvoiceService {
       tx.write(ops);
       return present(t, {...inv, ...patch});
     });
+  }
+
+  /// What the invoice must keep forever about *who issued it to whom and
+  /// under which rules*. Written once at finalization and never rewritten, so
+  /// a later change of clinic name, tax number, tax policy or numbering never
+  /// alters an issued invoice.
+  Future<Map<String, Object?>> _issueSnapshot(
+    TenantContext t,
+    DocData inv,
+    List<Map<String, Object?>> lines,
+  ) async {
+    final tenant = await _s.d.store.get('tenants/${t.tenantId}');
+    final settings = await _s.settings(t);
+    final branch = await _s.branch(t, '${inv['branchId']}');
+    final policies = <String, int>{};
+    for (final l in lines) {
+      final k = l['taxPolicyKey'] as String?;
+      if (k != null) policies[k] = l['taxPolicyVersion']! as int;
+    }
+    final rounding = {
+      for (final l in lines)
+        if (l['taxRounding'] != null) '${l['taxRounding']}',
+    };
+    return {
+      'version': 1,
+      'seller': {
+        'legalName': settings['legalName'] ?? tenant?['clinicName'],
+        'tradeName': tenant?['clinicName'],
+        'taxRegistrationNumber': settings['taxRegistrationNumber'],
+        'countryCode': tenant?['countryCode'],
+        'branchName': branch['name'],
+        'branchAddress': branch['address'],
+      },
+      'customer': {
+        'name': inv['patientName'],
+        'recordNumber': inv['patientMrn'],
+      },
+      'currency': inv['currency'],
+      'currencyExponent': currencyExponent[inv['currency']] ?? 2,
+      'taxPolicies': policies,
+      'taxRounding': rounding.isEmpty ? 'half_up' : rounding.first,
+      'numbering': {
+        'counter': 'invoice_number',
+        'prefix': 'INV',
+        'width': 6,
+        'scope': 'clinic',
+      },
+      'templateVersion': 1,
+    };
   }
 
   // ------------------------------------------------------------ cancel
@@ -794,11 +944,22 @@ class InvoiceService {
   }) async {
     t.require(ClinicPermission.billingAdjust);
     final r = BodyReader(body)
-      ..rejectUnknown({'type', 'amountMinor', 'reason', 'description'});
+      ..rejectUnknown({
+        'type',
+        'amountMinor',
+        'reason',
+        'description',
+        'taxIncludedMinor',
+      });
     final type = r.enumOf<String>('type', const ['credit', 'debit'], (v) => v);
     final amount = _s.amount(r, 'amountMinor', max: 1000000000);
     final reason = r.str('reason', min: 5, max: 300);
     final description = r.str('description', max: 300, required: false);
+    // How much of the note is tax (so tax reports can net it off). It is
+    // declared by the person issuing the note and capped by the invoice.
+    final taxIncluded =
+        r.integer('taxIncludedMinor', min: 0, max: amount, required: false) ??
+        0;
     r.throwIfInvalid();
     final adjId = 'adj_${newId(length: 14)}';
     final now = _s.d.now;
@@ -807,6 +968,11 @@ class InvoiceService {
       if (inv['status'] == 'draft' || inv['status'] == 'cancelled') {
         throw const ApiException.conflict(
           'Adjustments apply to finalized invoices only.',
+        );
+      }
+      if (taxIncluded > ((inv['taxTotal'] as int?) ?? 0)) {
+        throw const ApiException.conflict(
+          'The tax in a note cannot exceed the tax of the invoice.',
         );
       }
       if (type == 'credit' && amount > ((inv['outstanding'] as int?) ?? 0)) {
@@ -840,6 +1006,7 @@ class InvoiceService {
         'type': type,
         'number': number,
         'amount': amount,
+        'taxIncluded': taxIncluded,
         'currency': inv['currency'],
         'reason': reason,
         'description': description,

@@ -218,6 +218,10 @@ describe('SaaS control-plane collections are backend-only (Phase 2)', () => {
     'tenants/ten_1/compliance_evidence/ce_1',
     'tenants/ten_1/compliance_credentials/cr_1',
     'tenants/ten_1/compliance_history/h1',
+    // Phase 15: tax policies and e-invoice submissions
+    'tax_policies/in-gst',
+    'tax_policies/in-gst/versions/1',
+    'tenants/ten_1/einvoice_submissions/inv_1',
     // Phase 3: clinic administration data
     'tenants/ten_1/clinic_settings/profile',
     'tenants/ten_1/clinic_settings/operations',

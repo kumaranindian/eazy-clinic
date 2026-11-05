@@ -13,8 +13,51 @@ int divRoundHalfUp(int numerator, int denominator) {
   return (numerator * 2 + denominator) ~/ (denominator * 2);
 }
 
-/// `amount × bps / 10000`, rounded half up.
-int percentOf(int amount, int bps) => divRoundHalfUp(amount * bps, 10000);
+/// How a division of money is rounded to a whole minor unit. The default is
+/// half up (what every existing invoice used). A tax policy may name another
+/// mode; the mode used is stored on the invoice.
+enum Rounding {
+  halfUp('half_up'),
+  halfEven('half_even'),
+  down('down');
+
+  const Rounding(this.wireName);
+
+  final String wireName;
+
+  static Rounding? tryParse(Object? v) {
+    for (final r in values) {
+      if (r.wireName == v) return r;
+    }
+    return null;
+  }
+}
+
+/// `numerator / denominator` rounded with [mode] (non-negative inputs).
+int divRound(
+  int numerator,
+  int denominator, [
+  Rounding mode = Rounding.halfUp,
+]) {
+  assert(numerator >= 0 && denominator > 0);
+  final q = numerator ~/ denominator;
+  final r = numerator % denominator;
+  switch (mode) {
+    case Rounding.down:
+      return q;
+    case Rounding.halfUp:
+      return r * 2 >= denominator ? q + 1 : q;
+    case Rounding.halfEven:
+      final twice = r * 2;
+      if (twice > denominator) return q + 1;
+      if (twice < denominator) return q;
+      return q.isEven ? q : q + 1;
+  }
+}
+
+/// `amount × bps / 10000`, rounded with [mode] (half up by default).
+int percentOf(int amount, int bps, [Rounding mode = Rounding.halfUp]) =>
+    divRound(amount * bps, 10000, mode);
 
 /// Splits [total] in proportion to [weights] (largest-remainder method).
 /// All-zero weights put the whole amount on the first part.
@@ -163,6 +206,7 @@ class InvoiceResult {
 InvoiceResult calculateInvoice(
   List<LineInput> inputs, {
   Discount? invoiceDiscount,
+  Rounding rounding = Rounding.halfUp,
 }) {
   final gross = [for (final l in inputs) l.quantity * l.unitMinor];
   final lineDisc = [
@@ -184,7 +228,7 @@ InvoiceResult calculateInvoice(
     var total = after;
     if (rule != null && rule.totalBps > 0) {
       if (rule.inclusive) {
-        base = divRoundHalfUp(after * 10000, 10000 + rule.totalBps);
+        base = divRound(after * 10000, 10000 + rule.totalBps, rounding);
         tax = after - base;
         final split = allocateProportionally(tax, [
           for (final c in rule.components) c.rateBps,
@@ -201,7 +245,7 @@ InvoiceResult calculateInvoice(
       } else {
         parts = [
           for (final c in rule.components)
-            TaxPart(c.name, c.rateBps, percentOf(after, c.rateBps)),
+            TaxPart(c.name, c.rateBps, percentOf(after, c.rateBps, rounding)),
         ];
         tax = parts.fold(0, (a, p) => a + p.amount);
         total = after + tax;

@@ -13,6 +13,7 @@ import '../../core/validation/request_validator.dart';
 import '../auth/application/auth_context_keys.dart';
 import '../auth/application/security_event_recorder.dart';
 import '../auth/presentation/auth_routes.dart';
+import '../billing/tax/tax_policy_service.dart';
 import '../clinic/common/object_storage.dart';
 import '../compliance/compliance_profile_service.dart';
 import '../compliance/compliance_routes.dart' show fileResponse;
@@ -66,6 +67,7 @@ class PlatformModule {
       clock: clock,
     );
     countries = CountryService(store, audit, countryDirectory, clock: clock);
+    taxPolicies = TaxPolicyService(store, audit, clock: clock);
   }
 
   final AuthModule auth;
@@ -82,6 +84,7 @@ class PlatformModule {
   late final CountryService countries;
   late final ComplianceProfileService complianceProfiles;
   late final TenantComplianceService compliance;
+  late final TaxPolicyService taxPolicies;
 
   static const String _p = '$apiV1Prefix/platform';
 
@@ -296,6 +299,77 @@ class PlatformModule {
         (Request req) async =>
             ok(req, {'items': await compliance.reviewQueue()}),
         permission: Permission.reviewCompliance,
+      ),
+    );
+    r.post(
+      '$_p/tax/policies/seed-baseline',
+      _secured(
+        (Request req) async => ok(req, {
+          'items': await taxPolicies.seedBaseline(
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        }),
+        permission: Permission.manageTax,
+        write: true,
+      ),
+    );
+    r.get(
+      '$_p/tax/policies',
+      _secured(
+        (Request req) async => ok(req, {
+          'items': await taxPolicies.list(
+            countryCode: _query(req, 'countryCode', max: 2),
+          ),
+        }),
+        permission: Permission.readTax,
+      ),
+    );
+    r.get(
+      '$_p/tax/policies/<key>',
+      _secured(
+        (Request req, String key) async => ok(req, await taxPolicies.get(key)),
+        permission: Permission.readTax,
+      ),
+    );
+    r.get(
+      '$_p/tax/policies/<key>/versions',
+      _secured(
+        (Request req, String key) async =>
+            ok(req, {'items': await taxPolicies.versions(key)}),
+        permission: Permission.readTax,
+      ),
+    );
+    r.patch(
+      '$_p/tax/policies/<key>',
+      _secured(
+        (Request req, String key) async => ok(
+          req,
+          await taxPolicies.update(
+            key,
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.manageTax,
+        write: true,
+      ),
+    );
+    r.post(
+      '$_p/tax/policies/<key>/verify',
+      _secured(
+        (Request req, String key) async => ok(
+          req,
+          await taxPolicies.verify(
+            key,
+            await _body(req),
+            _actor(req),
+            requestId: _rid(req),
+          ),
+        ),
+        permission: Permission.verifyTax,
+        write: true,
       ),
     );
     r.post(
