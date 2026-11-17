@@ -8,6 +8,7 @@ import '../../core/responses/responses.dart';
 import '../clinic/clinic_module.dart';
 import '../clinic/common/clinic_deps.dart';
 import '../clinic/common/tenant_context.dart';
+import '../documents/document_pdf.dart';
 import '../patients/patient_support.dart';
 import '../scheduling/scheduling_support.dart';
 import 'billing_support.dart';
@@ -408,6 +409,37 @@ void registerBillingRoutes(ClinicModule m, BillingModule b, Router r) {
         (req, t, id) async =>
             ok(req, await b.payments.receipt(t, id, requestId: m.rid(req))),
       ),
+    ),
+  );
+
+  // ------------------------------------------------------------ PDFs
+  // Rendered on demand from the same authorized data as the screens; the
+  // read is audited by the detail call. Drafts are not printable.
+  r.get(
+    '$_v1/billing/invoices/<id>/pdf',
+    m.secured(
+      g1((req, t, id) async {
+        final inv = await b.invoices.detail(t, id, requestId: m.rid(req));
+        if (inv['status'] == 'draft') {
+          throw const ApiException.conflict(
+            'A draft invoice cannot be printed. Finalize it first.',
+          );
+        }
+        final clinic = await b.support.d.store.get('tenants/${t.tenantId}');
+        return pdfResponse(
+          invoicePdf(inv, clinicName: clinic?['clinicName'] as String?),
+          '${inv['invoiceNumber']}',
+        );
+      }),
+    ),
+  );
+  r.get(
+    '$_v1/billing/receipts/<rid>/pdf',
+    m.secured(
+      g1((req, t, id) async {
+        final rc = await b.payments.receipt(t, id, requestId: m.rid(req));
+        return pdfResponse(receiptPdf(rc), '${rc['receiptNumber']}');
+      }),
     ),
   );
 
