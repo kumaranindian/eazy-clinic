@@ -151,3 +151,6 @@ Top-level (backend-only): `patient_notifications` (inbox, one deterministic id p
 
 ## Phase 10 collections
 Tenant: `notification_events`, `notification_deliveries`, `notifications` (staff inbox), `notification_templates`, `notification_template_versions`, `notification_preferences`, `notification_settings`, `notification_channel_configs`, `notification_audit_logs`, `report_exports`, `report_audit_logs`. Top-level (backend-only): `notification_devices`. `patient_notifications` gains `archived`. Details: `docs/phase-10/DATABASE_SCHEMA.md`.
+
+## Phase 12
+`tenants/{t}/role_permissions/{role}`: `grant[]`, `revoke[]`, `version`, `updatedBy`, `updatedAt` (per-clinic adjustment of a built-in role; absent means defaults). No new collection for PDFs (rendered on demand) or platform administrators (`platform_users.platformRole`).

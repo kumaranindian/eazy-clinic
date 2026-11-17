@@ -39,6 +39,7 @@ import 'common/tenant_context.dart';
 import 'doctors/doctor_service.dart';
 import 'invitations/invitation_service.dart';
 import 'members/member_service.dart';
+import 'roles/role_permission_service.dart';
 import 'settings/clinic_service.dart';
 import 'staff/staff_service.dart';
 
@@ -89,7 +90,8 @@ class ClinicModule {
     doctors = DoctorService(deps, branches);
     staff = StaffService(deps, branches);
     invitations = InvitationService(deps, staff, doctors);
-    members = MemberService(deps, staff, branches);
+    rolePermissions = RolePermissionService(deps);
+    members = MemberService(deps, staff, branches, rolePermissions);
     patients = PatientModule(deps, storage);
     scheduling = SchedulingModule(deps, patients.support);
     clinical = ClinicalModule(deps, patients.support, scheduling);
@@ -176,6 +178,7 @@ class ClinicModule {
   late final StaffService staff;
   late final InvitationService invitations;
   late final MemberService members;
+  late final RolePermissionService rolePermissions;
 
   static const String _v1 = apiV1Prefix;
 
@@ -197,6 +200,7 @@ class ClinicModule {
         request: req,
         entitlements: deps.entitlements,
         write: write,
+        rolePermissions: rolePermissions.effective,
       );
       final r = Function.apply(h, [req, t, ...req.params.values]);
       return await r as Response;
@@ -694,14 +698,44 @@ class ClinicModule {
     r.get(
       '$_v1/roles',
       secured(
-        (Request req, TenantContext t) async => ok(req, members.roles(t)),
+        (Request req, TenantContext t) async => ok(req, await members.roles(t)),
+      ),
+    );
+    r.put(
+      '$_v1/roles/<role>/permissions',
+      secured(
+        (Request req, TenantContext t, String role) async => ok(
+          req,
+          await rolePermissions.set(
+            t,
+            role,
+            await body(req),
+            requestId: rid(req),
+          ),
+        ),
+        write: true,
+      ),
+    );
+    r.post(
+      '$_v1/roles/<role>/permissions/reset',
+      secured(
+        (Request req, TenantContext t, String role) async => ok(
+          req,
+          await rolePermissions.reset(
+            t,
+            role,
+            await body(req),
+            requestId: rid(req),
+          ),
+        ),
+        write: true,
       ),
     );
     r.get(
       '$_v1/permissions',
       secured(
         (Request req, TenantContext t) async =>
-            ok(req, members.permissionCatalog(t)),
+            ok(req, await members.permissionCatalog(t)),
       ),
     );
     r.get(

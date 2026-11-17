@@ -204,3 +204,8 @@ Results, reports and the audit trail belong to the clinical permission set, so t
 | `notifications.manage` (templates, deliveries, retry, channels, settings, health) | ✔ | ✔ | |
 
 Own notification inbox, preferences and devices need no permission beyond membership. Report sections require: appointments `appointments.view`, queues `queue.view`, patients `patients.view` (not doctors), consultations `consultations.view` (own) or `view_all`, laboratory `lab.dashboard.view`, billing `finance.reports.view`.
+
+## Phase 12: clinic-configurable permissions and platform administrators
+The matrices above are the **defaults**. A clinic owner (`roles.manage`) can grant extra permissions to a built-in role or remove default ones (`PUT /roles/{role}/permissions`, `POST /roles/{role}/permissions/reset`). Effective permissions are `(defaults + granted) - revoked`, resolved on the server on every request. Fixed rules: the owner role cannot be edited and always holds everything; `roles.manage` cannot be granted to any other role; only known clinic permissions are accepted; clinical authoring still needs the doctor role with a linked doctor profile; every change needs a reason and is audited (`role.permissions_changed`, `role.permissions_reset`).
+
+Platform: `platform.admins.manage` (super admin only) grants or removes `super_admin` / `platform_support_admin` for an existing, active, e-mail-verified account. Nobody changes their own role and the last active super admin cannot be removed. Support admins can list administrators but not change them.

@@ -224,3 +224,13 @@ Test counts: `docs/phase-10/TESTING.md`.
 | Fixes: Android signing fails closed, billing gateway permission, production CORS, `/ready`, log severity | Done (Android change unbuilt) | |
 | Emulator backup/restore drill | 3,620 documents, checksums match | `BACKUP_AND_RESTORE.md` |
 | **Production readiness** | **NOT READY**: staging/UAT, live Firebase, Android build, managed backup rehearsal, monitoring, legal review open | `FINAL_RELEASE_READINESS_REPORT.md` |
+
+## Phase 12: code-only gaps (branch `feature/phase-12-code-gaps`, not pushed)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Invoice, receipt and prescription PDFs (staff and patient APIs, Clinic Web buttons) | Implemented, tested; no button in the mobile apps (TD-95) | `backend/lib/features/documents/` |
+| Platform administrator management | Implemented, tested | `backend/lib/features/platform/admins/`, `/platform/admins` screen |
+| Clinic-configurable role permissions | Implemented, tested; built-in roles only (TD-96) | `backend/lib/features/clinic/roles/`, Roles tab editor |
+
+Production readiness is unchanged: **not ready** (`docs/phase-11/`).

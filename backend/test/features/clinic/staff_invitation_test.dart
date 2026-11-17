@@ -888,7 +888,7 @@ void main() {
         final catalog = await h.okData(
           h.call('GET', '/permissions', uid: 'owner'),
         );
-        expect(catalog['customRoles'], 'deferred');
+        expect(catalog['customRoles'], 'per-role adjustments');
         expect(
           (await h.call('GET', '/roles', uid: 'nina')).statusCode,
           403,

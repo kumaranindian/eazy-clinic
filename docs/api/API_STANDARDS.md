@@ -132,3 +132,6 @@ Laboratory routes live under `/laboratory/...` (plus `/consultations/{id}/lab-or
 
 ## Phase 10 conventions
 Notification routes: staff `/notifications...`, administration `/admin/notification-...`, patient `/patient/notifications...`. A notification carries a resource type and id, never data; the target route authorizes again. Reports are `GET /reports/{kind}` with `from`, `to`, `branchId`, `doctorId` and return summary, table, definitions, `generatedAt` and `truncated`. Exports are `POST /reports/exports` then an authenticated `download`; no route returns a storage path or public link. Endpoint list: `docs/phase-10/API_SPECIFICATION.md`.
+
+## Phase 12 additions
+PDF downloads: `GET /billing/invoices/{id}/pdf` (not for drafts), `GET /billing/receipts/{id}/pdf`, `GET /prescriptions/{id}/pdf` (issued only), and for patients `GET /patient/clinics/{cid}/invoices|receipts|prescriptions/{id}/pdf`. They use the permission, scope and audit of the matching detail route and return `application/pdf` with `Cache-Control: private, no-store`. Role adjustments: `PUT /roles/{role}/permissions`, `POST /roles/{role}/permissions/reset`. Platform administrators: `GET/POST /platform/admins`, `POST /platform/admins/{uid}/revoke`.
