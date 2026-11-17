@@ -42,6 +42,9 @@ class ControlPlaneRepository {
 
   Future<Uint8List> logoBytes() => _api.getBytes('/clinics/current/logo');
 
+  /// Any authenticated file download (PDFs of invoices, receipts, ...).
+  Future<Uint8List> downloadBytes(String path) => _api.getBytes(path);
+
   /// A finished report export, through the authenticated API.
   Future<Uint8List> exportBytes(String exportId) =>
       _api.getBytes('/reports/exports/$exportId/download');

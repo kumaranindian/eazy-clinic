@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../clinic_admin/providers.dart';
 import '../control_plane/data/control_plane_repository.dart';
+import '../laboratory/lab_pages.dart' show reportSaverProvider;
 import '../patients/dialogs.dart';
 import '../scheduling/scheduling_providers.dart';
 import '../shared/async_body.dart';
@@ -298,6 +299,24 @@ class InvoiceDetailPage extends ConsumerWidget {
                   '${inv['branchName'] ?? ''}',
               actions: [
                 statusChip(inv['displayStatus'] ?? status),
+                if (!draft)
+                  TextButton(
+                    key: const Key('invoice-pdf'),
+                    onPressed: () => runAction(
+                      context,
+                      action: () async {
+                        final bytes = await ref
+                            .read(controlPlaneRepositoryProvider)
+                            .downloadBytes('/billing/invoices/$invoiceId/pdf');
+                        await ref.read(reportSaverProvider)(
+                          '${inv['invoiceNumber']}.pdf',
+                          bytes,
+                        );
+                      },
+                      success: 'PDF downloaded',
+                    ),
+                    child: const Text('Download PDF'),
+                  ),
                 TextButton(
                   onPressed: () => context.go(
                     '/clinic/billing/patients/${inv['patientId']}',

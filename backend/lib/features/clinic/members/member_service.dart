@@ -10,6 +10,7 @@ import '../../platform/common/paging.dart';
 import '../branches/branch_service.dart';
 import '../common/clinic_deps.dart';
 import '../common/tenant_context.dart';
+import '../roles/role_permission_service.dart';
 import '../staff/staff_service.dart';
 
 const Map<String, String> _roleDescriptions = {
@@ -36,33 +37,41 @@ const Map<String, String> _roleDescriptions = {
 /// recomputed from the stored role on every request, so a role change takes
 /// effect immediately.
 class MemberService {
-  MemberService(this._d, this._staff, this._branches);
+  MemberService(this._d, this._staff, this._branches, this._roles);
 
   final ClinicDeps _d;
   final StaffService _staff;
   final BranchService _branches;
+  final RolePermissionService _roles;
 
   FieldIssue _issue(String f, String c, String m) =>
       FieldIssue(field: f, code: c, message: m);
 
   // --------------------------------------------------------------- catalog
 
-  List<Map<String, Object?>> roles(TenantContext t) {
+  Future<List<Map<String, Object?>>> roles(TenantContext t) async {
     t.require(ClinicPermission.rolesView);
+    final m = await _roles.matrix(t.tenantId);
     return [
       for (final r in ClinicRole.values)
         {
           'role': r.wireName,
           'description': _roleDescriptions[r.wireName],
-          'permissions': ClinicRolePolicy.permissionsFor(r).toList()..sort(),
+          'permissions': m[r]!.permissions.toList()..sort(),
+          'defaultPermissions': ClinicRolePolicy.permissionsFor(r).toList()
+            ..sort(),
+          'grant': m[r]!.grant,
+          'revoke': m[r]!.revoke,
           'assignableByYou': ClinicRolePolicy.canGrant(t.role, r),
-          'custom': false,
+          'editable': r != ClinicRole.clinicOwner,
+          'custom': m[r]!.grant.isNotEmpty || m[r]!.revoke.isNotEmpty,
         },
     ];
   }
 
-  Map<String, Object?> permissionCatalog(TenantContext t) {
+  Future<Map<String, Object?>> permissionCatalog(TenantContext t) async {
     t.require(ClinicPermission.permissionsView);
+    final m = await _roles.matrix(t.tenantId);
     final groups = <String, List<String>>{};
     for (final p in ClinicPermission.all) {
       groups.putIfAbsent(p.split('.').first, () => []).add(p);
@@ -71,9 +80,10 @@ class MemberService {
       'groups': groups,
       'matrix': {
         for (final r in ClinicRole.values)
-          r.wireName: ClinicRolePolicy.permissionsFor(r).toList()..sort(),
+          r.wireName: m[r]!.permissions.toList()..sort(),
       },
-      'customRoles': 'deferred',
+      'ownerOnly': RolePermissionService.ownerOnly.toList(),
+      'customRoles': 'per-role adjustments',
     };
   }
 

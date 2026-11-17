@@ -13,6 +13,7 @@ import '../../core/validation/request_validator.dart';
 import '../auth/application/auth_context_keys.dart';
 import '../auth/application/security_event_recorder.dart';
 import '../auth/presentation/auth_routes.dart';
+import 'admins/admin_service.dart';
 import 'applications/application_service.dart';
 import 'audit/audit_service.dart';
 import 'common/body_reader.dart';
@@ -49,6 +50,7 @@ class PlatformModule {
     tenants = TenantService(store, audit, subscriptions, clock: clock);
     entitlements = EntitlementService(store, clock: clock);
     dashboard = DashboardService(store, audit, clock: clock);
+    admins = AdminService(store, audit, clock: clock);
   }
 
   final AuthModule auth;
@@ -61,6 +63,7 @@ class PlatformModule {
   late final TenantService tenants;
   late final EntitlementService entitlements;
   late final DashboardService dashboard;
+  late final AdminService admins;
 
   static const String _p = '$apiV1Prefix/platform';
 
@@ -539,6 +542,62 @@ class PlatformModule {
           ),
         ),
         permission: Permission.manageSubscriptions,
+        write: true,
+      ),
+    );
+
+    // Platform: administrators
+    r.get(
+      '$_p/admins',
+      _secured(
+        (Request req) async => ok(req, await admins.list()),
+        permission: Permission.readPlatformUsers,
+      ),
+    );
+    r.post(
+      '$_p/admins',
+      _secured(
+        (Request req) async {
+          final b = BodyReader(await _body(req))
+            ..rejectUnknown({'email', 'role', 'reason'});
+          final email = b.str('email', min: 5, max: 254);
+          final role = b.str('role', max: 40);
+          final reason = b.str('reason', min: 3, max: 500);
+          b.throwIfInvalid();
+          return ok(
+            req,
+            await admins.grant(
+              _actor(req),
+              email: email!,
+              role: role!,
+              reason: reason!,
+              requestId: _rid(req),
+            ),
+          );
+        },
+        permission: Permission.manageAdmins,
+        write: true,
+      ),
+    );
+    r.post(
+      '$_p/admins/<uid>/revoke',
+      _secured(
+        (Request req, String uid) async {
+          final reason = _reason(await _body(req));
+          if (!RegExp(r'^[A-Za-z0-9_\-]{3,128}$').hasMatch(uid)) {
+            throw const ApiException.notFound();
+          }
+          return ok(
+            req,
+            await admins.revoke(
+              _actor(req),
+              uid,
+              reason: reason,
+              requestId: _rid(req),
+            ),
+          );
+        },
+        permission: Permission.manageAdmins,
         write: true,
       ),
     );

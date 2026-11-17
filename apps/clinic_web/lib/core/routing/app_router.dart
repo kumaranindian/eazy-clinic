@@ -23,6 +23,7 @@ import '../../features/onboarding/presentation/apply_page.dart';
 import '../../features/onboarding/presentation/my_applications_pages.dart';
 import '../../features/patients/patient_detail_page.dart';
 import '../../features/patients/patients_pages.dart';
+import '../../features/platform/admins_page.dart';
 import '../../features/platform/applications_pages.dart';
 import '../../features/platform/audit_page.dart';
 import '../../features/platform/dashboard_page.dart';
@@ -408,6 +409,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => SubscriptionDetailPage(
               subscriptionId: state.pathParameters['id']!,
             ),
+          ),
+          GoRoute(
+            path: '/platform/admins',
+            builder: (context, state) => const PlatformAdminsPage(),
           ),
           GoRoute(
             path: '/platform/audit',

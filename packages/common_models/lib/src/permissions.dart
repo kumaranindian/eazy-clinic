@@ -26,6 +26,9 @@ abstract final class Permission {
   static const String manageSubscriptions = 'platform.subscriptions.manage';
   static const String overrideEntitlements = 'platform.entitlements.override';
   static const String readAuditLogs = 'platform.audit.read';
+
+  /// Grant or remove platform administrator roles (super admin only).
+  static const String manageAdmins = 'platform.admins.manage';
 }
 
 /// Maps roles to permissions. Backend policies call this; apps must never use
@@ -51,6 +54,7 @@ abstract final class PermissionPolicy {
       Permission.manageSubscriptions,
       Permission.overrideEntitlements,
       Permission.readAuditLogs,
+      Permission.manageAdmins,
     },
     // Support can investigate (read) but cannot change anything sensitive and
     // has no access to audit logs or clinical data.

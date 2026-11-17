@@ -9,6 +9,7 @@ import '../../core/responses/responses.dart';
 import '../clinic/clinic_module.dart';
 import '../clinic/common/clinic_deps.dart';
 import '../clinic/common/tenant_context.dart';
+import '../documents/document_pdf.dart';
 import '../patients/patient_support.dart';
 import '../platform/common/paging.dart';
 import '../scheduling/scheduling_module.dart';
@@ -525,6 +526,25 @@ void registerClinicalRoutes(ClinicModule m, ClinicalModule c, Router r) {
           await c.prescriptions.detail(t, m.id(rid), requestId: m.rid(req)),
         ),
       ),
+    ),
+  );
+  r.get(
+    '$_v1/prescriptions/<rid>/pdf',
+    m.secured(
+      g1((req, t, rid) async {
+        // same permission and audit as viewing; only issued prescriptions print
+        final rx = await c.prescriptions.detail(
+          t,
+          m.id(rid),
+          requestId: m.rid(req),
+        );
+        if (rx['status'] != 'finalized' && rx['status'] != 'amended') {
+          throw const ApiException.conflict(
+            'Only an issued prescription can be printed.',
+          );
+        }
+        return pdfResponse(prescriptionPdf(rx), '${rx['number']}');
+      }),
     ),
   );
   r.patch(

@@ -2,12 +2,14 @@ import 'package:api_contracts/api_contracts.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+import '../../core/errors/api_exception.dart';
 import '../../core/responses/responses.dart';
 import '../../core/security/rate_limiter.dart';
 import '../auth/domain/auth_context.dart';
 import '../clinic/clinic_module.dart';
 import '../clinic/common/clinic_deps.dart';
 import '../clinic/common/object_storage.dart';
+import '../documents/document_pdf.dart';
 import '../patients/patient_module.dart';
 import '../scheduling/scheduling_module.dart';
 import 'portal_account.dart';
@@ -393,6 +395,49 @@ void registerPortalRoutes(ClinicModule m, PortalModule p, Router r) {
         ),
       ),
     ),
+  );
+  // PDFs of the patient's own invoice, receipt and issued prescription, built
+  // from the same allow-listed data as the screens.
+  r.get(
+    '$_v1/patient/clinics/<cid>/invoices/<iid>/pdf',
+    secured((req, c) async {
+      final inv = await p.billing.invoice(
+        c,
+        pid(req, 'cid'),
+        pid(req, 'iid'),
+        accountId: q(req, 'accountId'),
+      );
+      return pdfResponse(invoicePdf(inv), '${inv['invoiceNumber']}');
+    }),
+  );
+  r.get(
+    '$_v1/patient/clinics/<cid>/receipts/<rid>/pdf',
+    secured((req, c) async {
+      final rc = await p.billing.receipt(
+        c,
+        pid(req, 'cid'),
+        pid(req, 'rid'),
+        accountId: q(req, 'accountId'),
+      );
+      return pdfResponse(receiptPdf(rc), '${rc['receiptNumber']}');
+    }),
+  );
+  r.get(
+    '$_v1/patient/clinics/<cid>/prescriptions/<rid>/pdf',
+    secured((req, c) async {
+      final cid = pid(req, 'cid');
+      final rid = pid(req, 'rid');
+      final all = await p.records.prescriptions(
+        c,
+        accountId: q(req, 'accountId'),
+        clinicId: cid,
+      );
+      final rx = all.where((x) => x['prescriptionId'] == rid).firstOrNull;
+      if (rx == null) {
+        throw const ApiException.notFound('Prescription not found.');
+      }
+      return pdfResponse(prescriptionPdf(rx), '${rx['number']}');
+    }),
   );
   r.get(
     '$_v1/patient/payments',

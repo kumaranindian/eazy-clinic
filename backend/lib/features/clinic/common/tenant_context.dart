@@ -37,6 +37,7 @@ class TenantContext {
     required this.role,
     required this.scope,
     required this.entitlements,
+    this.permissionOverride,
   });
 
   final String tenantId;
@@ -45,7 +46,14 @@ class TenantContext {
   final BranchScope scope;
   final Entitlements entitlements;
 
-  Set<String> get permissions => ClinicRolePolicy.permissionsFor(role);
+  /// The clinic's own adjustment of this role's permissions, already resolved
+  /// on the server (`RolePermissionService`). Null means the built-in defaults.
+  /// Never set for the owner, who always holds everything.
+  final Set<String>? permissionOverride;
+
+  Set<String> get permissions => role == ClinicRole.clinicOwner
+      ? ClinicRolePolicy.permissionsFor(role)
+      : (permissionOverride ?? ClinicRolePolicy.permissionsFor(role));
 
   /// Who is acting, for audit records (a clinic role, or `patient`).
   String get actorLabel => role.wireName;
@@ -88,6 +96,8 @@ Future<TenantContext> resolveTenantContext({
   required Request request,
   required EntitlementService entitlements,
   required bool write,
+  Future<Set<String>?> Function(String tenantId, ClinicRole role)?
+  rolePermissions,
 }) async {
   final m = selectMembership(auth, request);
   final role = ClinicRole.tryParse(m.role);
@@ -112,6 +122,7 @@ Future<TenantContext> resolveTenantContext({
       branchIds: m.branchIds.toSet(),
     ),
     entitlements: ent,
+    permissionOverride: await rolePermissions?.call(m.tenantId, role),
   );
 }
 

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../clinic_admin/providers.dart';
 import '../control_plane/data/control_plane_repository.dart';
+import '../laboratory/lab_pages.dart' show reportSaverProvider;
 import '../patients/dialogs.dart';
 import '../scheduling/scheduling_providers.dart';
 import '../shared/async_body.dart';
@@ -397,6 +398,25 @@ class ReceiptPage extends ConsumerWidget {
               subtitle:
                   'A copy of this receipt can be opened again at any time.',
               actions: [
+                TextButton(
+                  key: const Key('receipt-pdf'),
+                  onPressed: () => runAction(
+                    context,
+                    action: () async {
+                      final bytes = await ref
+                          .read(controlPlaneRepositoryProvider)
+                          .downloadBytes(
+                            '/billing/receipts/${r['receiptId']}/pdf',
+                          );
+                      await ref.read(reportSaverProvider)(
+                        '${r['receiptNumber']}.pdf',
+                        bytes,
+                      );
+                    },
+                    success: 'PDF downloaded',
+                  ),
+                  child: const Text('Download PDF'),
+                ),
                 TextButton(
                   onPressed: () =>
                       context.go('/clinic/billing/payments/${r['paymentId']}'),
