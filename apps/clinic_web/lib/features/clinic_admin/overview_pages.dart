@@ -67,7 +67,9 @@ class ClinicOverviewPage extends ConsumerWidget {
                 children: [
                   if (logo != null)
                     Padding(
-                      padding: const EdgeInsets.only(right: EcSpacing.lg),
+                      padding: const EdgeInsetsDirectional.only(
+                        end: EcSpacing.lg,
+                      ),
                       child: Image.memory(
                         logo,
                         height: 72,
@@ -322,7 +324,7 @@ class _ProfileEditState extends ConsumerState<ClinicProfileEditPage> {
             children: [
               if (logo != null)
                 Padding(
-                  padding: const EdgeInsets.only(right: EcSpacing.lg),
+                  padding: const EdgeInsetsDirectional.only(end: EcSpacing.lg),
                   child: Image.memory(
                     logo,
                     height: 64,

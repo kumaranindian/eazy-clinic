@@ -13,6 +13,7 @@ Widget _host(Widget child, {Size size = const Size(400, 800)}) {
 }
 
 void main() {
+  rtlTests();
   testWidgets('primary button fires onPressed and ignores taps while loading', (
     tester,
   ) async {
@@ -170,5 +171,143 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.text('Colours'), findsOneWidget);
+  });
+}
+
+void _rtlHost(WidgetTester tester, Widget child) {
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = const Size(600, 800);
+}
+
+void rtlTests() {
+  group('right-to-left behaviour', () {
+    Widget host(Widget child) => MaterialApp(
+      theme: EcTheme.light(),
+      builder: (context, child) =>
+          Directionality(textDirection: TextDirection.rtl, child: child!),
+      home: Scaffold(
+        body: Padding(padding: const EdgeInsets.all(16), child: child),
+      ),
+    );
+
+    testWidgets('e-mail and phone fields stay left-to-right in an RTL screen', (
+      tester,
+    ) async {
+      _rtlHost(tester, const SizedBox());
+      await tester.pumpWidget(
+        host(
+          const Column(
+            children: [
+              EcTextField(
+                label: 'Email',
+                keyboardType: TextInputType.emailAddress,
+              ),
+              EcTextField(label: 'Phone', keyboardType: TextInputType.phone),
+              EcTextField(label: 'الاسم'),
+            ],
+          ),
+        ),
+      );
+      final fields = tester
+          .widgetList<TextField>(find.byType(TextField))
+          .toList();
+      expect(fields[0].textDirection, TextDirection.ltr);
+      expect(fields[1].textDirection, TextDirection.ltr);
+      expect(fields[2].textDirection, isNull); // follows the screen: RTL
+    });
+
+    testWidgets(
+      'Unicode text (Arabic, Hindi, Tamil, mixed) is accepted and kept',
+      (tester) async {
+        await tester.pumpWidget(
+          host(
+            const Column(
+              children: [
+                EcTextField(label: 'Name'),
+                EcSearchField(),
+              ],
+            ),
+          ),
+        );
+        const names = [
+          'ليلى الأحمد',
+          'आरती शर्मा',
+          'வள்ளி முருகன்',
+          'Dr. ليلى (UHID 4821)',
+          '+971 50 123 4567',
+        ];
+        for (final n in names) {
+          await tester.enterText(find.byType(TextFormField), n);
+          await tester.pump();
+          expect(find.text(n), findsOneWidget, reason: n);
+        }
+      },
+    );
+
+    testWidgets(
+      'identifiers keep left-to-right order inside right-to-left text',
+      (tester) async {
+        await tester.pumpWidget(host(const EcLtrText('INV-000123')));
+        final dir = tester.widget<Directionality>(
+          find.descendant(
+            of: find.byType(EcLtrText),
+            matching: find.byType(Directionality),
+          ),
+        );
+        expect(dir.textDirection, TextDirection.ltr);
+      },
+    );
+
+    testWidgets(
+      'the side navigation edge accent follows the reading direction',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = const Size(1280, 800);
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          host(
+            EcNavScaffold(
+              destinations: const [
+                EcNavDestination(label: 'A', icon: Icons.home_outlined),
+                EcNavDestination(label: 'B', icon: Icons.people_outline),
+              ],
+              selectedIndex: 0,
+              onSelected: (_) {},
+              body: const Text('body'),
+            ),
+          ),
+        );
+        expect(tester.getCenter(find.text('B')).dx, greaterThan(1000));
+        expect(tester.getCenter(find.text('body')).dx, lessThan(600));
+      },
+    );
+
+    testWidgets('design-system texts can be localized through the scope', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          const EcTextsScope(
+            texts: EcTexts(
+              retry: 'حاول مرة أخرى',
+              errorTitle: 'حدث خطأ ما',
+              errorMessage: 'تحقق من اتصالك.',
+              password: 'كلمة المرور',
+              showPassword: 'إظهار كلمة المرور',
+            ),
+            child: Column(
+              children: [
+                EcPasswordField(),
+                SizedBox(height: 200, child: EcErrorState()),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(find.text('كلمة المرور'), findsOneWidget);
+      expect(find.byTooltip('إظهار كلمة المرور'), findsOneWidget);
+      expect(find.text('حدث خطأ ما'), findsOneWidget);
+      expect(find.text('Something went wrong'), findsNothing);
+    });
   });
 }

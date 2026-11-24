@@ -1,5 +1,6 @@
 import 'package:api_contracts/api_contracts.dart';
 import 'package:common_models/common_models.dart';
+import 'package:country_config/country_config.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../../core/data/document_store.dart';
@@ -8,6 +9,7 @@ import '../../../core/ids.dart';
 import '../../platform/audit/audit_service.dart';
 import '../../platform/common/body_reader.dart';
 import '../../platform/common/paging.dart';
+import '../../platform/countries/country_rules.dart';
 import '../common/clinic_deps.dart';
 import '../common/seat_service.dart';
 import '../common/tenant_context.dart';
@@ -48,6 +50,7 @@ class BranchService {
   Map<String, Object?> _parse(
     Map<String, Object?> body, {
     required bool partial,
+    CountryRules rules = const CountryRules(null),
   }) {
     final r = BodyReader(body, partial: partial)..rejectUnknown(fields);
     final name = r.str('name', min: 2, max: 80);
@@ -71,8 +74,15 @@ class BranchService {
       );
     }
     final email = r.email('email', required: false);
-    final phone = r.phone('phone', required: false);
+    final phone = rules.phone(r, 'phone', required: false);
     final tz = r.str('timezone', max: 64, required: false);
+    if (tz != null && !Timezones.isValid(tz)) {
+      r.addIssue(
+        'timezone',
+        'invalid_timezone',
+        'Use an IANA time zone such as Asia/Kolkata or Asia/Dubai.',
+      );
+    }
     Map<String, Object?>? address;
     final a = r.object('address', required: !partial);
     if (a != null) {
@@ -82,27 +92,44 @@ class BranchService {
         'city',
         'state',
         'country',
+        'countryCode',
         'postalCode',
+        'localized',
       });
-      final country = a.str('country', min: 2, max: 60);
-      final postal = a.str('postalCode', min: 3, max: 10);
-      if (postal != null &&
-          (country ?? 'india').toLowerCase() == 'india' &&
-          !RegExp(r'^[1-9][0-9]{5}$').hasMatch(postal)) {
-        a.addIssue(
+      final suppliedCode = a.str(
+        'countryCode',
+        min: 2,
+        max: 2,
+        required: false,
+      );
+      final country = rules.profile == null
+          ? a.str('country', min: 2, max: 60)
+          : a.str('country', min: 2, max: 60, required: false);
+      final postal = rules.postal(
+        a,
+        a.str(
           'postalCode',
-          'invalid_postal_code',
-          'Enter a valid 6-digit PIN code.',
-        );
-      }
+          min: 3,
+          max: 10,
+          required: rules.profile != null && rules.profile!.postalCode.required,
+        ),
+        legacyCountryText: country,
+      );
+      final canonical = rules.canonicalCountry(
+        a,
+        suppliedCode: suppliedCode,
+        suppliedName: country,
+      );
+      final localized = readLocalizedAddress(a);
       address = {
         for (final e in {
           'line1': a.str('line1', min: 3, max: 120),
           'line2': a.str('line2', max: 120, required: false),
           'city': a.str('city', min: 2, max: 60),
           'state': a.str('state', min: 2, max: 60),
-          'country': country,
+          ...canonical,
           'postalCode': postal,
+          'localized': localized,
         }.entries)
           if (e.value != null) e.key: e.value,
       };
@@ -150,7 +177,8 @@ class BranchService {
         'Only users with access to all branches can create branches.',
       );
     }
-    final input = _parse(body, partial: false);
+    final rules = CountryRules(await _d.countries.tenantProfile(t.tenantId));
+    final input = _parse(body, partial: false, rules: rules);
     final code = input['code']! as String;
     if (await _d.store.get(_d.path(t, 'branch_codes', code)) != null) {
       throw const ApiException.conflict('That branch code is already in use.');
@@ -214,7 +242,8 @@ class BranchService {
   }) async {
     t.require(ClinicPermission.branchesUpdate);
     t.scope.require(id);
-    final input = _parse(body, partial: true);
+    final rules = CountryRules(await _d.countries.tenantProfile(t.tenantId));
+    final input = _parse(body, partial: true, rules: rules);
     if (input.isEmpty) {
       throw const ApiException.badRequest('No branch fields to update.');
     }

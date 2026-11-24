@@ -22,3 +22,4 @@ export 'src/widgets/ec_navigation.dart';
 export 'src/widgets/ec_responsive.dart';
 export 'src/widgets/ec_status_chip.dart';
 export 'src/widgets/ec_text_field.dart';
+export 'src/widgets/ec_texts.dart';

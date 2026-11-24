@@ -21,6 +21,8 @@ const String _fbAuthDomain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // date symbols for every supported language (regional formatting)
+  await RegionalDisplay.ensureInitialized();
   final ClientConfig config;
   final FirebaseClientConfig firebase;
   try {

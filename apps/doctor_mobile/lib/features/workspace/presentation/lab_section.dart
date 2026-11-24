@@ -60,7 +60,7 @@ class LabOrdersSection extends ConsumerWidget {
         builder: (orders) {
           if (orders.isEmpty && legacy.isEmpty) {
             return const Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Text('No laboratory tests requested.'),
             );
           }
@@ -176,7 +176,7 @@ class _OrderTileState extends ConsumerState<_OrderTile> {
         ),
         if (!ready)
           Padding(
-            padding: const EdgeInsets.only(left: EcSpacing.md),
+            padding: const EdgeInsetsDirectional.only(start: EcSpacing.md),
             child: Text(
               'Results appear here once the laboratory has verified them.',
               style: EcTypography.bodySecondary,
@@ -206,7 +206,7 @@ class _Results extends ConsumerWidget {
           children: [
             for (final r in results) ...[
               Padding(
-                padding: const EdgeInsets.only(left: EcSpacing.md),
+                padding: const EdgeInsetsDirectional.only(start: EcSpacing.md),
                 child: Text('${r['testName']}', style: EcTypography.bodyStrong),
               ),
               for (final o

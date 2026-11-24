@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:app_core/app_core.dart';
 import 'package:common_models/common_models.dart';
 import 'package:design_system/design_system.dart';
 import 'package:file_selector/file_selector.dart';
@@ -1141,7 +1142,7 @@ class LabTestsPage extends ConsumerWidget {
       confirmLabel: 'Add test',
       note:
           'This form adds a test with one measured value. Use the reference range fields only with figures approved by your laboratory.',
-      fields: const [
+      fields: [
         FieldSpec('code', 'Code', required: true, maxLength: 20),
         FieldSpec('name', 'Name', required: true, maxLength: 120),
         FieldSpec(
@@ -1178,7 +1179,11 @@ class LabTestsPage extends ConsumerWidget {
           ],
         ),
         FieldSpec('turnaroundHours', 'Turnaround (hours)', required: true),
-        FieldSpec('price', 'Price (₹)', kind: FieldKind.money),
+        FieldSpec(
+          'price',
+          'Price (${RegionalDisplay.currencyLabel()})',
+          kind: FieldKind.money,
+        ),
         FieldSpec('paramName', 'Measured value name', required: true),
         FieldSpec('unit', 'Unit', maxLength: 20),
         FieldSpec('low', 'Reference low', maxLength: 12),

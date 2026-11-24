@@ -1,3 +1,5 @@
+import '../../../l10n/generated/app_localizations.dart';
+
 /// Reasons an authentication action can fail, independent of Firebase.
 enum AuthFailureCode {
   invalidCredentials,
@@ -38,6 +40,19 @@ class AuthFailure implements Exception {
     AuthFailureCode.requiresRecentLogin =>
       'For your security, please sign in again to continue.',
     AuthFailureCode.unknown => 'Something went wrong. Please try again.',
+  };
+
+  /// The same safe texts as [message], in the user's language.
+  String localized(AppLocalizations l10n) => switch (code) {
+    AuthFailureCode.invalidCredentials => l10n.authInvalidCredentials,
+    AuthFailureCode.accountDisabled => l10n.authAccountDisabled,
+    AuthFailureCode.emailInUse => l10n.authEmailInUse,
+    AuthFailureCode.weakPassword => l10n.authWeakPassword,
+    AuthFailureCode.invalidEmail => l10n.authInvalidEmail,
+    AuthFailureCode.tooManyRequests => l10n.authTooManyRequests,
+    AuthFailureCode.network => l10n.errorNetwork,
+    AuthFailureCode.requiresRecentLogin => l10n.authRequiresRecentLogin,
+    AuthFailureCode.unknown => l10n.errorGeneric,
   };
 
   @override

@@ -205,7 +205,40 @@ Results, reports and the audit trail belong to the clinical permission set, so t
 
 Own notification inbox, preferences and devices need no permission beyond membership. Report sections require: appointments `appointments.view`, queues `queue.view`, patients `patients.view` (not doctors), consultations `consultations.view` (own) or `view_all`, laboratory `lab.dashboard.view`, billing `finance.reports.view`.
 
-## Phase 12: clinic-configurable permissions and platform administrators
+## Phase 14 additions (implemented)
+
+| Permission | Clinic Owner | Clinic Admin | Others | Platform Super Admin | Platform Support |
+|---|---|---|---|---|---|
+| `compliance.view` (checklist, credentials, evidence list/download) | ✔ | ✔ | ✖ | – | – |
+| `compliance.manage` (upload evidence, maintain credentials) | ✔ | ✔ | ✖ | – | – |
+| `platform.compliance.read` (registers, overview, clinic dashboards) | – | – | – | ✔ | ✔ |
+| `platform.compliance.manage` (create/update/seed registers) | – | – | – | ✔ | ✖ |
+| `platform.compliance.review` (applicability, evidence review/files, requirement status, credential verification) | – | – | – | ✔ | ✖ |
+
+No clinic role can approve evidence or confirm applicability.
+
+## Phase 15 additions (implemented)
+
+| Permission | Super Admin | Support Admin | Clinic roles |
+|---|---|---|---|
+| `platform.tax.read` | ✔ | ✔ | – |
+| `platform.tax.manage` (edit policies) | ✔ | ✖ | – |
+| `platform.tax.verify` (verify a policy as a tax specialist) | ✔ | ✖ | – |
+
+Clinic roles reuse `billing.view`, `billing.finalize`, `billing.adjust`, `billing.settings.manage`, `finance.reports.view/export`.
+
+## Phase 16 additions (implemented)
+
+| Permission | Owner | Admin | Accountant | Others | Super Admin | Support |
+|---|---|---|---|---|---|---|
+| `gateway.manage` (configure, rotate) | ✔ | ✔ | ✖ | ✖ | – | – |
+| `gateway.reconcile` (reconciliation, sync, resolve) | ✔ | ✔ | ✔ | ✖ | – | – |
+| `platform.payments.read` | – | – | – | – | ✔ | ✔ |
+| `platform.payments.manage` | – | – | – | – | ✔ | ✖ |
+
+Existing `payment.collect` starts an intent; `refund.process` sends an approved refund to the provider.
+
+## Phase 12 (code gaps): clinic-configurable permissions and platform administrators
 The matrices above are the **defaults**. A clinic owner (`roles.manage`) can grant extra permissions to a built-in role or remove default ones (`PUT /roles/{role}/permissions`, `POST /roles/{role}/permissions/reset`). Effective permissions are `(defaults + granted) - revoked`, resolved on the server on every request. Fixed rules: the owner role cannot be edited and always holds everything; `roles.manage` cannot be granted to any other role; only known clinic permissions are accepted; clinical authoring still needs the doctor role with a linked doctor profile; every change needs a reason and is audited (`role.permissions_changed`, `role.permissions_reset`).
 
 Platform: `platform.admins.manage` (super admin only) grants or removes `super_admin` / `platform_support_admin` for an existing, active, e-mail-verified account. Nobody changes their own role and the last active super admin cannot be removed. Support admins can list administrators but not change them.

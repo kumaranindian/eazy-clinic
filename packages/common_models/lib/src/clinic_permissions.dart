@@ -81,6 +81,10 @@ abstract final class ClinicPermission {
   static const String billingApplyDiscount = 'billing.apply_discount';
   static const String billingAdjust = 'billing.adjust';
   static const String billingSettingsManage = 'billing.settings.manage';
+
+  /// Phase 16: online payment gateway configuration and reconciliation.
+  static const String gatewayManage = 'gateway.manage';
+  static const String gatewayReconcile = 'gateway.reconcile';
   static const String paymentView = 'payment.view';
   static const String paymentCollect = 'payment.collect';
   static const String paymentAllocate = 'payment.allocate';
@@ -117,6 +121,12 @@ abstract final class ClinicPermission {
   static const String reportsView = 'reports.view';
   static const String reportsExport = 'reports.export';
   static const String notificationsManage = 'notifications.manage';
+
+  /// Phase 14: view the clinic's compliance checklist and credentials, and
+  /// upload evidence / maintain credential records. Approval of evidence is a
+  /// platform reviewer action; no clinic role can approve its own evidence.
+  static const String complianceView = 'compliance.view';
+  static const String complianceManage = 'compliance.manage';
 
   // Phase 6: clinical workspace
   static const String consultationsView = 'consultations.view';
@@ -222,6 +232,8 @@ abstract final class ClinicPermission {
     billingApplyDiscount,
     billingAdjust,
     billingSettingsManage,
+    gatewayManage,
+    gatewayReconcile,
     paymentView,
     paymentCollect,
     paymentAllocate,
@@ -254,6 +266,8 @@ abstract final class ClinicPermission {
     reportsView,
     reportsExport,
     notificationsManage,
+    complianceView,
+    complianceManage,
   ];
 
   static bool isKnown(String key) => all.contains(key);
@@ -348,6 +362,7 @@ abstract final class ClinicRolePolicy {
     ClinicPermission.expensePay,
     ClinicPermission.financeReportsView,
     ClinicPermission.financeReportsExport,
+    ClinicPermission.gatewayReconcile,
   };
 
   /// Laboratory (Phase 9). Results and reports are clinical: administrators

@@ -4,23 +4,21 @@ import '../tokens/ec_colors.dart';
 import '../tokens/ec_dimensions.dart';
 import '../tokens/ec_typography.dart';
 import 'ec_button.dart';
+import 'ec_texts.dart';
 
 /// Error placeholder with an optional retry action. Pass a user-safe message;
 /// never raw exceptions or stack traces.
 class EcErrorState extends StatelessWidget {
-  const EcErrorState({
-    this.title = 'Something went wrong',
-    this.message = 'Please check your connection and try again.',
-    this.onRetry,
-    super.key,
-  });
+  const EcErrorState({this.title, this.message, this.onRetry, super.key});
 
-  final String title;
-  final String message;
+  /// Default to the localized texts of the nearest [EcTextsScope].
+  final String? title;
+  final String? message;
   final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
+    final texts = EcTexts.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(EcSpacing.xl),
@@ -40,20 +38,20 @@ class EcErrorState extends StatelessWidget {
               ),
               const SizedBox(height: EcSpacing.lg),
               Text(
-                title,
+                title ?? texts.errorTitle,
                 style: EcTypography.sectionTitle,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: EcSpacing.sm),
               Text(
-                message,
+                message ?? texts.errorMessage,
                 style: EcTypography.bodySecondary,
                 textAlign: TextAlign.center,
               ),
               if (onRetry != null) ...[
                 const SizedBox(height: EcSpacing.xl),
                 EcSecondaryButton(
-                  label: 'Try again',
+                  label: texts.retry,
                   icon: Icons.refresh,
                   onPressed: onRetry,
                 ),

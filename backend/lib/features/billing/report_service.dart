@@ -391,6 +391,136 @@ class ReportService {
     };
   }
 
+  /// Tax summary: revenue, tax liability and collections side by side but
+  /// never mixed. Rows are by period, branch, tax type and component.
+  ///
+  /// - **Taxable value**: net value of invoice lines the tax was charged on.
+  /// - **Tax charged**: tax on invoices dated in the period.
+  /// - **Tax credited / debited**: the tax part declared on credit / debit
+  ///   notes created in the period.
+  /// - **Net tax liability** = charged - credited + debited. It is a
+  ///   *summary for review*, not a filing and not tax advice.
+  /// - **Collected**: payments received (cash basis) - shown separately,
+  ///   because tax becomes due on the invoice, not on payment.
+  Future<Map<String, Object?>> tax(TenantContext t, Request req) async {
+    t.require(ClinicPermission.financeReportsView);
+    final r = await _range(t, req);
+    final branchId = _branchParam(t, req);
+    final monthly = req.url.queryParameters['groupBy'] == 'month';
+    final inv = await _invoicesIn(t, r, branchId);
+    final adj = await _scan('invoice_adjustments', [
+      ..._s.scopeFilters(t, branchId),
+      QueryFilter('createdAt', FilterOp.gte, r.lo),
+      QueryFilter('createdAt', FilterOp.lt, r.hi),
+    ], t);
+    final pay = await _payments(t, r, branchId);
+    final rows = <String, Map<String, Object?>>{};
+    Map<String, Object?> row(
+      String period,
+      String branch,
+      String type,
+      String component,
+    ) => rows.putIfAbsent(
+      '$period|$branch|$type|$component',
+      () => {
+        'period': period,
+        'branchId': branch,
+        'taxType': type,
+        'component': component,
+        'taxableValue': 0,
+        'taxCharged': 0,
+        'taxCredited': 0,
+        'taxDebited': 0,
+        'netTaxLiability': 0,
+      },
+    );
+    String per(String date) => monthly ? date.substring(0, 7) : date;
+    var revenue = 0;
+    for (final d in inv.rows) {
+      for (final l in (d['lines'] as List? ?? const [])) {
+        final line = (l as Map).cast<String, Object?>();
+        final type = '${line['taxType'] ?? 'unspecified'}';
+        final base = (line['taxableBase'] as int?) ?? 0;
+        revenue += base;
+        final parts = (line['taxParts'] as List? ?? const []);
+        if (parts.isEmpty) {
+          final x = row(
+            per('${d['invoiceDate']}'),
+            '${d['branchId']}',
+            type,
+            '-',
+          );
+          x['taxableValue'] = (x['taxableValue']! as int) + base;
+          continue;
+        }
+        var first = true;
+        for (final p in parts) {
+          final part = (p as Map).cast<String, Object?>();
+          final x = row(
+            per('${d['invoiceDate']}'),
+            '${d['branchId']}',
+            type,
+            '${part['name']}',
+          );
+          // the taxable value belongs to the line, so count it once
+          if (first) x['taxableValue'] = (x['taxableValue']! as int) + base;
+          first = false;
+          x['taxCharged'] =
+              (x['taxCharged']! as int) + (part['amount']! as int);
+        }
+      }
+    }
+    final zone = await _s.zone(t);
+    for (final a in adj.rows) {
+      final tx = (a['taxIncluded'] as int?) ?? 0;
+      if (tx == 0) continue;
+      final x = row(
+        per(zone.localDate(a['createdAt']! as DateTime)),
+        '${a['branchId']}',
+        'adjustment',
+        '${a['number']}'.startsWith('CN') ? 'credit notes' : 'debit notes',
+      );
+      final k = a['type'] == 'credit' ? 'taxCredited' : 'taxDebited';
+      x[k] = (x[k]! as int) + tx;
+    }
+    for (final x in rows.values) {
+      x['netTaxLiability'] =
+          (x['taxCharged']! as int) -
+          (x['taxCredited']! as int) +
+          (x['taxDebited']! as int);
+    }
+    final list = rows.values.toList()
+      ..sort(
+        (
+          a,
+          b,
+        ) => '${a['period']}${a['branchId']}${a['taxType']}${a['component']}'
+            .compareTo(
+              '${b['period']}${b['branchId']}${b['taxType']}${b['component']}',
+            ),
+      );
+    int sum(String k) => list.fold(0, (a, x) => a + (x[k]! as int));
+    return {
+      'currency': await _s.currency(t),
+      'from': r.from,
+      'to': r.to,
+      'disclaimer':
+          'A summary of tax recorded on invoices for review. It is not a tax '
+          'return, not tax advice, and not an accounting ledger.',
+      'rows': list,
+      'totals': {
+        'revenue': revenue,
+        'taxableValue': sum('taxableValue'),
+        'taxCharged': sum('taxCharged'),
+        'taxCredited': sum('taxCredited'),
+        'taxDebited': sum('taxDebited'),
+        'netTaxLiability': sum('netTaxLiability'),
+        'collected': _sum(pay.rows, 'amount'),
+      },
+      'truncated': inv.truncated || adj.truncated || pay.truncated,
+    };
+  }
+
   Future<Map<String, Object?>> outstanding(TenantContext t, Request req) async {
     t.require(ClinicPermission.financeReportsView);
     final zone = await _s.zone(t);

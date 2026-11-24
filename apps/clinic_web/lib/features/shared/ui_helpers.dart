@@ -1,45 +1,21 @@
+import 'package:app_core/app_core.dart';
 import 'package:design_system/design_system.dart';
 
 /// Display helpers shared by the control-plane screens.
 abstract final class Fmt {
-  static const _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
+  /// `2026-06-01T10:00:00Z` → `1 Jun 2026` in the clinic's time zone (the
+  /// device zone only for platform screens that have no clinic), in the
+  /// user's language.
+  static String date(Object? iso, {String? timezone}) =>
+      RegionalDisplay.date(iso, timezone: timezone);
 
-  /// `2026-06-01T10:00:00Z` → `1 Jun 2026` (local time zone).
-  static String date(Object? iso) {
-    final d = iso is String ? DateTime.tryParse(iso)?.toLocal() : null;
-    if (d == null) return '—';
-    return '${d.day} ${_months[d.month - 1]} ${d.year}';
-  }
+  static String dateTime(Object? iso, {String? timezone}) =>
+      RegionalDisplay.dateTime(iso, timezone: timezone);
 
-  static String dateTime(Object? iso) {
-    final d = iso is String ? DateTime.tryParse(iso)?.toLocal() : null;
-    if (d == null) return '—';
-    final hh = d.hour.toString().padLeft(2, '0');
-    final mm = d.minute.toString().padLeft(2, '0');
-    return '${date(iso)}, $hh:$mm';
-  }
-
-  /// Amount in minor units (paise) → `₹999.00`.
-  static String money(Object? minor, [Object? currency]) {
-    if (minor is! int) return '—';
-    final symbol = currency == 'INR' || currency == null ? '₹' : '$currency ';
-    final major = minor ~/ 100;
-    final frac = (minor % 100).toString().padLeft(2, '0');
-    return '$symbol$major.$frac';
-  }
+  /// Amount in minor units → localized money with the currency's own number
+  /// of decimals (`₹1,180.00`, `AED 1,180.00`). Display only.
+  static String money(Object? minor, [Object? currency]) =>
+      RegionalDisplay.money(minor, currency);
 
   /// `additional_information_required` → `Additional information required`.
   static String humanize(Object? snake) {

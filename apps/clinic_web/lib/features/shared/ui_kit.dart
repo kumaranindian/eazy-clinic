@@ -112,7 +112,10 @@ class KeyValues extends StatelessWidget {
                 ),
                 Expanded(
                   child: value is Widget
-                      ? Align(alignment: Alignment.centerLeft, child: value)
+                      ? Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: value,
+                        )
                       : SelectableText(
                           '${value ?? '—'}',
                           style: EcTypography.body,
@@ -126,8 +129,12 @@ class KeyValues extends StatelessWidget {
   }
 }
 
-Widget statusChip(Object? status) =>
-    EcStatusChip(label: Fmt.humanize(status), tone: Fmt.tone(status));
+Widget statusChip(Object? status) => Builder(
+  builder: (context) => EcStatusChip(
+    label: statusLabel(context.l10n, status),
+    tone: Fmt.tone(status),
+  ),
+);
 
 /// Runs an admin action with progress, success and error feedback.
 Future<bool> runAction(

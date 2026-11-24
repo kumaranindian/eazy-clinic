@@ -225,12 +225,86 @@ Test counts: `docs/phase-10/TESTING.md`.
 | Emulator backup/restore drill | 3,620 documents, checksums match | `BACKUP_AND_RESTORE.md` |
 | **Production readiness** | **NOT READY**: staging/UAT, live Firebase, Android build, managed backup rehearsal, monitoring, legal review open | `FINAL_RELEASE_READINESS_REPORT.md` |
 
-## Phase 12: code-only gaps (branch `feature/phase-12-code-gaps`, not pushed)
+## Phase 12: Global architecture and country configuration (branch `feature/phase-12-country-configuration`)
+
+Legend as above. Verification is by tests with an in-memory store and widget tests; live Firebase/emulator not run (TD-95).
 
 | Item | Status | Evidence |
 |---|---|---|
-| Invoice, receipt and prescription PDFs (staff and patient APIs, Clinic Web buttons) | Implemented, tested; no button in the mobile apps (TD-95) | `backend/lib/features/documents/` |
+| Country master, IN/UAE baseline, versioned snapshots, admin API (list, create, update, seed) | Implemented, tested | `docs/phase-12/`, `country_test.dart` |
+| Typed layered configuration resolution + safe DTO; fail closed | Implemented, tested (cache per instance, TD-97) | `country_resolver.dart` |
+| Onboarding country selector; backend validation; tenant legal country; immutability | Implemented, tested | apply page, `application_service.dart`, `tenant_service.dart` |
+| Atomic provisioning with country check | Implemented, tested | "approval fails atomically" |
+| Dry-run backfill report; audited per-tenant assignment/correction | Implemented, tested (no bulk apply, TD-99) | `country_service.dart` |
+| Branch IANA timezone, localized address, country-aware phone/postal | Implemented, tested | `branch_service.dart` |
+| Locale-aware formatting, locale resolution, user preference, en/hi/ar representative strings, RTL smoke test | Implemented, tested (full i18n = Phase 13) | `country_config`, `app_core/regional` |
+| Platform-admin country screens and backfill report | Implemented, widget-tested | `countries_pages.dart` |
+| New permissions (read / manage / migrate) | Implemented, tested | `permissions.dart` |
+| Firestore index, rules-test paths | Added, **not deployed/run** | `firestore.indexes.json` |
+| Live Firebase, emulator, Docker build | **Not run** | TD-95 |
+| GST/VAT, payment gateways, ABDM, UAE exchange, FX, multi-region deployment | **Not implemented** (excluded) | |
+
+## Phase 13: Internationalization and localization (branch `feature/phase-13-internationalization`)
+
+| Item | Status | Evidence |
+|---|---|---|
+| gen-l10n resources (en + ar, hi, ta starter packs), completeness tool in `check_all.sh` | Implemented, tested | `docs/phase-13/TRANSLATION_COMPLETENESS.md` |
+| Locale resolution, per-user language on the account, language menu in all apps | Implemented, tested | `localization_test.dart`, `localization_backend_test.dart` |
+| RTL (directional fixes, LTR data fields, identifiers), Unicode input | Implemented, widget-tested; screens not individually audited (TD-105) | design_system / app tests |
+| `RegionalDisplay` (clinic-zone time, locale numbers, currency decimals) replacing three formatters | Implemented, tested | `LOCALIZATION_AUDIT.md` |
+| Translated flows: auth/status, validation/sign-in failures, navigation, status words, design-system texts, reminder templates (ar/hi/ta) | Implemented (representative); **most screen text still English** (TD-102) | |
+| Template bidi safety, document-language hook | Implemented, tested | `SECURITY_AND_PRIVACY.md` |
+| Native-speaker/professional translation review, device font verification, screen-reader testing | **Not done** (TD-104, TD-108) | |
+
+## Phase 14: Country compliance framework (branch `feature/phase-14-compliance-framework`)
+
+Verified by in-memory/API and widget tests; emulator and live Firebase not run (TD-95). **Registers are unvalidated drafts (TD-109); no compliance, certification or integration is claimed.**
+
+| Item | Status | Evidence |
+|---|---|---|
+| Versioned registers per country/jurisdiction/authority; India (4) and UAE (4) baseline drafts; impact reports | Implemented, tested | `docs/phase-14/` |
+| Applicability (unknown by default, reviewer-set), evidence workflow, effective status, no "compliant" value | Implemented, tested | `compliance_api_test.dart` |
+| Practitioner/facility credential register, verification, expiry states | Implemented, tested | |
+| Expiry alerts through the notification worker | Implemented; tested with a recording notifier | TD-111/-112 |
+| Clinic Web: clinic compliance page; platform overview, review queue, reviewer screen | Implemented, widget-tested; English only (TD-110) | |
+| ABDM/ABHA | **Readiness checklist only; no integration and no claim** | `in-abdm-readiness` |
+| UAE authority integrations, regulator submissions, legal validation | **Not implemented / not done** | |
+
+## Phase 15: Tax, invoicing and e-invoicing foundations (branch `feature/phase-15-tax-invoicing`)
+
+Verified by in-memory/API tests; emulator not run. **No tax rates, thresholds or exemptions are shipped; nothing is filed or transmitted; no compliance claim.**
+
+| Item | Status | Evidence |
+|---|---|---|
+| Effective-dated tax policies, verification workflow, baseline shells (India GST, UAE VAT, no rates) | Implemented, tested | `docs/phase-15/` |
+| Policy lines on invoices (supply, exemptions, zero-rating), frozen and re-checked at finalization | Implemented, tested | `tax_test.dart` |
+| Rounding modes; integer arithmetic | Implemented, tested | |
+| Issue snapshot, seller legal name/tax number settings | Implemented, tested | |
+| Concurrency-safe numbering; credit/debit notes with tax part | Implemented, tested (in-memory store) | |
+| Tax summary report (JSON/CSV) | Implemented, tested | PDF not built |
+| E-invoice contract and state machine | Implemented; **live provider disabled** | TD-122 |
+| Clinic Web UI for the above | **Not implemented** | TD-118 |
+| GST/VAT filing, live e-invoicing, tax content verification | **Not implemented / not done** | TD-116 |
+
+## Phase 16: International payments (branch `feature/phase-16-international-payments`)
+
+Verified by in-memory/API tests; emulator not run. **No real provider, no live mode, no card data. Sandbox adapter only.**
+
+| Item | Status | Evidence |
+|---|---|---|
+| Provider-neutral adapter contract, lifecycle, credential references, sandbox adapter | Implemented, tested | `docs/phase-16/` |
+| Country/currency/provider eligibility (candidates cannot be enabled), live hard-disabled | Implemented, tested | |
+| Intents, verified webhooks, replay protection, amount/currency verification, payment recording | Implemented, tested | `gateway_test.dart` |
+| Provider refunds, settlement facts, disputes, inquiry | Implemented, tested | |
+| Reconciliation queue, stale list, resolution, provider health, rotation, runbook | Implemented, tested | |
+| Real provider adapters; live activation; Clinic Web/patient UI; settlement import | **Not implemented** | TD-124..129 |
+
+## Phase 12 (code gaps): PDFs, platform administrators, configurable roles (branch `feature/phase-12-code-gaps`, merged via PR #9)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Invoice, receipt and prescription PDFs (staff and patient APIs, Clinic Web buttons) | Implemented, tested; no button in the mobile apps (TD-132) | `backend/lib/features/documents/` |
 | Platform administrator management | Implemented, tested | `backend/lib/features/platform/admins/`, `/platform/admins` screen |
-| Clinic-configurable role permissions | Implemented, tested; built-in roles only (TD-96) | `backend/lib/features/clinic/roles/`, Roles tab editor |
+| Clinic-configurable role permissions | Implemented, tested; built-in roles only (TD-133) | `backend/lib/features/clinic/roles/`, Roles tab editor |
 
 Production readiness is unchanged: **not ready** (`docs/phase-11/`).

@@ -8,6 +8,7 @@ import '../../../core/ids.dart';
 import '../audit/audit_service.dart';
 import '../common/body_reader.dart';
 import '../common/paging.dart';
+import '../countries/country_directory.dart';
 
 const List<String> clinicTypes = [
   'general_medicine',
@@ -51,6 +52,14 @@ class ApplicationInput {
     required bool partial,
   }) {
     final r = BodyReader(body, partial: partial)..rejectUnknown(fields);
+    // The country decides phone and postal rules. It is the applicant's
+    // explicit choice (validated against the country master by the service);
+    // it is never inferred from the phone number, IP or device.
+    final rawAddress = body['address'];
+    final rawCode = rawAddress is Map ? rawAddress['countryCode'] : null;
+    final cc = rawCode is String && RegExp(r'^[A-Z]{2}$').hasMatch(rawCode)
+        ? rawCode
+        : null;
     final clinic = r.object('clinic');
     final address = r.object('address');
     final owner = r.object('owner');
@@ -104,7 +113,7 @@ class ApplicationInput {
           required: false,
         ),
         'email': clinic.email('email'),
-        'phone': clinic.phone('phone'),
+        'phone': clinic.phone('phone', country: cc),
         'website': website,
         'description': clinic.str(
           'description',
@@ -121,11 +130,33 @@ class ApplicationInput {
         'city',
         'state',
         'country',
+        'countryCode',
         'postalCode',
       });
-      final country = address.str('country', min: 2, max: 60);
-      final postal = address.str('postalCode', min: 3, max: 10);
-      if (postal != null &&
+      final countryCode = address.str(
+        'countryCode',
+        min: 2,
+        max: 2,
+        required: !partial,
+      );
+      if (countryCode != null && !RegExp(r'^[A-Z]{2}$').hasMatch(countryCode)) {
+        address.addIssue(
+          'countryCode',
+          'invalid_value',
+          'countryCode must be an ISO 3166-1 alpha-2 code such as IN or AE.',
+        );
+      }
+      // `country` (a name) is derived from the country master by the
+      // service; a supplied value is accepted for older clients but ignored.
+      final country = address.str('country', min: 2, max: 60, required: false);
+      final postal = address.str(
+        'postalCode',
+        min: 3,
+        max: 10,
+        required: countryCode == null,
+      );
+      if (countryCode == null &&
+          postal != null &&
           (country ?? 'India').toLowerCase() == 'india' &&
           !RegExp(r'^[1-9][0-9]{5}$').hasMatch(postal)) {
         address.addIssue(
@@ -139,6 +170,7 @@ class ApplicationInput {
         'line2': address.str('line2', max: 120, required: false),
         'city': address.str('city', min: 2, max: 60),
         'state': address.str('state', min: 2, max: 60),
+        'countryCode': countryCode,
         'country': country,
         'postalCode': postal,
       });
@@ -148,7 +180,7 @@ class ApplicationInput {
       _put(out.owner, {
         'fullName': owner.str('fullName', min: 2, max: 80),
         'email': owner.email('email'),
-        'phone': owner.phone('phone'),
+        'phone': owner.phone('phone', country: cc),
         'designation': owner.str('designation', max: 80, required: false),
       });
     }
@@ -219,6 +251,44 @@ class ApplicationService {
     'reason': reason,
     'at': _now,
   });
+
+  /// Checks the applicant's chosen country against the **current** country
+  /// master (inside the transaction) and returns the canonical address plus
+  /// the master version it was validated against. A legacy application with
+  /// no country yet is returned unchanged; it must gain one before approval.
+  Future<({Map<String, Object?> address, int? version})> _canonicalAddress(
+    TxContext tx,
+    Map<String, Object?> address,
+  ) async {
+    final code = address['countryCode'] as String?;
+    if (code == null) return (address: address, version: null);
+    final profile = await CountryDirectory.profileIn(tx, code);
+    if (profile == null || !profile.isOnboardable) {
+      throw ApiException.validation(const [
+        FieldIssue(
+          field: 'address.countryCode',
+          code: 'unsupported_country',
+          message: 'That country is not available for new clinics.',
+        ),
+      ]);
+    }
+    final postal = profile.postalCode.check(address['postalCode'] as String?);
+    if (postal != null) {
+      throw ApiException.validation([
+        FieldIssue(
+          field: 'address.postalCode',
+          code: postal == 'required' ? 'required' : 'invalid_postal_code',
+          message: postal == 'required'
+              ? '${profile.postalCode.label} is required.'
+              : 'Enter a valid ${profile.postalCode.label}.',
+        ),
+      ]);
+    }
+    return (
+      address: {...address, 'country': profile.name},
+      version: profile.configurationVersion,
+    );
+  }
 
   // --------------------------------------------------------------- applicant
 
@@ -297,6 +367,7 @@ class ApplicationService {
           ]);
         }
       }
+      final canonical = await _canonicalAddress(tx, input.address);
       final id = 'app_${newId(length: 16)}';
       final doc = <String, Object?>{
         'applicationId': id,
@@ -304,7 +375,8 @@ class ApplicationService {
         'applicantEmail': applicantEmail,
         'status': ApplicationStatus.submitted.wireName,
         'clinic': input.clinic,
-        'address': input.address,
+        'address': canonical.address,
+        'countryConfigVersion': canonical.version,
         'owner': input.owner,
         'expectations': input.expectations,
         'preferredPlanId': planId,
@@ -382,11 +454,17 @@ class ApplicationService {
         ...add,
       };
       final clinic = merge('clinic', updates.clinic);
-      final address = merge('address', updates.address);
+      final canonical = await _canonicalAddress(
+        tx,
+        merge('address', updates.address),
+      );
+      final address = canonical.address;
       final patch = <String, Object?>{
         'status': ApplicationStatus.submitted.wireName,
         'clinic': clinic,
         'address': address,
+        if (canonical.version != null)
+          'countryConfigVersion': canonical.version,
         'owner': merge('owner', updates.owner),
         'expectations': merge('expectations', updates.expectations),
         'clinicNameLower': '${clinic['name']}'.toLowerCase(),

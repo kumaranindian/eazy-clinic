@@ -56,6 +56,12 @@ class ControlPlaneRepository {
   // Applicant ------------------------------------------------------------
   Future<Json> submitApplication(Json body) async =>
       (await _api.post('/clinic-applications', body: body)).map;
+
+  /// Countries a new clinic may choose (client-safe fields only).
+  Future<List<Json>> onboardableCountries() async =>
+      ((await _api.get('/countries')).map['items']! as List)
+          .map((e) => (e as Map).cast<String, Object?>())
+          .toList();
   Future<Json> myApplication(String id) async =>
       (await _api.get('/clinic-applications/$id')).map;
   Future<Json> respond(String id, Json body) async =>
@@ -124,6 +130,120 @@ class ControlPlaneRepository {
   )).map;
   Future<Json> retryProvisioning(String id) async =>
       (await _api.post('/platform/tenants/$id/retry-provisioning')).map;
+
+  Future<Json> assignTenantCountry(
+    String id, {
+    required String countryCode,
+    required String reason,
+    String? expectedCurrent,
+  }) async => (await _api.post(
+    '/platform/tenants/$id/country',
+    body: {
+      'countryCode': countryCode,
+      'reason': reason,
+      'confirm': true,
+      'expectedCurrent': ?expectedCurrent,
+    },
+  )).map;
+
+  // Platform: countries (Phase 12) ------------------------------------------
+  Future<List<Json>> countries() async =>
+      ((await _api.get('/platform/countries')).map['items']! as List)
+          .map((e) => (e as Map).cast<String, Object?>())
+          .toList();
+  Future<Json> updateCountry(String code, Json body) async =>
+      (await _api.patch('/platform/countries/$code', body: body)).map;
+  Future<void> seedCountries() async {
+    await _api.post('/platform/countries/seed-baseline');
+  }
+
+  Future<Json> backfillReport() async =>
+      (await _api.get('/platform/countries/backfill-report')).map;
+
+  // Compliance (Phase 14) -----------------------------------------------------
+  Future<Json> complianceDashboard() async =>
+      (await _api.get('/compliance/dashboard')).map;
+  Future<List<Json>> complianceCredentials() async =>
+      ((await _api.get('/compliance/credentials')).map['items']! as List)
+          .map((e) => (e as Map).cast<String, Object?>())
+          .toList();
+  Future<Json> uploadComplianceEvidence(Json body) async =>
+      (await _api.post('/compliance/evidence', body: body)).map;
+  Future<Json> createComplianceCredential(Json body) async =>
+      (await _api.post('/compliance/credentials', body: body)).map;
+  Future<Json> attachCredentialDocument(String id, Json body) async =>
+      (await _api.post('/compliance/credentials/$id/document', body: body)).map;
+  Future<Json> archiveComplianceCredential(String id) async =>
+      (await _api.post('/compliance/credentials/$id/archive')).map;
+  Future<Uint8List> complianceEvidenceBytes(String evidenceId) =>
+      _api.getBytes('/compliance/evidence/$evidenceId/file');
+
+  // Platform: compliance ----------------------------------------------------
+  Future<Json> complianceOverview() async =>
+      (await _api.get('/platform/compliance/overview')).map;
+  Future<List<Json>> complianceProfiles() async =>
+      ((await _api.get('/platform/compliance/profiles')).map['items']! as List)
+          .map((e) => (e as Map).cast<String, Object?>())
+          .toList();
+  Future<List<Json>> complianceReviewQueue() async =>
+      ((await _api.get('/platform/compliance/review-queue')).map['items']!
+              as List)
+          .map((e) => (e as Map).cast<String, Object?>())
+          .toList();
+  Future<void> seedComplianceProfiles() async {
+    await _api.post('/platform/compliance/profiles/seed-baseline');
+  }
+
+  Future<Json> platformComplianceTenant(String tenantId) async =>
+      (await _api.get('/platform/tenants/$tenantId/compliance')).map;
+  Future<List<Json>> platformComplianceCredentials(String tenantId) async =>
+      ((await _api.get(
+                '/platform/tenants/$tenantId/compliance/credentials',
+              )).map['items']!
+              as List)
+          .map((e) => (e as Map).cast<String, Object?>())
+          .toList();
+  Future<void> setComplianceApplicability(
+    String tenantId,
+    String profileKey,
+    String status,
+    String reason,
+  ) async {
+    await _api.put(
+      '/platform/tenants/$tenantId/compliance/applicability/$profileKey',
+      body: {'status': status, 'reason': reason},
+    );
+  }
+
+  Future<Json> reviewComplianceEvidence(
+    String tenantId,
+    String evidenceId,
+    Json body,
+  ) async => (await _api.post(
+    '/platform/tenants/$tenantId/compliance/evidence/$evidenceId/review',
+    body: body,
+  )).map;
+  Future<Json> setComplianceItemStatus(
+    String tenantId,
+    String profileKey,
+    String reqKey,
+    Json body,
+  ) async => (await _api.post(
+    '/platform/tenants/$tenantId/compliance/items/$profileKey/$reqKey/status',
+    body: body,
+  )).map;
+  Future<Json> verifyComplianceCredential(
+    String tenantId,
+    String credentialId,
+    Json body,
+  ) async => (await _api.post(
+    '/platform/tenants/$tenantId/compliance/credentials/$credentialId/verify',
+    body: body,
+  )).map;
+  Future<Uint8List> platformEvidenceBytes(String tenantId, String evidenceId) =>
+      _api.getBytes(
+        '/platform/tenants/$tenantId/compliance/evidence/$evidenceId/file',
+      );
 
   // Platform: plans --------------------------------------------------------
   Future<Json> plan(String id) async =>

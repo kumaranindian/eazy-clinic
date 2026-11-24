@@ -37,6 +37,27 @@ class PatientShell extends ConsumerWidget {
     ),
   ];
 
+  /// Navigation label in the user's language (path decides the wording).
+  static EcNavDestination _localized(
+    BuildContext context,
+    (String, EcNavDestination) item,
+  ) {
+    final t = context.l10n;
+    final label = switch (item.$1) {
+      '/' => t.navHome,
+      '/appointments' => t.navAppointments,
+      '/records' => t.navRecords,
+      '/clinics' => t.navClinics,
+      '/profile' => t.navProfile,
+      _ => item.$2.label,
+    };
+    return EcNavDestination(
+      label: label,
+      icon: item.$2.icon,
+      selectedIcon: item.$2.selectedIcon,
+    );
+  }
+
   int get _selected {
     for (var i = _items.length - 1; i > 0; i--) {
       if (location.startsWith(_items[i].$1)) return i;
@@ -46,7 +67,7 @@ class PatientShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => EcNavScaffold(
-    destinations: [for (final i in _items) i.$2],
+    destinations: [for (final i in _items) _localized(context, i)],
     selectedIndex: _selected,
     onSelected: (i) => context.go(_items[i].$1),
     body: SafeArea(

@@ -27,6 +27,27 @@ abstract final class Permission {
   static const String overrideEntitlements = 'platform.entitlements.override';
   static const String readAuditLogs = 'platform.audit.read';
 
+  /// Phase 12: country master (read), availability/configuration (manage) and
+  /// the audited assignment of a legal country to an existing tenant.
+  static const String readCountries = 'platform.countries.read';
+  static const String manageCountries = 'platform.countries.manage';
+  static const String migrateTenantCountry = 'platform.countries.migrate';
+
+  /// Phase 14: compliance profiles (read / manage) and review of a clinic's
+  /// applicability, evidence and credentials.
+  static const String readCompliance = 'platform.compliance.read';
+  static const String manageCompliance = 'platform.compliance.manage';
+  static const String reviewCompliance = 'platform.compliance.review';
+
+  /// Phase 15: tax policies (read / manage / verify as a tax specialist).
+  static const String readTax = 'platform.tax.read';
+  static const String manageTax = 'platform.tax.manage';
+  static const String verifyTax = 'platform.tax.verify';
+
+  /// Phase 16: payment provider eligibility and gateway health.
+  static const String readPayments = 'platform.payments.read';
+  static const String managePayments = 'platform.payments.manage';
+
   /// Grant or remove platform administrator roles (super admin only).
   static const String manageAdmins = 'platform.admins.manage';
 }
@@ -54,6 +75,17 @@ abstract final class PermissionPolicy {
       Permission.manageSubscriptions,
       Permission.overrideEntitlements,
       Permission.readAuditLogs,
+      Permission.readCountries,
+      Permission.manageCountries,
+      Permission.migrateTenantCountry,
+      Permission.readCompliance,
+      Permission.manageCompliance,
+      Permission.reviewCompliance,
+      Permission.readTax,
+      Permission.manageTax,
+      Permission.verifyTax,
+      Permission.readPayments,
+      Permission.managePayments,
       Permission.manageAdmins,
     },
     // Support can investigate (read) but cannot change anything sensitive and
@@ -65,6 +97,10 @@ abstract final class PermissionPolicy {
       Permission.readTenants,
       Permission.readPlans,
       Permission.readSubscriptions,
+      Permission.readCountries,
+      Permission.readCompliance,
+      Permission.readTax,
+      Permission.readPayments,
     },
   };
 

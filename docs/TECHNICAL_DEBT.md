@@ -96,5 +96,42 @@
 | TD-92 | The 20 new indexes (notifications, deliveries, exports, reports) are undeployed; the FCM sender and report queries were exercised on the emulator only. | Unverified against live Firebase | Deploy indexes and verify in staging (with TD-80). |
 | TD-93 | Phase 11 release gates that need real environments are open: staging/UAT, live Firebase (indexes, rules, Storage, FCM), managed backup rehearsal and agreed RPO/RTO, monitoring and alerts, Android build with the release keystore, hosting headers, legal/privacy review. Register: `docs/phase-11/KNOWN_ISSUES_AND_RISKS.md`. | Release blocker | Close F-03 to F-08 before production. |
 | TD-94 | No MFA for privileged roles; rate limits are per instance; dependency advisories are only partly scannable (dev tooling has 34 `npm audit` advisories, not shipped). | Security hardening | MFA, shared rate-limit store, regular dependency review. |
-| TD-95 | Phase 12 PDFs (invoice, receipt, prescription) are generated on demand and not stored; the doctor and patient apps have the API but no download button (no file-saving plugin in those apps); layout is the plain text writer. | UX gap | File saving/sharing in the mobile apps; branded layout. |
-| TD-96 | Role adjustments are read from Firestore on every clinic request (one extra document read) with no cache; only built-in roles can be adjusted. | Performance / product | Short-lived cache with invalidation; custom named roles. |
+| TD-95 | Phase 12 was verified with in-memory store tests only; Firestore emulator tests, rules tests and live Firebase were not run; the new `countries(onboardingEnabled, code)` index is undeployed. | Unverified live | Run emulator + rules tests in CI; deploy index with staging. |
+| TD-96 | Country baseline metadata (IN, AE) is reviewed against standards bodies only; legal/regulatory requirements per country are not assessed and no compliance is claimed. | Compliance | Phase 14 (compliance framework) with counsel. |
+| TD-97 | Country profile cache is per instance with a 60 s TTL and local invalidation. | A change reaches other instances within 60 s | Shared version stamp or short TTL if needed. |
+| TD-98 | Locale preference is in memory; only en/hi/ar representative strings; most UI is English. | Partial localization | Phase 13. |
+| TD-99 | Existing tenants stay unassigned until a super admin assigns them (no bulk apply, no assign control on the tenant page). | Manual migration | Add tenant-page control; decide bulk policy with ops. |
+| TD-100 | Correcting a tenant's country does not revalidate or convert stored phones, currency or amounts. | Possible inconsistency after correction | Per-field migration tooling if corrections occur. |
+| TD-101 | Branch `address.localized` is stored but not displayed anywhere yet. | Presentation gap | Phase 13/19 UI work. |
+| TD-102 | Most screen text is still English (≈ 296 `Text` literals plus labels/hints); only auth/status screens, navigation, status words, selectors and design-system texts use resources. | Partial localization | Migrate feature by feature (Phase 13 follow-ups). |
+| TD-103 | Backend validation/error messages are English. | Mixed-language messages | Stable codes + client localization. |
+| TD-104 | Arabic, Hindi and Tamil are machine-assisted starter translations, unreviewed and uncertified; not for legal/clinical/consent text. | Quality/legal risk | Native-speaker and professional review before release. |
+| TD-105 | RTL not audited screen by screen (tables, calendars, pickers, dialogs in clinic screens). | Possible layout defects in Arabic | Per-feature visual QA. |
+| TD-106 | Eight hand-padded time helpers remain in slot-label code. | Inconsistent time text | Use `RegionalDisplay.time`. |
+| TD-107 | Numeral system follows platform locale data; no clinic/user numeral setting. | Preference gap | Add setting if requested. |
+| TD-108 | Bundled Inter font lacks Arabic, Devanagari and Tamil glyphs; platform fallback fonts are used and untested on devices. | Visual quality | Bundle per-script fonts and test on devices. |
+| TD-109 | Compliance registers (India, UAE) are unvalidated product drafts; source links are authority home pages that were not fetched, with no clause citations. | Legal risk if relied on | Counsel review per `docs/phase-14/LEGAL_REVIEW_CHECKLIST.md` before production. |
+| TD-110 | Compliance screens and messages are English only. | Not localized | Localize after counsel reviews wording. |
+| TD-111 | Platform reviewers have no MFA, four-eyes rule or review SLA. | Privileged role risk | With TD-94 and Phase 20. |
+| TD-112 | Evidence files are type-checked but not malware-scanned; authenticity is not verified. | File/forgery risk | Scanning hook; authority integrations only when approved. |
+| TD-113 | No retention/deletion policy for compliance evidence and credentials. | Regulatory retention unknown | Per-country decision (Phases 21/22). |
+| TD-114 | Doctor registration numbers (Phase 3) are not migrated or linked to credentials. | Duplicate data entry | Import/link. |
+| TD-115 | `facilityTypes` is stored but not used to filter registers; practitioner-subject requirements are tracked at facility level; no register editor UI. | Coarse applicability | Per-practitioner items / admin editor if required. |
+| TD-116 | Tax policies are empty shells; no rates/thresholds/exemptions/invoice fields are verified; sources not fetched. | Cannot be used until specialists supply content | Specialist input + verification per country. |
+| TD-117 | Single `INV-` numbering series per clinic. | No per-branch/fiscal-year/country series | Country rules (Phases 19/22). |
+| TD-118 | No Clinic Web UI for tax policies, line policy selection, legal/tax identity, note tax part or tax report. | API only | UI pass. |
+| TD-119 | Tax report has no PDF export. | CSV/JSON only | Reuse report export pipeline. |
+| TD-120 | Refunds carry no tax part; note tax is declared, not recomputed. | Liability depends on issuer input | Compute from lines. |
+| TD-121 | No place-of-supply logic; supply chosen per line. | Manual | Country packs. |
+| TD-122 | E-invoicing: contract only; no provider, mapper, signing, retry scheduler. | Disabled | Requires approvals. |
+| TD-123 | Existing invoices lack `issueSnapshot`; templates do not render it. | Display gap | Template work. |
+| TD-124 | No real payment provider adapter; candidates only; sandbox uses its own signature scheme. | Cannot take online payments | Provider decision, contract, adapter, certification, sandbox contract tests. |
+| TD-125 | Live mode hard-disabled with no activation workflow. | Intentional | Design with first provider. |
+| TD-126 | No Clinic Web or patient screens for online payments, configuration, reconciliation. | API only | UI pass. |
+| TD-127 | Currency selection UI is INR only; AED accepted in the backend. | Limited | Country packs. |
+| TD-128 | Public webhook endpoint lacks per-IP rate limit and provider IP allow-list. | Abuse surface | Edge/WAF + limiter. |
+| TD-129 | No settlement-report import or scheduled sweep of stale payments. | Manual reconciliation | Worker hook, report import. |
+| TD-130 | Gateway refunds carry no tax part. | See TD-120 | |
+| TD-131 | Subscription billing does not use the gateway. | Out of scope | Separate scope. |
+| TD-132 | Phase 12 PDFs (invoice, receipt, prescription) are generated on demand and not stored; the doctor and patient apps have the API but no download button (no file-saving plugin in those apps); layout is the plain text writer. | UX gap | File saving/sharing in the mobile apps; branded layout. |
+| TD-133 | Role adjustments are read from Firestore on every clinic request (one extra document read) with no cache; only built-in roles can be adjusted. | Performance / product | Short-lived cache with invalidation; custom named roles. |

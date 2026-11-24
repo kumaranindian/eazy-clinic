@@ -144,6 +144,8 @@ class AccountService {
     String? displayName,
     String? phoneNumber,
     bool clearPhone = false,
+    String? preferredLanguage,
+    bool clearPreferredLanguage = false,
     String? requestId,
   }) async {
     final now = _clock();
@@ -152,6 +154,8 @@ class AccountService {
       if (displayName != null) 'displayName': displayName,
       if (phoneNumber != null) 'phoneNumber': phoneNumber,
       if (clearPhone) 'phoneNumber': null,
+      if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
+      if (clearPreferredLanguage) 'preferredLanguage': null,
     };
     await _store.update(user.uid, fields);
     await _events.record(

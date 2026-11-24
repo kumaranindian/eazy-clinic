@@ -273,15 +273,15 @@ void main() {
       await open(t, _app(e), '/clinic/finance');
       expect(
         t.widget<Text>(find.byKey(const Key('today-collected'))).data,
-        '₹1200.00',
+        '₹1,200.00',
       );
       expect(
         t.widget<Text>(find.byKey(const Key('today-net'))).data,
-        '₹1000.00',
+        '₹1,000.00',
       );
       expect(
         t.widget<Text>(find.byKey(const Key('month-invoiced'))).data,
-        '₹1600.00',
+        '₹1,600.00',
       );
       expect(
         t.widget<Text>(find.byKey(const Key('outstanding-total'))).data,
@@ -327,7 +327,7 @@ void main() {
         ];
       await open(t, _app(e), '/clinic/billing/invoices');
       expect(find.text('INV-000001 · Asha Patil'), findsOneWidget);
-      expect(find.textContaining('Due ₹1180.00'), findsOneWidget);
+      expect(find.textContaining('Due ₹1,180.00'), findsOneWidget);
       expect(find.text('Overdue'), findsWidgets);
     });
 
@@ -337,9 +337,9 @@ void main() {
       final e = Env(_desk)..maps['/billing/invoices/inv_1'] = _invoice();
       await open(t, _app(e), '/clinic/billing/invoices/inv_1');
       expect(find.text('Invoice INV-000001'), findsOneWidget);
-      expect(find.text('₹1000.00'), findsWidgets);
+      expect(find.text('₹1,000.00'), findsWidgets);
       expect(find.text('₹180.00'), findsWidgets);
-      expect(find.text('₹1180.00'), findsWidgets);
+      expect(find.text('₹1,180.00'), findsWidgets);
       expect(find.text('Collect payment'), findsOneWidget);
       expect(find.text('Finalize invoice'), findsNothing);
       expect(
@@ -555,7 +555,7 @@ void main() {
         await open(t, _app(e), '/clinic/billing/patients/pt_1');
         expect(
           t.widget<Text>(find.byKey(const Key('patient-outstanding'))).data,
-          '₹1180.00',
+          '₹1,180.00',
         );
         expect(
           t.widget<Text>(find.byKey(const Key('credit-balance'))).data,
@@ -647,7 +647,7 @@ void main() {
       await open(t, _app(e), '/clinic/billing/payments/pay_1');
       await t.tap(find.text('Request refund'));
       await t.pumpAndSettle();
-      await _pick(t, 'Invoice to refund against', 'INV-000001 — ₹1180.00');
+      await _pick(t, 'Invoice to refund against', 'INV-000001 — ₹1,180.00');
       await _type(t, 'Amount to refund', '300');
       await _type(t, 'Reason', 'Overcharged at billing');
       await t.tap(find.text('Request refund').last);
@@ -808,7 +808,7 @@ void main() {
           'truncated': false,
         };
       await open(t, _app(e), '/clinic/finance/reports');
-      expect(find.text('₹1200.00'), findsWidgets);
+      expect(find.text('₹1,200.00'), findsWidgets);
       expect(find.text('2026-06-01'), findsWidgets);
       await t.tap(find.byKey(const Key('report-outstanding')));
       await t.pumpAndSettle();

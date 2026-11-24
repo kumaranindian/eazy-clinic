@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/ec_dimensions.dart';
+import 'ec_texts.dart';
 
 /// Primary action button (Healthcare Red). Use once per screen section.
 ///
@@ -94,7 +95,7 @@ class _ButtonContent extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isLoading) {
       return Semantics(
-        label: 'Loading',
+        label: EcTexts.of(context).loading,
         child: SizedBox(
           width: EcIconSizes.md,
           height: EcIconSizes.md,

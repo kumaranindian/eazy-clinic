@@ -268,7 +268,10 @@ class _WeeklyHoursEditorState extends State<WeeklyHoursEditor> {
                     _days[d]!.to.hour * 60 + _days[d]!.to.minute <
                         _days[d]!.from.hour * 60 + _days[d]!.from.minute)
                   Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 4),
+                    padding: const EdgeInsetsDirectional.only(
+                      start: 4,
+                      bottom: 4,
+                    ),
                     child: Text(
                       'Closes after midnight (overnight).',
                       style: EcTypography.helper,
@@ -277,7 +280,7 @@ class _WeeklyHoursEditorState extends State<WeeklyHoursEditor> {
                 if (_days[d]!.open)
                   for (var i = 0; i < _days[d]!.breaks.length; i++)
                     Padding(
-                      padding: const EdgeInsets.only(left: 140),
+                      padding: const EdgeInsetsDirectional.only(start: 140),
                       child: Wrap(
                         spacing: EcSpacing.sm,
                         crossAxisAlignment: WrapCrossAlignment.center,

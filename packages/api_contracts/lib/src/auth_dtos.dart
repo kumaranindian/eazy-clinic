@@ -11,6 +11,7 @@ class AuthProfileDto {
     this.phoneNumber,
     this.profileImageUrl,
     this.lastLoginAt,
+    this.preferredLanguage,
   });
 
   factory AuthProfileDto.fromJson(Map<String, Object?> json) => AuthProfileDto(
@@ -24,6 +25,7 @@ class AuthProfileDto {
     phoneNumber: json['phoneNumber'] as String?,
     profileImageUrl: json['profileImageUrl'] as String?,
     lastLoginAt: json['lastLoginAt'] as String?,
+    preferredLanguage: json['preferredLanguage'] as String?,
   );
 
   final String uid;
@@ -35,6 +37,9 @@ class AuthProfileDto {
   final String? profileImageUrl;
   final String? lastLoginAt;
 
+  /// The user's own UI language (presentation only), or null.
+  final String? preferredLanguage;
+
   Map<String, Object?> toJson() => {
     'uid': uid,
     'displayName': displayName,
@@ -44,6 +49,7 @@ class AuthProfileDto {
     if (phoneNumber != null) 'phoneNumber': phoneNumber,
     if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
     if (lastLoginAt != null) 'lastLoginAt': lastLoginAt,
+    if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
   };
 }
 
@@ -59,6 +65,7 @@ class AuthSessionDto {
     required this.accessGranted,
     this.platformRole,
     this.memberships = const [],
+    this.preferredLanguage,
   });
 
   factory AuthSessionDto.fromJson(Map<String, Object?> json) => AuthSessionDto(
@@ -73,6 +80,7 @@ class AuthSessionDto {
         .whereType<Map<Object?, Object?>>()
         .map((m) => MembershipSummaryDto.fromJson(m.cast<String, Object?>()))
         .toList(),
+    preferredLanguage: json['preferredLanguage'] as String?,
   );
 
   final String uid;
@@ -86,6 +94,9 @@ class AuthSessionDto {
   /// Clinic memberships resolved server-side. Always empty until Phase 3.
   final List<MembershipSummaryDto> memberships;
 
+  /// The user's own UI language (presentation only), or null.
+  final String? preferredLanguage;
+
   Map<String, Object?> toJson() => {
     'uid': uid,
     'accountStatus': accountStatus.wireName,
@@ -93,6 +104,7 @@ class AuthSessionDto {
     'accessGranted': accessGranted,
     if (platformRole != null) 'platformRole': platformRole!.wireName,
     'memberships': memberships.map((m) => m.toJson()).toList(),
+    if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
   };
 }
 

@@ -4,6 +4,8 @@ FROM dart:stable AS build
 
 WORKDIR /workspace
 COPY packages/api_contracts packages/api_contracts
+COPY packages/common_models packages/common_models
+COPY packages/country_config packages/country_config
 COPY packages/utilities packages/utilities
 COPY packages/validation packages/validation
 COPY backend backend

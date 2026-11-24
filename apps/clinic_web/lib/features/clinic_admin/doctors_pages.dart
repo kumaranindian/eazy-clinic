@@ -329,7 +329,8 @@ class _AssignDialogState extends ConsumerState<_AssignDialog> {
                 ),
                 const SizedBox(height: EcSpacing.lg),
                 EcTextField(
-                  label: 'Branch consultation fee in ₹ (optional)',
+                  label:
+                      'Branch consultation fee in ${RegionalDisplay.currencyLabel()} (optional)',
                   controller: _fee,
                   keyboardType: TextInputType.number,
                 ),
@@ -583,7 +584,8 @@ class _DoctorFormState extends ConsumerState<DoctorFormPage> {
                       maxLength: 200,
                     ),
                     TextRow(
-                      label: 'Default consultation fee (₹)',
+                      label:
+                          'Default consultation fee (${RegionalDisplay.currencyLabel()})',
                       controller: _f['fee'],
                       width: 220,
                       maxLength: 9,

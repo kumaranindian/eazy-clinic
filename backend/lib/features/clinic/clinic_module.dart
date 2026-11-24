@@ -16,7 +16,11 @@ import '../auth/application/auth_context_keys.dart';
 import '../auth/domain/auth_context.dart';
 import '../auth/presentation/auth_routes.dart';
 import '../billing/billing_module.dart';
+import '../billing/gateway/provider.dart';
 import '../clinical/clinical_module.dart';
+import '../compliance/compliance_profile_service.dart';
+import '../compliance/compliance_routes.dart';
+import '../compliance/tenant_compliance_service.dart';
 import '../laboratory/lab_module.dart';
 import '../notifications/notification_core.dart';
 import '../notifications/notification_hub.dart';
@@ -25,6 +29,7 @@ import '../notifications/notification_service.dart';
 import '../patients/patient_module.dart';
 import '../platform/audit/audit_service.dart';
 import '../platform/common/paging.dart';
+import '../platform/countries/country_resolver.dart';
 import '../platform/entitlements/entitlement_service.dart';
 import '../portal/portal_module.dart';
 import '../reports/export_service.dart';
@@ -57,7 +62,10 @@ class ClinicModule {
     required ObjectStorage storage,
     FcmSender fcm = const UnconfiguredFcmSender(),
     Map<String, MessageProvider> messageProviders = const {},
+    Map<String, PaymentProvider>? paymentProviders,
+    CredentialResolver? paymentCredentials,
     DateTime Function()? clock,
+    String? deploymentRegion,
     RateLimiter? writeLimiter,
     RateLimiter? inviteLimiter,
     RateLimiter? acceptLimiter,
@@ -85,6 +93,18 @@ class ClinicModule {
        invites =
            inviteLimiter ??
            RateLimiter(maxRequests: 30, window: const Duration(hours: 1)) {
+    compliance = TenantComplianceService(
+      store,
+      deps.audit,
+      ComplianceProfileService(store, deps.audit, clock: clock),
+      storage,
+      clock: clock,
+    );
+    countryConfig = CountryConfigResolver(
+      store,
+      deps.countries,
+      deploymentRegion: deploymentRegion,
+    );
     clinic = ClinicService(deps, storage);
     branches = BranchService(deps);
     doctors = DoctorService(deps, branches);
@@ -95,7 +115,13 @@ class ClinicModule {
     patients = PatientModule(deps, storage);
     scheduling = SchedulingModule(deps, patients.support);
     clinical = ClinicalModule(deps, patients.support, scheduling);
-    billing = BillingModule(deps, patients.support, scheduling.support);
+    billing = BillingModule(
+      deps,
+      patients.support,
+      scheduling.support,
+      paymentProviders: paymentProviders,
+      credentials: paymentCredentials,
+    );
     lab = LabModule(
       deps,
       patients.support,
@@ -107,6 +133,27 @@ class ClinicModule {
     lab.support.notifier = portal.notifier;
     hub = NotificationHub(deps, fcm: fcm, providers: messageProviders);
     portal.notifier.hub = hub;
+    compliance.notifier =
+        ({
+          required tenantId,
+          required staffUid,
+          required dedupeKey,
+          required title,
+          required body,
+        }) async {
+          await hub.emit(
+            tenantId: tenantId,
+            type: 'compliance_expiry',
+            dedupeKey: dedupeKey,
+            staffUid: staffUid,
+            resourceType: 'compliance',
+            fallbackTitle: title,
+            fallbackBody: body,
+          );
+        };
+    hub.tenantScans.add((tenantId) async {
+      await compliance.scanExpiries(tenantId);
+    });
     scheduling.onEvent = (t, type, d) async {
       final pid = d['patientId'];
       if (pid == null) return;
@@ -174,6 +221,8 @@ class ClinicModule {
   late final PortalModule portal;
   late final ClinicService clinic;
   late final BranchService branches;
+  late final CountryConfigResolver countryConfig;
+  late final TenantComplianceService compliance;
   late final DoctorService doctors;
   late final StaffService staff;
   late final InvitationService invitations;
@@ -265,6 +314,7 @@ class ClinicModule {
     registerLabRoutes(this, lab, r);
     registerNotificationRoutes(this, notifications, r);
     registerReportRoutes(this, reports, exports, r);
+    registerComplianceRoutes(this, compliance, r);
     registerPortalRoutes(this, portal, r);
     registerPatientRoutes(
       this,
@@ -295,6 +345,29 @@ class ClinicModule {
           ),
         );
       }, write: true),
+    );
+    r.get(
+      '$_v1/clinics/current/country-config',
+      secured((Request req, TenantContext t) async {
+        t.require(ClinicPermission.clinicView);
+        final branchId = query(req, 'branchId');
+        if (branchId != null) {
+          t.scope.require(id(branchId));
+        }
+        final locale = query(req, 'locale', max: 12);
+        if (locale != null &&
+            !RegExp(r'^[A-Za-z]{2,3}([-_][A-Za-z]{2})?$').hasMatch(locale)) {
+          throw const ApiException.badRequest('locale is invalid.');
+        }
+        return ok(
+          req,
+          await countryConfig.forTenant(
+            t.tenantId,
+            branchId: branchId,
+            userLocale: locale,
+          ),
+        );
+      }),
     );
     r.get(
       '$_v1/clinics/current/settings',

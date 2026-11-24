@@ -473,7 +473,7 @@ class _ConsultationState extends ConsumerState<ConsultationPage> {
                   children: [
                     if (rx.isEmpty)
                       const Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: AlignmentDirectional.centerStart,
                         child: Text('No prescriptions.'),
                       ),
                     for (final p in rx)
@@ -553,7 +553,7 @@ class _ConsultationState extends ConsumerState<ConsultationPage> {
                   children: [
                     if (fu.isEmpty)
                       const Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: AlignmentDirectional.centerStart,
                         child: Text('No follow-up.'),
                       ),
                     for (final f in fu)

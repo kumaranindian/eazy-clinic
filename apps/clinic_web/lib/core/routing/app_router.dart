@@ -13,6 +13,8 @@ import '../../features/clinic_admin/settings_page.dart';
 import '../../features/clinic_admin/staff_pages.dart';
 import '../../features/communications/notification_pages.dart';
 import '../../features/communications/report_pages.dart';
+import '../../features/compliance/compliance_page.dart';
+import '../../features/compliance/platform_compliance_pages.dart';
 import '../../features/finance/finance_pages.dart';
 import '../../features/finance/invoices_pages.dart';
 import '../../features/finance/payments_pages.dart';
@@ -26,6 +28,7 @@ import '../../features/patients/patients_pages.dart';
 import '../../features/platform/admins_page.dart';
 import '../../features/platform/applications_pages.dart';
 import '../../features/platform/audit_page.dart';
+import '../../features/platform/countries_pages.dart';
 import '../../features/platform/dashboard_page.dart';
 import '../../features/platform/plans_pages.dart';
 import '../../features/platform/platform_shell.dart';
@@ -242,6 +245,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const NotificationAdminPage(),
           ),
           GoRoute(
+            path: '/clinic/compliance',
+            builder: (context, state) => const CompliancePage(),
+          ),
+          GoRoute(
             path: '/clinic/reports',
             builder: (context, state) => const ReportsDashboardPage(),
           ),
@@ -409,6 +416,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => SubscriptionDetailPage(
               subscriptionId: state.pathParameters['id']!,
             ),
+          ),
+          GoRoute(
+            path: '/platform/compliance',
+            builder: (context, state) => const PlatformCompliancePage(),
+          ),
+          GoRoute(
+            path: '/platform/compliance/tenants/:id',
+            builder: (context, state) =>
+                TenantCompliancePage(tenantId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/platform/countries',
+            builder: (context, state) => const CountriesPage(),
+          ),
+          GoRoute(
+            path: '/platform/countries/backfill-report',
+            builder: (context, state) => const BackfillReportPage(),
           ),
           GoRoute(
             path: '/platform/admins',

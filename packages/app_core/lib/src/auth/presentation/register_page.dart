@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/auth_ui_config.dart';
+import '../../regional/l10n_context.dart';
 import '../application/auth_controller.dart';
 import '../application/auth_redirect.dart';
 import 'auth_layout.dart';
@@ -54,7 +55,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     if (!mounted) return;
     setState(() {
       _submitting = false;
-      _error = failure?.message;
+      _error = failure?.localized(context.l10n);
     });
   }
 
@@ -62,16 +63,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Widget build(BuildContext context) {
     final ui = ref.watch(authUiConfigProvider);
     return AuthScaffold(
-      title: 'Create your account',
+      title: context.l10n.createYourAccount,
       subtitle: ui.registrationNote,
       footer: Wrap(
         alignment: WrapAlignment.center,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          const Text('Already have an account?'),
+          Text(context.l10n.alreadyHaveAccount),
           TextButton(
             onPressed: _submitting ? null : () => context.go(AuthPaths.login),
-            child: const Text('Sign in'),
+            child: Text(context.l10n.signIn),
           ),
         ],
       ),
@@ -86,39 +87,41 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 const SizedBox(height: EcSpacing.lg),
               ],
               EcTextField(
-                label: 'Full name',
+                label: context.l10n.fullName,
                 controller: _name,
                 prefixIcon: Icons.person_outline,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.name],
                 enabled: !_submitting,
-                validator: AuthValidators.name,
+                validator: AuthValidators(context.l10n).name,
               ),
               const SizedBox(height: EcSpacing.lg),
               EcTextField(
-                label: 'Email',
+                label: context.l10n.email,
                 controller: _email,
                 prefixIcon: Icons.mail_outline,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.email],
                 enabled: !_submitting,
-                validator: AuthValidators.email,
+                validator: AuthValidators(context.l10n).email,
               ),
               const SizedBox(height: EcSpacing.lg),
               EcPasswordField(
                 controller: _password,
                 enabled: !_submitting,
                 textInputAction: TextInputAction.next,
-                validator: AuthValidators.newPassword,
+                validator: AuthValidators(context.l10n).newPassword,
               ),
               const SizedBox(height: EcSpacing.lg),
               EcPasswordField(
-                label: 'Confirm password',
+                label: context.l10n.confirmPassword,
                 controller: _confirm,
                 enabled: !_submitting,
                 textInputAction: TextInputAction.done,
-                validator: AuthValidators.confirmPassword(_password),
+                validator: AuthValidators(
+                  context.l10n,
+                ).confirmPassword(_password),
               ),
               const SizedBox(height: EcSpacing.md),
               CheckboxListTile(
@@ -131,23 +134,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       }),
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
-                title: Text(
-                  'I accept the Terms of Service and acknowledge the '
-                  'Privacy Policy.',
-                  style: EcTypography.body,
-                ),
+                title: Text(context.l10n.acceptTerms, style: EcTypography.body),
               ),
               if (_showTermsError)
                 Padding(
                   padding: const EdgeInsets.only(bottom: EcSpacing.sm),
                   child: Text(
-                    'You must accept the terms to continue.',
+                    context.l10n.mustAcceptTerms,
                     style: EcTypography.error,
                   ),
                 ),
               const SizedBox(height: EcSpacing.sm),
               EcPrimaryButton(
-                label: 'Create account',
+                label: context.l10n.createAccount,
                 isLoading: _submitting,
                 onPressed: _submit,
               ),

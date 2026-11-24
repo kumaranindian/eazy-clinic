@@ -152,5 +152,28 @@ Top-level (backend-only): `patient_notifications` (inbox, one deterministic id p
 ## Phase 10 collections
 Tenant: `notification_events`, `notification_deliveries`, `notifications` (staff inbox), `notification_templates`, `notification_template_versions`, `notification_preferences`, `notification_settings`, `notification_channel_configs`, `notification_audit_logs`, `report_exports`, `report_audit_logs`. Top-level (backend-only): `notification_devices`. `patient_notifications` gains `archived`. Details: `docs/phase-10/DATABASE_SCHEMA.md`.
 
-## Phase 12
+## Phase 12 additions
+
+`countries/{ISO}` (+ `versions/{n}`) at platform level; `tenants/{id}` gains `countryCode`, `countryConfigVersion`, `countrySource`, `countrySetAt`, `countrySetBy`; `tenants/{id}/country_history/{ts}`; branch/profile `address.countryCode`, `address.localized`.
+Details: `docs/phase-12/ARCHITECTURE_AND_DATA_MODEL.md`.
+
+## Phase 14 additions
+
+Platform: `compliance_profiles/{key}` and `compliance_profiles/{key}/versions/{n}`.
+Per clinic: `compliance_applicability/{profileKey}`, `compliance_items/{profileKey}__{requirementKey}`, `compliance_evidence/{id}`, `compliance_credentials/{id}`, `compliance_history/{auto}`; files under `tenants/{t}/compliance/{evidenceId}`.
+New collection-group indexes: `compliance_applicability(profileKey, status)`, `compliance_evidence(status, uploadedAt)`. Details: `docs/phase-14/ARCHITECTURE_AND_DATA_MODEL.md`.
+
+## Phase 15 additions
+
+Platform: `tax_policies/{key}` and `tax_policies/{key}/versions/{n}`.
+Per clinic: `einvoice_submissions/{invoiceId}`. Invoices gain `issueSnapshot` and line tax-policy fields; `invoice_adjustments` gain `taxIncluded`; `billing_settings/main` gains `legalName`, `taxRegistrationNumber`.
+New index: `invoice_adjustments(branchId, createdAt)`. Details: `docs/phase-15/ARCHITECTURE_AND_DATA_MODEL.md`.
+
+## Phase 16 additions
+
+Platform: `payment_eligibility/{countryCode}`.
+Per clinic: `gateway_config/main`, `gateway_transactions/{id}`, `gateway_events/{hash}`, `gateway_exceptions/{id}`. `payments` gain `source: gateway`, `gatewayProvider`, `gatewayTransactionId`.
+New index: collection group `gateway_exceptions(status, createdAt)`. Details: `docs/phase-16/ARCHITECTURE_AND_DATA_MODEL.md`.
+
+## Phase 12 (code gaps): role permissions
 `tenants/{t}/role_permissions/{role}`: `grant[]`, `revoke[]`, `version`, `updatedBy`, `updatedAt` (per-clinic adjustment of a built-in role; absent means defaults). No new collection for PDFs (rendered on demand) or platform administrators (`platform_users.platformRole`).

@@ -28,6 +28,23 @@ void main() {
     expect(c.fcmEnabled, isFalse, reason: 'push is opt-in');
   });
 
+  test('DEPLOYMENT_REGION is optional, informational and validated', () {
+    expect(AppConfig.fromEnvironment(prod()).deploymentRegion, isNull);
+    expect(
+      AppConfig.fromEnvironment(
+        prod({'DEPLOYMENT_REGION': 'asia-south1'}),
+      ).deploymentRegion,
+      'asia-south1',
+    );
+    for (final bad in ['Asia South', 'x', 'asia_south1', '-bad-region-']) {
+      expect(
+        problems(prod({'DEPLOYMENT_REGION': bad})),
+        contains('DEPLOYMENT_REGION'),
+        reason: bad,
+      );
+    }
+  });
+
   test('production refuses to start without its essentials', () {
     expect(
       problems(prod({'FIREBASE_PROJECT_ID': ''})),

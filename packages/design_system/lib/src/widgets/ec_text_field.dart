@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../tokens/ec_colors.dart';
 import '../tokens/ec_dimensions.dart';
+import 'ec_texts.dart';
 
 /// Standard form text input: filled field, optional leading icon, label above.
 ///
@@ -29,6 +30,7 @@ class EcTextField extends StatelessWidget {
     this.enabled = true,
     this.readOnly = false,
     this.onTap,
+    this.textDirection,
     super.key,
   });
 
@@ -52,9 +54,23 @@ class EcTextField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
 
+  /// Text direction of the typed value. Defaults to the screen direction,
+  /// except for e-mail, phone, URL and number fields, which are always typed
+  /// left-to-right (even inside a right-to-left screen).
+  final TextDirection? textDirection;
+
+  static bool _isLtrData(TextInputType? type) =>
+      type == TextInputType.emailAddress ||
+      type == TextInputType.phone ||
+      type == TextInputType.url ||
+      type == TextInputType.number;
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      textDirection:
+          textDirection ??
+          (_isLtrData(keyboardType) ? TextDirection.ltr : null),
       controller: controller,
       enabled: enabled,
       readOnly: readOnly,
@@ -92,7 +108,7 @@ class EcTextField extends StatelessWidget {
 /// Password input with a show/hide toggle.
 class EcPasswordField extends StatefulWidget {
   const EcPasswordField({
-    this.label = 'Password',
+    this.label,
     this.controller,
     this.validator,
     this.onSubmitted,
@@ -101,7 +117,8 @@ class EcPasswordField extends StatefulWidget {
     super.key,
   });
 
-  final String label;
+  /// Defaults to the localized "Password" text.
+  final String? label;
   final TextEditingController? controller;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onSubmitted;
@@ -117,8 +134,9 @@ class _EcPasswordFieldState extends State<EcPasswordField> {
 
   @override
   Widget build(BuildContext context) {
+    final texts = EcTexts.of(context);
     return EcTextField(
-      label: widget.label,
+      label: widget.label ?? texts.password,
       controller: widget.controller,
       validator: widget.validator,
       onSubmitted: widget.onSubmitted,
@@ -129,7 +147,7 @@ class _EcPasswordFieldState extends State<EcPasswordField> {
       keyboardType: TextInputType.visiblePassword,
       autofillHints: const [AutofillHints.password],
       suffix: IconButton(
-        tooltip: _obscured ? 'Show password' : 'Hide password',
+        tooltip: _obscured ? texts.showPassword : texts.hidePassword,
         icon: Icon(
           _obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
           size: EcIconSizes.md,
@@ -144,14 +162,10 @@ class _EcPasswordFieldState extends State<EcPasswordField> {
 /// Search input with a clear button. Calls [onChanged] on every keystroke;
 /// debounce in the controller/provider layer, not here.
 class EcSearchField extends StatefulWidget {
-  const EcSearchField({
-    this.hint = 'Search',
-    this.controller,
-    this.onChanged,
-    super.key,
-  });
+  const EcSearchField({this.hint, this.controller, this.onChanged, super.key});
 
-  final String hint;
+  /// Defaults to the localized "Search" text.
+  final String? hint;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
 
@@ -171,12 +185,13 @@ class _EcSearchFieldState extends State<EcSearchField> {
 
   @override
   Widget build(BuildContext context) {
+    final texts = EcTexts.of(context);
     return TextField(
       controller: _controller,
       onChanged: widget.onChanged,
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
-        hintText: widget.hint,
+        hintText: widget.hint ?? texts.search,
         prefixIcon: const Icon(
           Icons.search,
           size: EcIconSizes.md,
@@ -187,7 +202,7 @@ class _EcSearchFieldState extends State<EcSearchField> {
           builder: (context, value, _) => value.text.isEmpty
               ? const SizedBox.shrink()
               : IconButton(
-                  tooltip: 'Clear search',
+                  tooltip: texts.clearSearch,
                   icon: const Icon(Icons.close, size: EcIconSizes.md),
                   onPressed: () {
                     _controller.clear();

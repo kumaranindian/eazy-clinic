@@ -14,6 +14,8 @@ class FakeRepo implements ControlPlaneRepository {
   handlers = {
     // Landing pages list the user's applications: empty unless a test says otherwise.
     'list': (a, n) => listOf([]),
+    // Onboarding country selector: India and UAE, as the backend returns them.
+    'onboardableCountries': (a, n) => [countryDto('IN'), countryDto('AE')],
   };
   final List<String> calls = [];
   final List<List<Object?>> callArgs = [];
@@ -132,6 +134,124 @@ class FakeRepo implements ControlPlaneRepository {
 
   @override
   Future<Json> tenant(String id) => _call<Json>('tenant', [id], {});
+
+  // Compliance (Phase 14)
+  @override
+  Future<Json> complianceDashboard() =>
+      _call<Json>('complianceDashboard', [], {});
+  @override
+  Future<List<Json>> complianceCredentials() =>
+      _call<List<Json>>('complianceCredentials', [], {});
+  @override
+  Future<Json> uploadComplianceEvidence(Json body) =>
+      _call<Json>('uploadComplianceEvidence', [body], {});
+  @override
+  Future<Json> createComplianceCredential(Json body) =>
+      _call<Json>('createComplianceCredential', [body], {});
+  @override
+  Future<Json> attachCredentialDocument(String id, Json body) =>
+      _call<Json>('attachCredentialDocument', [id, body], {});
+  @override
+  Future<Json> archiveComplianceCredential(String id) =>
+      _call<Json>('archiveComplianceCredential', [id], {});
+  @override
+  Future<Uint8List> complianceEvidenceBytes(String evidenceId) =>
+      _call<Uint8List>('complianceEvidenceBytes', [evidenceId], {});
+  @override
+  Future<Json> complianceOverview() =>
+      _call<Json>('complianceOverview', [], {});
+  @override
+  Future<List<Json>> complianceProfiles() =>
+      _call<List<Json>>('complianceProfiles', [], {});
+  @override
+  Future<List<Json>> complianceReviewQueue() =>
+      _call<List<Json>>('complianceReviewQueue', [], {});
+  @override
+  Future<void> seedComplianceProfiles() =>
+      _call<void>('seedComplianceProfiles', [], {});
+  @override
+  Future<Json> platformComplianceTenant(String tenantId) =>
+      _call<Json>('platformComplianceTenant', [tenantId], {});
+  @override
+  Future<List<Json>> platformComplianceCredentials(String tenantId) =>
+      _call<List<Json>>('platformComplianceCredentials', [tenantId], {});
+  @override
+  Future<void> setComplianceApplicability(
+    String tenantId,
+    String profileKey,
+    String status,
+    String reason,
+  ) => _call<void>('setComplianceApplicability', [
+    tenantId,
+    profileKey,
+    status,
+    reason,
+  ], {});
+  @override
+  Future<Json> reviewComplianceEvidence(
+    String tenantId,
+    String evidenceId,
+    Json body,
+  ) =>
+      _call<Json>('reviewComplianceEvidence', [tenantId, evidenceId, body], {});
+  @override
+  Future<Json> setComplianceItemStatus(
+    String tenantId,
+    String profileKey,
+    String reqKey,
+    Json body,
+  ) => _call<Json>('setComplianceItemStatus', [
+    tenantId,
+    profileKey,
+    reqKey,
+    body,
+  ], {});
+  @override
+  Future<Json> verifyComplianceCredential(
+    String tenantId,
+    String credentialId,
+    Json body,
+  ) => _call<Json>('verifyComplianceCredential', [
+    tenantId,
+    credentialId,
+    body,
+  ], {});
+  @override
+  Future<Uint8List> platformEvidenceBytes(String tenantId, String evidenceId) =>
+      _call<Uint8List>('platformEvidenceBytes', [tenantId, evidenceId], {});
+
+  @override
+  Future<Json> assignTenantCountry(
+    String id, {
+    required String countryCode,
+    required String reason,
+    String? expectedCurrent,
+  }) => _call<Json>(
+    'assignTenantCountry',
+    [id],
+    {
+      'countryCode': countryCode,
+      'reason': reason,
+      'expectedCurrent': expectedCurrent,
+    },
+  );
+
+  @override
+  Future<List<Json>> onboardableCountries() =>
+      _call<List<Json>>('onboardableCountries', [], {});
+
+  @override
+  Future<List<Json>> countries() => _call<List<Json>>('countries', [], {});
+
+  @override
+  Future<Json> updateCountry(String code, Json body) =>
+      _call<Json>('updateCountry', [code, body], {});
+
+  @override
+  Future<void> seedCountries() => _call<void>('seedCountries', [], {});
+
+  @override
+  Future<Json> backfillReport() => _call<Json>('backfillReport', [], {});
 
   @override
   Future<Json> suspendTenant(String id, String reason) =>
@@ -388,3 +508,28 @@ Map<String, Object?> ownerAccess(String path, {bool writes = true}) {
   }
   return <String, Object?>{};
 }
+
+/// Client-safe country DTO, as returned by `GET /countries`.
+Map<String, Object?> countryDto(String code) => code == 'AE'
+    ? {
+        'code': 'AE',
+        'name': 'United Arab Emirates',
+        'callingCode': '+971',
+        'defaultCurrency': 'AED',
+        'adminAreaLabel': 'Emirate',
+        'postalCode': {'required': false, 'label': 'PO Box', 'pattern': null},
+        'configurationVersion': 1,
+      }
+    : {
+        'code': 'IN',
+        'name': 'India',
+        'callingCode': '+91',
+        'defaultCurrency': 'INR',
+        'adminAreaLabel': 'State',
+        'postalCode': {
+          'required': true,
+          'label': 'PIN code',
+          'pattern': r'^[1-9][0-9]{5}$',
+        },
+        'configurationVersion': 1,
+      };

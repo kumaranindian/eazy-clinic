@@ -1,0 +1,167 @@
+{
+  "@@locale": "en",
+  "appName": "EazyClinic",
+  "retry": "Try again",
+  "loading": "Loading…",
+  "signOut": "Sign out",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "save": "Save",
+  "back": "Back",
+  "language": "Language",
+  "country": "Country",
+  "selectCountry": "Select your country",
+  "welcome": "Welcome",
+  "languageEnglish": "English",
+  "languageArabic": "العربية",
+  "languageHindi": "हिन्दी",
+  "languageTamil": "தமிழ்",
+  "languageSystem": "Device language",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "searchHint": "Search",
+  "clearSearch": "Clear search",
+  "errorStateTitle": "Something went wrong",
+  "errorStateMessage": "Please check your connection and try again.",
+  "signIn": "Sign in",
+  "createAccount": "Create account",
+  "createYourAccount": "Create your account",
+  "newToApp": "New to EazyClinic?",
+  "alreadyHaveAccount": "Already have an account?",
+  "forgotPassword": "Forgot password?",
+  "resetYourPassword": "Reset your password",
+  "sendResetLink": "Send reset link",
+  "backToSignIn": "Back to sign in",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm password",
+  "fullName": "Full name",
+  "acceptTerms": "I accept the Terms of Service and acknowledge the Privacy Policy.",
+  "mustAcceptTerms": "You must accept the terms to continue.",
+  "checkingSession": "Checking your session…",
+  "offlineTitle": "You appear to be offline",
+  "cannotSignInTitle": "Cannot sign you in",
+  "offlineMessage": "Check your internet connection and try again.",
+  "sessionVerifyFailed": "We could not verify your session. Please try again.",
+  "accountSuspendedTitle": "Account suspended",
+  "accountSuspendedMessage": "This account has been suspended. Please contact EazyClinic support or your clinic administrator.",
+  "accountDisabledTitle": "Account disabled",
+  "accountDisabledMessage": "This account has been disabled. Please contact EazyClinic support.",
+  "accessUnavailableTitle": "Access not available",
+  "verifyEmailTitle": "Verify your email",
+  "verificationSentGeneric": "We sent you a verification link.",
+  "verificationSentTo": "We sent a verification link to {email}.",
+  "@verificationSentTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyEmailInstructions": "Open the link in that email, then come back and continue. You will get access once your email is verified.",
+  "resendVerification": "Resend verification email",
+  "verificationResent": "Verification email sent.",
+  "checkYourEmailTitle": "Check your email",
+  "resetLinkInfo": "If an account exists for this email, a password reset link has been sent. Check your inbox and spam folder. The link expires after a short time.",
+  "verifiedMyEmail": "I've verified my email",
+  "useDifferentEmail": "Use a different email",
+  "validationRequired": "{field} is required.",
+  "@validationRequired": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "validationEmail": "Enter a valid email address.",
+  "validationPhone": "Enter a valid phone number.",
+  "validationPasswordLength": "Password must be at least 8 characters.",
+  "validationPasswordMix": "Password must contain letters and numbers.",
+  "validationTooShort": "{field} must be at least {min} characters.",
+  "@validationTooShort": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "validationTooLong": "{field} must be at most {max} characters.",
+  "@validationTooLong": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordRequired": "Password is required.",
+  "confirmPasswordPrompt": "Please confirm your password.",
+  "passwordsDoNotMatch": "Passwords do not match.",
+  "errorGeneric": "Something went wrong. Please try again.",
+  "errorNetwork": "Cannot reach the server. Check your connection and try again.",
+  "authInvalidCredentials": "The email or password is incorrect. Please try again.",
+  "authAccountDisabled": "This account has been disabled. Please contact support.",
+  "authEmailInUse": "An account with this email may already exist. Try signing in or resetting your password.",
+  "authWeakPassword": "Please choose a stronger password (8+ characters with letters and numbers).",
+  "authInvalidEmail": "Please enter a valid email address.",
+  "authTooManyRequests": "Too many attempts. Please wait a few minutes and try again.",
+  "authRequiresRecentLogin": "For your security, please sign in again to continue.",
+  "navHome": "Home",
+  "navAppointments": "Appointments",
+  "navPatients": "Patients",
+  "navBilling": "Billing",
+  "navReports": "Reports",
+  "navProfile": "Profile",
+  "navSettings": "Settings",
+  "navDashboard": "Dashboard",
+  "navToday": "Today",
+  "navQueue": "Queue",
+  "navFollowups": "Follow-ups",
+  "navNotifications": "Notifications",
+  "navAccount": "Account",
+  "navRecords": "Records",
+  "navClinics": "Clinics",
+  "navOverview": "Overview",
+  "navBranches": "Branches",
+  "navLaboratory": "Laboratory",
+  "bookAppointment": "Book appointment",
+  "myAppointments": "My appointments",
+  "prescriptions": "Prescriptions",
+  "labReports": "Lab reports",
+  "upcomingAppointment": "Upcoming appointment",
+  "noAppointments": "No appointments yet",
+  "statusBooked": "Booked",
+  "statusConfirmed": "Confirmed",
+  "statusCheckedIn": "Checked in",
+  "statusInConsultation": "In consultation",
+  "statusCompleted": "Completed",
+  "statusCancelled": "Cancelled",
+  "statusNoShow": "No show",
+  "statusDraft": "Draft",
+  "statusFinalized": "Finalized",
+  "statusPaid": "Paid",
+  "statusPartiallyPaid": "Partially paid",
+  "statusOutstanding": "Outstanding",
+  "statusRefunded": "Refunded",
+  "appointmentsCount": "{count, plural, =0{No appointments} =1{1 appointment} other{{count} appointments}}",
+  "@appointmentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "minutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

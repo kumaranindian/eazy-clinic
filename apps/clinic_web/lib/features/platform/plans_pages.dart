@@ -354,7 +354,7 @@ class _PlanFormPageState extends ConsumerState<PlanFormPage> {
                   SizedBox(
                     width: 220,
                     child: EcTextField(
-                      label: 'Price (₹)',
+                      label: 'Price (${RegionalDisplay.currencyLabel()})',
                       controller: _price,
                       enabled: !_saving,
                       keyboardType: TextInputType.number,

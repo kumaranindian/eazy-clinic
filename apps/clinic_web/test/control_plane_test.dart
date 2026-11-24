@@ -218,10 +218,7 @@ void main() {
 
     testWidgets('rejects an invalid PIN and phone', (t) async {
       await openApply(t, FakeRepo());
-      await t.enterText(
-        find.widgetWithText(TextFormField, 'PIN / postal code'),
-        '12',
-      );
+      await t.enterText(find.widgetWithText(TextFormField, 'PIN code'), '12');
       await t.enterText(
         find.widgetWithText(TextFormField, 'Clinic phone'),
         '123',
@@ -229,7 +226,7 @@ void main() {
       await t.ensureVisible(find.text('Submit application'));
       await t.tap(find.text('Submit application'));
       await t.pumpAndSettle();
-      expect(find.text('Enter a valid 6-digit PIN code.'), findsOneWidget);
+      expect(find.text('Enter a valid PIN code.'), findsOneWidget);
       expect(find.text('Enter a valid 10-digit mobile number.'), findsWidgets);
     });
 
@@ -263,7 +260,7 @@ void main() {
       await fill('Address line 1', '12 Main Road');
       await fill('City', 'Pune');
       await fill('State', 'Maharashtra');
-      await fill('PIN / postal code', '411001');
+      await fill('PIN code', '411001');
       await fill('Full name', 'Dr Asha Rao');
       await fill('Email', 'asha@gv.test');
       await fill('Mobile number', '9876543211');
@@ -277,6 +274,9 @@ void main() {
           repo.callArgs[repo.calls.indexOf('submitApplication')][0]!
               as Map<String, Object?>;
       expect(body.keys.toSet(), {'clinic', 'address', 'owner', 'expectations'});
+      // the legal country is the applicant's explicit choice, sent as a code
+      expect((body['address']! as Map)['countryCode'], 'IN');
+      expect((body['address']! as Map).containsKey('country'), isFalse);
       expect(body.toString(), isNot(contains('status')));
       expect(body.toString(), isNot(contains('tenant')));
       expect(find.text('Green Valley Clinic'), findsWidgets);
@@ -299,7 +299,7 @@ void main() {
         'Address line 1': '12 Main Road',
         'City': 'Pune',
         'State': 'MH',
-        'PIN / postal code': '411001',
+        'PIN code': '411001',
         'Full name': 'Dr A',
         'Email': 'a@b.co',
         'Mobile number': '9876543211',

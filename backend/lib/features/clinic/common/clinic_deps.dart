@@ -1,5 +1,6 @@
 import '../../../core/data/document_store.dart';
 import '../../platform/audit/audit_service.dart';
+import '../../platform/countries/country_directory.dart';
 import '../../platform/entitlements/entitlement_service.dart';
 import 'seat_service.dart';
 import 'tenant_context.dart';
@@ -19,6 +20,10 @@ class ClinicDeps {
   final SeatService seats;
   final EntitlementService entitlements;
   final DateTime Function() clock;
+
+  /// Country master access (Phase 12). Created from [store] so existing
+  /// construction sites keep working.
+  late final CountryDirectory countries = CountryDirectory(store, clock: clock);
 
   DateTime get now => clock().toUtc();
 
