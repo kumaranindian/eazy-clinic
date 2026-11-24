@@ -298,3 +298,13 @@ Verified by in-memory/API tests; emulator not run. **No real provider, no live m
 | Provider refunds, settlement facts, disputes, inquiry | Implemented, tested | |
 | Reconciliation queue, stale list, resolution, provider health, rotation, runbook | Implemented, tested | |
 | Real provider adapters; live activation; Clinic Web/patient UI; settlement import | **Not implemented** | TD-124..129 |
+
+## Phase 12 (code gaps): PDFs, platform administrators, configurable roles (branch `feature/phase-12-code-gaps`, merged via PR #9)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Invoice, receipt and prescription PDFs (staff and patient APIs, Clinic Web buttons) | Implemented, tested; no button in the mobile apps (TD-132) | `backend/lib/features/documents/` |
+| Platform administrator management | Implemented, tested | `backend/lib/features/platform/admins/`, `/platform/admins` screen |
+| Clinic-configurable role permissions | Implemented, tested; built-in roles only (TD-133) | `backend/lib/features/clinic/roles/`, Roles tab editor |
+
+Production readiness is unchanged: **not ready** (`docs/phase-11/`).

@@ -47,6 +47,9 @@ abstract final class Permission {
   /// Phase 16: payment provider eligibility and gateway health.
   static const String readPayments = 'platform.payments.read';
   static const String managePayments = 'platform.payments.manage';
+
+  /// Grant or remove platform administrator roles (super admin only).
+  static const String manageAdmins = 'platform.admins.manage';
 }
 
 /// Maps roles to permissions. Backend policies call this; apps must never use
@@ -83,6 +86,7 @@ abstract final class PermissionPolicy {
       Permission.verifyTax,
       Permission.readPayments,
       Permission.managePayments,
+      Permission.manageAdmins,
     },
     // Support can investigate (read) but cannot change anything sensitive and
     // has no access to audit logs or clinical data.

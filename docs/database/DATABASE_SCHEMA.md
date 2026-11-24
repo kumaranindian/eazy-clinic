@@ -174,3 +174,6 @@ New index: `invoice_adjustments(branchId, createdAt)`. Details: `docs/phase-15/A
 Platform: `payment_eligibility/{countryCode}`.
 Per clinic: `gateway_config/main`, `gateway_transactions/{id}`, `gateway_events/{hash}`, `gateway_exceptions/{id}`. `payments` gain `source: gateway`, `gatewayProvider`, `gatewayTransactionId`.
 New index: collection group `gateway_exceptions(status, createdAt)`. Details: `docs/phase-16/ARCHITECTURE_AND_DATA_MODEL.md`.
+
+## Phase 12 (code gaps): role permissions
+`tenants/{t}/role_permissions/{role}`: `grant[]`, `revoke[]`, `version`, `updatedBy`, `updatedAt` (per-clinic adjustment of a built-in role; absent means defaults). No new collection for PDFs (rendered on demand) or platform administrators (`platform_users.platformRole`).

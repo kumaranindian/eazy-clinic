@@ -88,6 +88,7 @@ const patientPaths = [
   'tenants/t1/lab_report_numbers/RPT-000001',
   'tenants/t1/lab_idempotency/hash1',
   'tenants/t1/lab_audit_logs/la1',
+  'tenants/t1/role_permissions/nurse',
   'tenants/t1/notification_events/ev1',
   'tenants/t1/notifications/nt1',
   'tenants/t1/notification_deliveries/dl1',
@@ -381,6 +382,8 @@ describe('patient, scheduling and clinical data is backend-only (Phases 4-6)', (
     await assertFails(setDoc(doc(alice(), 'tenants/t1/report_exports/rx2'), { status: 'ready' }));
     await assertFails(deleteDoc(doc(alice(), 'tenants/t1/notification_audit_logs/na1')));
     await assertFails(deleteDoc(doc(alice(), 'tenants/t1/report_audit_logs/ra1')));
+    await assertFails(getDoc(doc(alice(), 'tenants/t1/role_permissions/nurse')));
+    await assertFails(setDoc(doc(alice(), 'tenants/t1/role_permissions/nurse'), { grant: ['roles.manage'], revoke: [] }));
   });
 
   it('no client can read or write patient notifications, device tokens, preferences or deletion requests', async () => {

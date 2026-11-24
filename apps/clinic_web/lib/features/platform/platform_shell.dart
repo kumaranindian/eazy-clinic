@@ -54,6 +54,12 @@ const _destinations = [
     Permission.readCountries,
   ),
   _Dest(
+    'Administrators',
+    Icons.manage_accounts_outlined,
+    '/platform/admins',
+    Permission.readPlatformUsers,
+  ),
+  _Dest(
     'Audit log',
     Icons.history,
     '/platform/audit',

@@ -56,17 +56,33 @@ class RolesTab extends ConsumerWidget {
           const PageHeader(
             title: 'Roles',
             subtitle:
-                'Predefined roles. Custom roles are not available yet. Platform permissions can never be part of a clinic role.',
+                'Each role starts from the standard permissions. The owner can add or remove permissions per role; the owner role itself cannot be changed.',
           ),
           for (final r in roles)
             Section(
               title: Fmt.humanize(r['role']),
-              trailing: r['assignableByYou'] == true
-                  ? const EcStatusChip(
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (r['custom'] == true)
+                    const EcStatusChip(
+                      label: 'Customised',
+                      tone: EcStatusTone.warning,
+                    ),
+                  if (r['assignableByYou'] == true)
+                    const EcStatusChip(
                       label: 'You can assign',
                       tone: EcStatusTone.success,
-                    )
-                  : null,
+                    ),
+                  if (r['editable'] == true &&
+                      can(ref, ClinicPermission.rolesManage))
+                    TextButton(
+                      key: Key('edit-role-${r['role']}'),
+                      onPressed: () => _editRole(context, ref, r),
+                      child: const Text('Edit permissions'),
+                    ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -89,6 +105,171 @@ class RolesTab extends ConsumerWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+Future<void> _editRole(
+  BuildContext context,
+  WidgetRef ref,
+  Map<String, Object?> role,
+) async {
+  final repo = ref.read(controlPlaneRepositoryProvider);
+  final catalog = await ref.read(permissionCatalogProvider.future);
+  if (!context.mounted) return;
+  final body = await showDialog<Map<String, Object?>>(
+    context: context,
+    builder: (_) => _RolePermissionsDialog(role: role, catalog: catalog),
+  );
+  if (body == null || !context.mounted) return;
+  final reset = body['reset'] == true;
+  await runAction(
+    context,
+    action: () async => reset
+        ? repo.sendMap('POST', '/roles/${role['role']}/permissions/reset', {
+            'reason': body['reason'],
+          })
+        : repo.sendMap('PUT', '/roles/${role['role']}/permissions', body),
+    success: reset
+        ? 'Role returned to the standard permissions'
+        : 'Permissions saved',
+    after: () => ref
+      ..invalidate(rolesProvider)
+      ..invalidate(permissionCatalogProvider)
+      ..invalidate(clinicAccessProvider),
+  );
+}
+
+class _RolePermissionsDialog extends StatefulWidget {
+  const _RolePermissionsDialog({required this.role, required this.catalog});
+
+  final Map<String, Object?> role;
+  final Map<String, Object?> catalog;
+
+  @override
+  State<_RolePermissionsDialog> createState() => _RolePermissionsDialogState();
+}
+
+class _RolePermissionsDialogState extends State<_RolePermissionsDialog> {
+  late final Set<String> _selected = {
+    ...(widget.role['permissions']! as List).cast<String>(),
+  };
+  late final Set<String> _defaults = {
+    ...((widget.role['defaultPermissions'] as List?) ?? const [])
+        .cast<String>(),
+  };
+  final _reason = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  void _finish({required bool reset}) {
+    final reason = _reason.text.trim();
+    if (reason.length < 5) {
+      setState(() => _error = 'Give a reason (at least 5 characters).');
+      return;
+    }
+    Navigator.of(context).pop(
+      reset
+          ? {'reset': true, 'reason': reason}
+          : {
+              'grant': (_selected.difference(_defaults).toList()..sort()),
+              'revoke': (_defaults.difference(_selected).toList()..sort()),
+              'reason': reason,
+            },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = ((widget.catalog['groups'] as Map?) ?? const {})
+        .cast<String, Object?>();
+    final ownerOnly = {
+      ...((widget.catalog['ownerOnly'] as List?) ?? const []).cast<String>(),
+    };
+    return AlertDialog(
+      title: Text('Permissions of ${Fmt.humanize(widget.role['role'])}'),
+      content: SizedBox(
+        width: 560,
+        height: 520,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Changes apply to everyone with this role at once and are recorded. Clinical records can still only be written by a doctor.',
+              style: EcTypography.bodySecondary,
+            ),
+            if (_error != null)
+              EcInlineMessage(tone: EcStatusTone.error, message: _error!),
+            Expanded(
+              child: ListView(
+                children: [
+                  for (final g in groups.entries) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(top: EcSpacing.md),
+                      child: Text(
+                        Fmt.humanize(g.key),
+                        style: EcTypography.bodyStrong,
+                      ),
+                    ),
+                    for (final p in (g.value! as List).cast<String>())
+                      CheckboxListTile(
+                        key: Key('perm-$p'),
+                        dense: true,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: Text(p),
+                        subtitle: ownerOnly.contains(p)
+                            ? const Text('Owner only')
+                            : (_defaults.contains(p) != _selected.contains(p)
+                                  ? Text(
+                                      _selected.contains(p)
+                                          ? 'Added for this clinic'
+                                          : 'Removed for this clinic',
+                                    )
+                                  : null),
+                        value: _selected.contains(p),
+                        onChanged: ownerOnly.contains(p)
+                            ? null
+                            : (v) => setState(
+                                () => v == true
+                                    ? _selected.add(p)
+                                    : _selected.remove(p),
+                              ),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+            TextField(
+              key: const Key('role-reason'),
+              controller: _reason,
+              decoration: const InputDecoration(
+                labelText: 'Reason for the change',
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          key: const Key('role-reset'),
+          onPressed: () => _finish(reset: true),
+          child: const Text('Use standard permissions'),
+        ),
+        FilledButton(
+          key: const Key('role-save'),
+          onPressed: () => _finish(reset: false),
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }
